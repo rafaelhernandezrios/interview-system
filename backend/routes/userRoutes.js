@@ -1,0 +1,503 @@
+import express from "express";
+import User from "../models/User.js";
+import { authMiddleware } from "./authRoutes.js";
+import upload, { STORAGE_TYPE } from "../middleware/upload.js";
+import videoUpload from "../middleware/videoUpload.js";
+import {
+  extractTextFromPdf,
+  analyzeCvText,
+  generateQuestions,
+  calculateScoreBasedOnAnswers,
+  evaluateSoftSkills,
+  evaluateMultipleIntelligences,
+  transcribeVideoAudio
+} from "../utils/cvUtils.js";
+import OpenAI from "openai";
+import dotenv from "dotenv";
+import path from "path";
+import fs from "fs";
+
+dotenv.config();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+const router = express.Router();
+
+// Servir archivos estáticos de CVs (solo para almacenamiento local)
+if (STORAGE_TYPE === 'local') {
+  router.use('/uploads/cvs', express.static(path.join(process.cwd(), 'uploads/cvs')));
+}
+
+// Subida de CV
+router.post("/upload-cv", authMiddleware, upload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Si ya existe un CV, borrar el anterior (solo para almacenamiento local)
+    if (user.cvPath && STORAGE_TYPE === 'local') {
+      try {
+        const fileName = path.basename(user.cvPath);
+        const filePath = path.join(__dirname, '../uploads/cvs', fileName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (err) {
+        console.error("Error deleting old CV file:", err);
+      }
+    }
+
+    // Determinar la ruta del archivo según el tipo de almacenamiento
+    let filePath;
+    if (STORAGE_TYPE === 's3') {
+      // Para S3, usar la URL del archivo
+      filePath = req.file.location;
+    } else {
+      // Para almacenamiento local, crear una URL relativa
+      const fileName = path.basename(req.file.path);
+      filePath = `/api/users/uploads/cvs/${fileName}`;
+    }
+
+    // Resetear análisis si se sube un nuevo CV
+    user.cvPath = filePath;
+    user.cvText = undefined;
+    user.analysis = undefined;
+    user.skills = [];
+    user.questions = [];
+    user.score = undefined;
+    user.cvAnalyzed = false;
+    user.interviewResponses = [];
+    user.interviewScore = undefined;
+    user.interviewAnalysis = [];
+    user.interviewCompleted = false;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "CV uploaded successfully",
+      filePath: user.cvPath,
+      storageType: STORAGE_TYPE
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Borrar CV
+router.delete("/cv", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.cvPath) {
+      return res.status(400).json({ message: "No CV to delete" });
+    }
+
+    // Borrar archivo físico si es almacenamiento local
+    if (STORAGE_TYPE === 'local') {
+      try {
+        const fileName = path.basename(user.cvPath);
+        const filePath = path.join(__dirname, '../uploads/cvs', fileName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (err) {
+        console.error("Error deleting CV file:", err);
+      }
+    }
+
+    // Limpiar datos del CV en la base de datos
+    user.cvPath = undefined;
+    user.cvText = undefined;
+    user.analysis = undefined;
+    user.skills = [];
+    user.questions = [];
+    user.score = undefined;
+    user.cvAnalyzed = false;
+    user.interviewResponses = [];
+    user.interviewScore = undefined;
+    user.interviewAnalysis = [];
+    user.interviewCompleted = false;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "CV deleted successfully"
+    });
+  } catch (error) {
+    console.error("Error deleting CV:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Análisis de CV
+router.post("/analyze-cv", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user || !user.cvPath) {
+      return res.status(404).json({ message: "No CV stored for analysis" });
+    }
+
+    const cvText = await extractTextFromPdf(user.cvPath);
+    const allSkills = await analyzeCvText(cvText);
+
+    // Ensure allSkills is an array
+    const skillsArray = Array.isArray(allSkills) ? allSkills : [];
+
+    const questions = await generateQuestions(skillsArray);
+    const score = Math.min(skillsArray.length * 10, 100);
+
+    user.cvText = cvText;
+    user.analysis = skillsArray.join(", "); // Store as comma-separated string for backward compatibility
+    user.skills = skillsArray;
+    user.questions = questions;
+    user.score = score;
+    user.cvAnalyzed = true;
+
+    await user.save();
+
+    res.json({ 
+      message: "CV analizado con éxito", 
+      userId: user._id,
+      questions,
+      score,
+      skills: allSkills
+    });
+  } catch (error) {
+    console.error("Error procesando CV:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Transcribe video audio using Whisper
+router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No video file provided" });
+    }
+
+    // Transcribe using Whisper (pass file path)
+    const transcription = await transcribeVideoAudio(req.file.path);
+
+    // Delete temporary file after transcription
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch (err) {
+      console.error("Error deleting temp file:", err);
+    }
+
+    return res.json({ transcription });
+  } catch (error) {
+    console.error("Error transcribing video:", error);
+    // Try to delete temp file even on error
+    if (req.file && req.file.path) {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Error deleting temp file:", err);
+      }
+    }
+    return res.status(500).json({ message: "Error transcribing audio" });
+  }
+});
+
+// Envío de respuestas de entrevista
+router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { answers } = req.body;
+    // Find the main video file (for final video question)
+    // When using .any(), files are in req.files array
+    const videoFile = req.files?.find(f => f.fieldname === 'video') || null;
+
+    // Parse answers if it's a string (from FormData)
+    let parsedAnswers = answers;
+    if (typeof answers === 'string') {
+      try {
+        parsedAnswers = JSON.parse(answers);
+      } catch (e) {
+        parsedAnswers = [];
+      }
+    }
+
+    if (!parsedAnswers || !Array.isArray(parsedAnswers) || parsedAnswers.length === 0) {
+      return res.status(400).json({ message: "No valid answers were submitted" });
+    }
+
+    // Default questions
+    const defaultQuestions = [
+      "What is your motivation for wanting to come to Mirai Innovation Research Institute?",
+      "How do you plan to finance your stay and the program in Japan?"
+    ];
+
+    const generatedQuestions = user.questions || [];
+    const allQuestions = [...generatedQuestions, ...defaultQuestions];
+    
+    // Separate text answers from video
+    const textAnswers = videoFile ? parsedAnswers : parsedAnswers;
+    const hasVideo = !!videoFile;
+
+    if (textAnswers.length !== allQuestions.length) {
+      return res.status(400).json({ 
+        message: "Number of answers does not match the number of questions." 
+      });
+    }
+
+    // Evaluate text answers only (not the video)
+    const { total_score, evaluations } = await calculateScoreBasedOnAnswers(allQuestions, textAnswers);
+
+    user.interviewResponses = textAnswers;
+    if (videoFile) {
+      // Store video file path instead of base64
+      const videoPath = `/api/users/uploads/videos/${path.basename(videoFile.path)}`;
+      user.interviewVideo = videoPath;
+    }
+    user.interviewScore = total_score;
+    user.interviewAnalysis = evaluations;
+    user.interviewCompleted = true;
+
+    await user.save();
+
+    return res.json({
+      message: "Interview evaluated and stored successfully",
+      total_score,
+      evaluations,
+    });
+  } catch (error) {
+    console.error("Error processing interview:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Guardar progreso de entrevista automáticamente
+router.post("/save-interview-progress", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const { answers, currentQuestionIndex } = req.body;
+
+    // Don't save if interview is already completed
+    if (user.interviewCompleted) {
+      return res.json({ message: "Interview already completed" });
+    }
+
+    // Save answers temporarily (don't mark as completed)
+    user.interviewResponses = answers || [];
+    
+    await user.save();
+
+    return res.json({ 
+      message: "Progress saved successfully",
+      currentQuestionIndex: currentQuestionIndex || 0
+    });
+  } catch (error) {
+    console.error("Error saving interview progress:", error);
+    return res.status(500).json({ message: "Error saving progress" });
+  }
+});
+
+// Obtener respuestas de entrevista
+router.get("/interview-responses", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.interviewCompleted) {
+      return res.status(404).json({ message: "Interview not completed" });
+    }
+
+    // Default questions
+    const defaultQuestions = [
+      "What is your motivation for wanting to come to Mirai Innovation Research Institute?",
+      "How do you plan to finance your stay and the program in Japan?"
+    ];
+
+    const allQuestions = [...(user.questions || []), ...defaultQuestions];
+
+    res.json({
+      questions: allQuestions,
+      responses: user.interviewResponses || [],
+      video: user.interviewVideo || null,
+      analysis: user.interviewAnalysis || [],
+      score: user.interviewScore || 0
+    });
+  } catch (error) {
+    console.error("Error fetching interview responses:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+// Envío de habilidades blandas
+router.post("/submit-soft-skills", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const { responses } = req.body;
+
+    if (!responses) {
+      return res.status(400).json({ message: "No se enviaron respuestas" });
+    }
+
+    const evaluation = evaluateSoftSkills(responses);
+
+    user.softSkillsResults = {
+      results: evaluation.results,
+      totalScore: evaluation.totalScore,
+      institutionalLevel: evaluation.institutionalLevel
+    };
+    user.softSkillsSurveyCompleted = true;
+
+    await user.save();
+
+    res.json({
+      message: "Encuesta de habilidades blandas guardada exitosamente",
+      ...evaluation
+    });
+  } catch (error) {
+    console.error("Error al procesar la encuesta:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Envío de habilidades duras
+router.post("/submit-hard-skills", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const { responses } = req.body;
+
+    if (!responses) {
+      return res.status(400).json({ message: "No se enviaron respuestas" });
+    }
+
+    const evaluation = evaluateMultipleIntelligences(responses);
+
+    user.hardSkillsResults = {
+      results: evaluation.results,
+      totalScore: evaluation.totalScore
+    };
+    user.hardSkillsSurveyCompleted = true;
+
+    await user.save();
+
+    res.json({
+      message: "Encuesta de habilidades duras guardada exitosamente",
+      ...evaluation
+    });
+  } catch (error) {
+    console.error("Error al procesar la encuesta:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Generar CV mejorado
+router.post("/generate-cv", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Recolectar datos positivos
+    const positiveSoftSkills = user.softSkillsResults?.results 
+      ? Object.entries(user.softSkillsResults.results)
+          .filter(([_, data]) => data.level && !data.level.includes("bajo"))
+          .map(([name, data]) => `${name}: ${data.level}`)
+      : [];
+
+    const positiveHardSkills = user.hardSkillsResults?.results
+      ? Object.entries(user.hardSkillsResults.results)
+          .filter(([_, data]) => data.level && !data.level.includes("bajo"))
+          .map(([name, data]) => `${name}: ${data.level}`)
+      : [];
+
+    const prompt = `
+Generate an improved professional CV based on the following information:
+
+Personal Data:
+- Name: ${user.name}
+- Email: ${user.email}
+- Date of birth: ${user.dob}
+- Gender: ${user.gender}
+- Academic level: ${user.academic_level}
+
+Original CV Analysis:
+${user.analysis || "Not available"}
+
+Highlighted Soft Skills:
+${positiveSoftSkills.length > 0 ? positiveSoftSkills.join("\n") : "Not available"}
+
+Highlighted Hard Skills:
+${positiveHardSkills.length > 0 ? positiveHardSkills.join("\n") : "Not available"}
+
+Interview Analysis:
+${user.interviewAnalysis ? user.interviewAnalysis.map(a => a.explanation).join("\n") : "Not available"}
+
+Generate a professional CV in plain text format, with paragraphs separated. 
+Only include positive and relevant aspects. 
+Include professional recommendations if appropriate.
+Format: Clear sections separated by blank lines.
+Respond in English.
+`;
+
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      max_tokens: 1500,
+      temperature: 0.7,
+    });
+
+    const generatedCV = response.choices[0].message.content.trim();
+    user.generatedCV = generatedCV;
+    await user.save();
+
+    res.json({
+      message: "CV generado exitosamente",
+      cv: generatedCV
+    });
+  } catch (error) {
+    console.error("Error generando CV:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Obtener perfil del usuario
+router.get("/profile", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error obteniendo perfil:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+export default router;
+
