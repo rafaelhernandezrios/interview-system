@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 // Usar la URL del backend desde variables de entorno o la URL por defecto
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// En producción, debe ser la URL completa del backend
+// En desarrollo, usa /api (proxy de Vite)
+const API_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.PROD ? 'https://interview-system-c1q9.vercel.app/api' : '/api');
 
 const api = axios.create({
   baseURL: API_URL,

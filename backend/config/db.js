@@ -24,8 +24,10 @@ const connectDB = async () => {
     await mongoose.connect(mongoUri, {
       retryWrites: true,
       w: 'majority',
-      serverSelectionTimeoutMS: 10000, // 10 segundos timeout
+      serverSelectionTimeoutMS: 30000, // 30 segundos timeout
       socketTimeoutMS: 45000, // 45 segundos socket timeout
+      connectTimeoutMS: 30000, // 30 segundos para conectar
+      maxPoolSize: 10, // Mantener hasta 10 conexiones en el pool
     });
     
     const dbName = mongoose.connection.db.databaseName;
