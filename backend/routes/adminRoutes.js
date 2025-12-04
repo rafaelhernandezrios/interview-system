@@ -52,17 +52,13 @@ router.get("/stats", async (req, res) => {
     const admins = await User.countDocuments({ role: "admin" });
     const cvAnalyzed = await User.countDocuments({ cvAnalyzed: true });
     const interviewCompleted = await User.countDocuments({ interviewCompleted: true });
-    const softSkillsCompleted = await User.countDocuments({ softSkillsSurveyCompleted: true });
-    const hardSkillsCompleted = await User.countDocuments({ hardSkillsSurveyCompleted: true });
 
     res.json({
       totalUsers,
       activeUsers,
       admins,
       cvAnalyzed,
-      interviewCompleted,
-      softSkillsCompleted,
-      hardSkillsCompleted
+      interviewCompleted
     });
   } catch (error) {
     console.error("Error obteniendo estadísticas:", error);
@@ -94,8 +90,6 @@ router.get("/users/:userId/survey-results", async (req, res) => {
     }
 
     res.json({
-      softSkills: user.softSkillsResults,
-      hardSkills: user.hardSkillsResults,
       interview: {
         score: user.interviewScore,
         analysis: user.interviewAnalysis

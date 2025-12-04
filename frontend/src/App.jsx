@@ -6,8 +6,6 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CVUpload from './pages/CVUpload';
 import Interview from './pages/Interview';
-import SoftSkills from './pages/SoftSkills';
-import HardSkills from './pages/HardSkills';
 import Results from './pages/Results';
 import AdminPanel from './pages/AdminPanel';
 import PrivateRoute from './components/PrivateRoute';
@@ -43,22 +41,6 @@ function App() {
             element={
               <PrivateRoute>
                 <Interview />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/soft-skills"
-            element={
-              <PrivateRoute>
-                <SoftSkills />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/hard-skills"
-            element={
-              <PrivateRoute>
-                <HardSkills />
               </PrivateRoute>
             }
           />

@@ -23,8 +23,6 @@ const Navbar = () => {
               <Link to="/dashboard" className="hover:underline">Dashboard</Link>
               <Link to="/cv-upload" className="hover:underline">CV</Link>
               <Link to="/interview" className="hover:underline">Interview</Link>
-              <Link to="/soft-skills" className="hover:underline">Soft Skills</Link>
-              <Link to="/hard-skills" className="hover:underline">Hard Skills</Link>
               <Link to="/results" className="hover:underline">Results</Link>
               {user.role === 'admin' && (
                 <Link to="/admin" className="hover:underline">Admin</Link>

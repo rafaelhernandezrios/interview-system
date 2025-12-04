@@ -9,7 +9,8 @@ const Register = () => {
     password: '',
     dob: '',
     gender: '',
-    academic_level: ''
+    academic_level: '',
+    program: ''
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -127,7 +128,7 @@ const Register = () => {
             </select>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
               Academic Level
             </label>
@@ -142,6 +143,25 @@ const Register = () => {
               <option value="Secundaria">High School</option>
               <option value="Superior">Higher Education</option>
               <option value="Postgrado">Graduate</option>
+            </select>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Program
+            </label>
+            <select
+              name="program"
+              value={formData.program}
+              onChange={handleChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              required
+            >
+              <option value="">Select...</option>
+              <option value="MIRI">MIRI</option>
+              <option value="EMFUTECH">EMFUTECH</option>
+              <option value="JCTI">JCTI</option>
+              <option value="MIRAITEACH">MIRAITEACH</option>
             </select>
           </div>
 

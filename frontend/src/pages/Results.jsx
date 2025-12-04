@@ -49,29 +49,6 @@ const Results = () => {
             <p className="text-gray-600">Score: <span className="font-bold text-green-600">{profile?.interviewScore || 0}%</span></p>
             <p className="text-gray-600">Estado: {profile?.interviewCompleted ? '✅ Completada' : '❌ No completada'}</p>
           </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Habilidades Blandas</h2>
-            {profile?.softSkillsResults ? (
-              <>
-                <p className="text-gray-600">Score Total: <span className="font-bold">{profile.softSkillsResults.totalScore}/800</span></p>
-                <p className="text-gray-600">Nivel: {profile.softSkillsResults.institutionalLevel}</p>
-              </>
-            ) : (
-              <p className="text-gray-600">❌ No completado</p>
-            )}
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Habilidades Duras</h2>
-            {profile?.hardSkillsResults ? (
-              <>
-                <p className="text-gray-600">Score Total: <span className="font-bold">{profile.hardSkillsResults.totalScore}/175</span></p>
-              </>
-            ) : (
-              <p className="text-gray-600">❌ No completado</p>
-            )}
-          </div>
         </div>
       </div>
     </div>

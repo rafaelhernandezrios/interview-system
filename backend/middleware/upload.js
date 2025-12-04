@@ -14,6 +14,14 @@ const __dirname = path.dirname(__filename);
 // Configuración: 'local' o 's3'
 const STORAGE_TYPE = process.env.STORAGE_TYPE || 'local';
 
+// Debug: Mostrar configuración
+console.log('📦 Storage Configuration:');
+console.log('  STORAGE_TYPE:', STORAGE_TYPE);
+console.log('  AWS_ACCESS_KEY_ID:', process.env.AWS_ACCESS_KEY_ID ? '✅ Set' : '❌ Not set');
+console.log('  AWS_SECRET_ACCESS_KEY:', process.env.AWS_SECRET_ACCESS_KEY ? '✅ Set' : '❌ Not set');
+console.log('  AWS_REGION:', process.env.AWS_REGION || 'Not set');
+console.log('  AWS_BUCKET_NAME:', process.env.AWS_BUCKET_NAME || 'Not set');
+
 // Crear carpeta de uploads si no existe (para almacenamiento local)
 const uploadsDir = path.join(__dirname, '../uploads/cvs');
 if (!fs.existsSync(uploadsDir)) {
@@ -23,6 +31,7 @@ if (!fs.existsSync(uploadsDir)) {
 let upload;
 
 if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
+  console.log('✅ Using AWS S3 for file storage');
   // Configuración para AWS S3
   const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -41,7 +50,8 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         cb(null, { fieldName: file.fieldname });
       },
       key: function (req, file, cb) {
-        const fileName = `${Date.now()}_${file.originalname}`;
+        // Guardar en la carpeta cvs/ del bucket
+        const fileName = `cvs/${Date.now()}_${file.originalname}`;
         cb(null, fileName);
       },
     }),
@@ -56,6 +66,10 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
   });
 } else {
   // Configuración para almacenamiento local
+  console.log('⚠️  Using LOCAL storage (not S3)');
+  if (STORAGE_TYPE === 's3') {
+    console.log('   Reason: Missing AWS credentials or configuration');
+  }
   upload = multer({
     storage: multer.diskStorage({
       destination: function (req, file, cb) {

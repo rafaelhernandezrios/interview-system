@@ -2,16 +2,15 @@ import express from "express";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import upload, { STORAGE_TYPE } from "../middleware/upload.js";
-import videoUpload from "../middleware/videoUpload.js";
+import videoUpload, { STORAGE_TYPE as VIDEO_STORAGE_TYPE } from "../middleware/videoUpload.js";
 import {
   extractTextFromPdf,
   analyzeCvText,
   generateQuestions,
   calculateScoreBasedOnAnswers,
-  evaluateSoftSkills,
-  evaluateMultipleIntelligences,
   transcribeVideoAudio
 } from "../utils/cvUtils.js";
+import axios from "axios";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
@@ -177,26 +176,69 @@ router.post("/analyze-cv", authMiddleware, async (req, res) => {
 
 // Transcribe video audio using Whisper
 router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), async (req, res) => {
+  let tempFilePath = null;
+  
   try {
     if (!req.file) {
       return res.status(400).json({ message: "No video file provided" });
     }
 
-    // Transcribe using Whisper (pass file path)
-    const transcription = await transcribeVideoAudio(req.file.path);
+    let filePathToTranscribe;
+    
+    // Si es S3, descargar el archivo temporalmente desde la URL pública
+    if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
+      // Descargar desde la URL pública de S3
+      tempFilePath = path.join(__dirname, '../uploads/videos', `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
+      
+      const response = await axios({
+        method: 'GET',
+        url: req.file.location,
+        responseType: 'stream'
+      });
+      
+      const writeStream = fs.createWriteStream(tempFilePath);
+      
+      await new Promise((resolve, reject) => {
+        response.data.pipe(writeStream);
+        response.data.on('error', reject);
+        writeStream.on('finish', resolve);
+      });
+      
+      filePathToTranscribe = tempFilePath;
+    } else {
+      // Para almacenamiento local, usar el path directamente
+      filePathToTranscribe = req.file.path;
+    }
+
+    // Transcribe using Whisper
+    const transcription = await transcribeVideoAudio(filePathToTranscribe);
 
     // Delete temporary file after transcription
-    try {
-      fs.unlinkSync(req.file.path);
-    } catch (err) {
-      console.error("Error deleting temp file:", err);
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (err) {
+        console.error("Error deleting temp file:", err);
+      }
+    } else if (req.file.path && VIDEO_STORAGE_TYPE === 'local') {
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error("Error deleting temp file:", err);
+      }
     }
 
     return res.json({ transcription });
   } catch (error) {
     console.error("Error transcribing video:", error);
     // Try to delete temp file even on error
-    if (req.file && req.file.path) {
+    if (tempFilePath && fs.existsSync(tempFilePath)) {
+      try {
+        fs.unlinkSync(tempFilePath);
+      } catch (err) {
+        console.error("Error deleting temp file:", err);
+      }
+    } else if (req.file && req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
       } catch (err) {
@@ -258,8 +300,15 @@ router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, 
 
     user.interviewResponses = textAnswers;
     if (videoFile) {
-      // Store video file path instead of base64
-      const videoPath = `/api/users/uploads/videos/${path.basename(videoFile.path)}`;
+      // Determinar la ruta del video según el tipo de almacenamiento
+      let videoPath;
+      if (VIDEO_STORAGE_TYPE === 's3') {
+        // Para S3, usar la URL del archivo
+        videoPath = videoFile.location;
+      } else {
+        // Para almacenamiento local, crear una URL relativa
+        videoPath = `/api/users/uploads/videos/${path.basename(videoFile.path)}`;
+      }
       user.interviewVideo = videoPath;
     }
     user.interviewScore = total_score;
@@ -339,75 +388,6 @@ router.get("/interview-responses", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error fetching interview responses:", error);
     res.status(500).json({ message: "Internal server error" });
-  }
-});
-
-// Envío de habilidades blandas
-router.post("/submit-soft-skills", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-    const { responses } = req.body;
-
-    if (!responses) {
-      return res.status(400).json({ message: "No se enviaron respuestas" });
-    }
-
-    const evaluation = evaluateSoftSkills(responses);
-
-    user.softSkillsResults = {
-      results: evaluation.results,
-      totalScore: evaluation.totalScore,
-      institutionalLevel: evaluation.institutionalLevel
-    };
-    user.softSkillsSurveyCompleted = true;
-
-    await user.save();
-
-    res.json({
-      message: "Encuesta de habilidades blandas guardada exitosamente",
-      ...evaluation
-    });
-  } catch (error) {
-    console.error("Error al procesar la encuesta:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
-  }
-});
-
-// Envío de habilidades duras
-router.post("/submit-hard-skills", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.userId);
-    if (!user) {
-      return res.status(404).json({ message: "Usuario no encontrado" });
-    }
-
-    const { responses } = req.body;
-
-    if (!responses) {
-      return res.status(400).json({ message: "No se enviaron respuestas" });
-    }
-
-    const evaluation = evaluateMultipleIntelligences(responses);
-
-    user.hardSkillsResults = {
-      results: evaluation.results,
-      totalScore: evaluation.totalScore
-    };
-    user.hardSkillsSurveyCompleted = true;
-
-    await user.save();
-
-    res.json({
-      message: "Encuesta de habilidades duras guardada exitosamente",
-      ...evaluation
-    });
-  } catch (error) {
-    console.error("Error al procesar la encuesta:", error);
-    res.status(500).json({ message: "Error interno del servidor" });
   }
 });
 

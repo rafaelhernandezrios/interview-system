@@ -41,9 +41,9 @@ export const authMiddleware = async (req, res, next) => {
 // Registro de usuario
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, dob, gender, academic_level } = req.body;
+    const { name, email, password, dob, gender, academic_level, program } = req.body;
 
-    if (!name || !email || !password || !dob || !gender || !academic_level) {
+    if (!name || !email || !password || !dob || !gender || !academic_level || !program) {
       return res.status(400).json({ message: "Faltan campos requeridos." });
     }
 
@@ -64,6 +64,7 @@ router.post("/register", async (req, res) => {
       dob,
       gender,
       academic_level,
+      program,
       isActive: false,
     };
 
