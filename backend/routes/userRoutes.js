@@ -184,14 +184,33 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
   let tempFilePath = null;
   
   try {
+    console.log('🎥 [TRANSCRIBE] Video transcription request received');
+    console.log('🎥 [TRANSCRIBE] Storage type:', VIDEO_STORAGE_TYPE);
+    console.log('🎥 [TRANSCRIBE] File received:', req.file ? 'Yes' : 'No');
+    
     if (!req.file) {
+      console.error('❌ [TRANSCRIBE] No video file provided');
       return res.status(400).json({ message: "No video file provided" });
+    }
+
+    // Log file details
+    if (VIDEO_STORAGE_TYPE === 's3') {
+      console.log('🎥 [TRANSCRIBE] S3 File details:');
+      console.log('   - Location:', req.file.location);
+      console.log('   - Key:', req.file.key);
+      console.log('   - Bucket:', req.file.bucket);
+      console.log('   - Size:', req.file.size);
+    } else {
+      console.log('🎥 [TRANSCRIBE] Local file details:');
+      console.log('   - Path:', req.file.path);
+      console.log('   - Size:', req.file.size);
     }
 
     let filePathToTranscribe;
     
     // Si es S3, descargar el archivo temporalmente desde la URL pública
     if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
+      console.log('🎥 [TRANSCRIBE] Downloading from S3 to temp location...');
       // En entornos serverless (Vercel), usar /tmp que es el único directorio escribible
       // En desarrollo local, usar la carpeta uploads/videos
       const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
@@ -203,6 +222,7 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
       }
       
       tempFilePath = path.join(tempDir, `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
+      console.log('🎥 [TRANSCRIBE] Temp file path:', tempFilePath);
       
       const response = await axios({
         method: 'GET',
@@ -218,45 +238,52 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
         writeStream.on('finish', resolve);
       });
       
+      console.log('✅ [TRANSCRIBE] File downloaded successfully');
       filePathToTranscribe = tempFilePath;
     } else {
       // Para almacenamiento local, usar el path directamente
+      console.log('🎥 [TRANSCRIBE] Using local file path');
       filePathToTranscribe = req.file.path;
     }
 
     // Transcribe using Whisper
+    console.log('🎥 [TRANSCRIBE] Starting transcription...');
     const transcription = await transcribeVideoAudio(filePathToTranscribe);
+    console.log('✅ [TRANSCRIBE] Transcription completed');
 
-    // Delete temporary file after transcription
+    // Delete temporary file after transcription (only local temp, NOT S3 file)
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
+        console.log('🗑️  [TRANSCRIBE] Temp file deleted');
       } catch (err) {
-        console.error("Error deleting temp file:", err);
+        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
       }
     } else if (req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
+        console.log('🗑️  [TRANSCRIBE] Local file deleted');
       } catch (err) {
-        console.error("Error deleting temp file:", err);
+        console.error("❌ [TRANSCRIBE] Error deleting local file:", err);
       }
     }
 
     return res.json({ transcription });
   } catch (error) {
-    console.error("Error transcribing video:", error);
+    console.error("❌ [TRANSCRIBE] Error transcribing video:", error);
+    console.error("❌ [TRANSCRIBE] Error stack:", error.stack);
     // Try to delete temp file even on error
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
       } catch (err) {
-        console.error("Error deleting temp file:", err);
+        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
       }
     } else if (req.file && req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
       } catch (err) {
-        console.error("Error deleting temp file:", err);
+        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
       }
     }
     return res.status(500).json({ message: "Error transcribing audio" });
@@ -266,6 +293,10 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
 // Envío de respuestas de entrevista
 router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, res) => {
   try {
+    console.log('📝 [SUBMIT INTERVIEW] Interview submission received');
+    console.log('📝 [SUBMIT INTERVIEW] Storage type:', VIDEO_STORAGE_TYPE);
+    console.log('📝 [SUBMIT INTERVIEW] Files received:', req.files ? req.files.length : 0);
+    
     const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -275,6 +306,21 @@ router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, 
     // Find the main video file (for final video question)
     // When using .any(), files are in req.files array
     const videoFile = req.files?.find(f => f.fieldname === 'video') || null;
+    
+    console.log('📝 [SUBMIT INTERVIEW] Video file found:', videoFile ? 'Yes' : 'No');
+    if (videoFile) {
+      if (VIDEO_STORAGE_TYPE === 's3') {
+        console.log('📝 [SUBMIT INTERVIEW] S3 Video details:');
+        console.log('   - Location:', videoFile.location);
+        console.log('   - Key:', videoFile.key);
+        console.log('   - Bucket:', videoFile.bucket);
+        console.log('   - Size:', videoFile.size);
+      } else {
+        console.log('📝 [SUBMIT INTERVIEW] Local video details:');
+        console.log('   - Path:', videoFile.path);
+        console.log('   - Size:', videoFile.size);
+      }
+    }
 
     // Parse answers if it's a string (from FormData)
     let parsedAnswers = answers;
@@ -303,6 +349,10 @@ router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, 
     const textAnswers = videoFile ? parsedAnswers : parsedAnswers;
     const hasVideo = !!videoFile;
 
+    console.log('📝 [SUBMIT INTERVIEW] Total questions:', allQuestions.length);
+    console.log('📝 [SUBMIT INTERVIEW] Total answers:', textAnswers.length);
+    console.log('📝 [SUBMIT INTERVIEW] Has video:', hasVideo);
+
     if (textAnswers.length !== allQuestions.length) {
       return res.status(400).json({ 
         message: "Number of answers does not match the number of questions." 
@@ -319,17 +369,22 @@ router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, 
       if (VIDEO_STORAGE_TYPE === 's3') {
         // Para S3, usar la URL del archivo
         videoPath = videoFile.location;
+        console.log('✅ [SUBMIT INTERVIEW] Video saved to S3:', videoPath);
       } else {
         // Para almacenamiento local, crear una URL relativa
         videoPath = `/api/users/uploads/videos/${path.basename(videoFile.path)}`;
+        console.log('✅ [SUBMIT INTERVIEW] Video saved locally:', videoPath);
       }
       user.interviewVideo = videoPath;
+    } else {
+      console.log('⚠️  [SUBMIT INTERVIEW] No video file provided');
     }
     user.interviewScore = total_score;
     user.interviewAnalysis = evaluations;
     user.interviewCompleted = true;
 
     await user.save();
+    console.log('✅ [SUBMIT INTERVIEW] Interview saved successfully');
 
     return res.json({
       message: "Interview evaluated and stored successfully",
@@ -337,7 +392,8 @@ router.post("/submit-interview", authMiddleware, videoUpload.any(), async (req, 
       evaluations,
     });
   } catch (error) {
-    console.error("Error processing interview:", error);
+    console.error("❌ [SUBMIT INTERVIEW] Error processing interview:", error);
+    console.error("❌ [SUBMIT INTERVIEW] Error stack:", error.stack);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
