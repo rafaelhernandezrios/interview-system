@@ -192,8 +192,17 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
     
     // Si es S3, descargar el archivo temporalmente desde la URL pública
     if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
-      // Descargar desde la URL pública de S3
-      tempFilePath = path.join(__dirname, '../uploads/videos', `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
+      // En entornos serverless (Vercel), usar /tmp que es el único directorio escribible
+      // En desarrollo local, usar la carpeta uploads/videos
+      const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+      const tempDir = isServerless ? '/tmp' : path.join(__dirname, '../uploads/videos');
+      
+      // Crear el directorio si no existe (solo en local, /tmp siempre existe en serverless)
+      if (!isServerless && !fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+      
+      tempFilePath = path.join(tempDir, `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
       
       const response = await axios({
         method: 'GET',
