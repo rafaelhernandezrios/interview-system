@@ -18,7 +18,10 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 let allowedOrigins = [];
 
 if (process.env.CORS_ORIGINS) {
-  allowedOrigins = process.env.CORS_ORIGINS.split(',').map(origin => origin.trim()).filter(origin => origin.length > 0);
+  allowedOrigins = process.env.CORS_ORIGINS.split(',')
+    .map(origin => origin.trim())
+    .filter(origin => origin.length > 0)
+    .map(origin => origin.replace(/\/$/, '')); // Remover barra final si existe
 } else {
   allowedOrigins = ['http://localhost:3000'];
 }
@@ -47,9 +50,12 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Normalizar origin: remover barra final si existe
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
     // Verificar coincidencia exacta
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log(`  ✅ CORS: Allowing origin (exact match): ${origin}`);
+    if (allowedOrigins.indexOf(normalizedOrigin) !== -1) {
+      console.log(`  ✅ CORS: Allowing origin (exact match): ${normalizedOrigin}`);
       return callback(null, true);
     }
     
@@ -58,14 +64,14 @@ const corsOptions = {
       if (allowedOrigin.includes('*')) {
         const pattern = allowedOrigin.replace(/\*/g, '.*');
         const regex = new RegExp(`^${pattern}$`);
-        if (regex.test(origin)) {
-          console.log(`  ✅ CORS: Allowing origin (wildcard match): ${origin} matches ${allowedOrigin}`);
+        if (regex.test(normalizedOrigin)) {
+          console.log(`  ✅ CORS: Allowing origin (wildcard match): ${normalizedOrigin} matches ${allowedOrigin}`);
           return callback(null, true);
         }
       }
     }
     
-    console.log(`  ❌ CORS: Blocked origin: ${origin}`);
+    console.log(`  ❌ CORS: Blocked origin: ${normalizedOrigin}`);
     console.log(`  Allowed origins: ${allowedOrigins.join(', ')}`);
     callback(new Error('Not allowed by CORS'));
   },

@@ -7,15 +7,25 @@ const connectDB = async () => {
   try {
     // Verificar que MONGO_URI esté configurado
     if (!process.env.MONGO_URI) {
-      console.error("❌ Error: MONGO_URI no está configurado en el archivo .env");
-      console.error("📝 Crea un archivo .env en la carpeta backend/ con la siguiente configuración:");
-      console.error("   MONGO_URI=mongodb+srv://username:password@miraiinnovation.mongodb.net/mirai-interviews?retryWrites=true&w=majority");
+      console.error("❌ Error: MONGO_URI no está configurado");
+      console.error("📝 En Vercel: Ve a Settings → Environment Variables");
+      console.error("   Agrega: MONGO_URI = tu_connection_string");
+      console.error("   Formato: mongodb+srv://username:password@cluster.mongodb.net/mirai-interviews?retryWrites=true&w=majority");
       process.exit(1);
     }
 
-    await mongoose.connect(process.env.MONGO_URI, {
+    // Debug: Mostrar información de conexión (sin mostrar la contraseña)
+    const mongoUri = process.env.MONGO_URI;
+    const maskedUri = mongoUri.replace(/:[^:@]+@/, ':****@'); // Ocultar contraseña
+    console.log('🔌 Intentando conectar a MongoDB...');
+    console.log('   URI:', maskedUri);
+    console.log('   NODE_ENV:', process.env.NODE_ENV);
+
+    await mongoose.connect(mongoUri, {
       retryWrites: true,
-      w: 'majority'
+      w: 'majority',
+      serverSelectionTimeoutMS: 10000, // 10 segundos timeout
+      socketTimeoutMS: 45000, // 45 segundos socket timeout
     });
     
     const dbName = mongoose.connection.db.databaseName;
@@ -25,12 +35,36 @@ const connectDB = async () => {
     console.log(`📦 Colección de usuarios: users`);
   } catch (error) {
     console.error("❌ Error al conectar a MongoDB");
-    console.error("💡 Verifica que:");
-    console.error("   1. El archivo .env existe en la carpeta backend/");
-    console.error("   2. MONGO_URI está configurado correctamente");
-    console.error("   3. Las credenciales de MongoDB Atlas son correctas");
-    console.error("   4. Tu IP está en la lista de Network Access en MongoDB Atlas");
+    console.error("\n💡 Pasos para solucionar:");
+    console.error("\n1️⃣  Configurar Network Access en MongoDB Atlas:");
+    console.error("   - Ve a https://cloud.mongodb.com/");
+    console.error("   - Network Access → Add IP Address");
+    console.error("   - Selecciona 'Allow Access from Anywhere' (0.0.0.0/0)");
+    console.error("   - Esto permite que Vercel se conecte desde cualquier IP");
+    console.error("\n2️⃣  Verificar MONGO_URI en Vercel:");
+    console.error("   - Settings → Environment Variables");
+    console.error("   - Verifica que MONGO_URI esté configurado");
+    console.error("   - Formato: mongodb+srv://user:pass@cluster.mongodb.net/dbname?retryWrites=true&w=majority");
+    console.error("   - Environment: Production, Preview, Development (todas)");
+    console.error("\n3️⃣  Verificar credenciales:");
+    console.error("   - Usuario y contraseña correctos");
+    console.error("   - El usuario tiene permisos de lectura/escritura");
     console.error("\n📋 Error detallado:", error.message);
+    
+    // Si es error de autenticación, dar más detalles
+    if (error.message.includes('authentication')) {
+      console.error("\n⚠️  Error de autenticación:");
+      console.error("   - Verifica usuario y contraseña");
+      console.error("   - Asegúrate de que el usuario tenga permisos");
+    }
+    
+    // Si es error de red/IP, dar más detalles
+    if (error.message.includes('whitelist') || error.message.includes('IP')) {
+      console.error("\n⚠️  Error de Network Access:");
+      console.error("   - Agrega 0.0.0.0/0 en Network Access de MongoDB Atlas");
+      console.error("   - Espera 1-2 minutos después de agregar la IP");
+    }
+    
     process.exit(1);
   }
 };
