@@ -821,11 +821,11 @@ const Interview = () => {
   return (
     <div className="min-h-screen bg-mesh-gradient relative">
       <Navbar />
-      <div className="container mx-auto px-4 py-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6 relative z-10">
         {/* Centered Container */}
         <div className="max-w-4xl mx-auto">
           {/* Progress Indicator - Top */}
-          <div className="mb-6">
+          <div className="mb-4 sm:mb-6">
             <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
               <span className="font-medium">
                 {isVideoQuestion 
@@ -859,10 +859,10 @@ const Interview = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Question Card (Teleprompter Style) */}
-            <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-3xl p-6 mb-6 shadow-xl">
-              <div className="flex items-start justify-between gap-4">
+            <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 mb-4 sm:mb-6 shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
                 <label 
-                  className="block text-gray-900 text-xl font-semibold select-none flex-1 leading-relaxed"
+                  className="block text-gray-900 text-base sm:text-lg md:text-xl font-semibold select-none flex-1 leading-relaxed"
                   style={{ 
                     userSelect: 'none',
                     WebkitUserSelect: 'none',
@@ -877,7 +877,7 @@ const Interview = () => {
                 </label>
                 {/* Timer Badge - Integrated in Question Card */}
                 {!isVideoQuestion && (
-                  <div className={`flex-shrink-0 flex items-center gap-2 rounded-full px-4 py-2 font-bold text-lg ${
+                  <div className={`flex-shrink-0 flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-sm sm:text-base md:text-lg ${
                     timeRemaining < 60 
                       ? 'bg-red-100/80 text-red-700 border border-red-300' 
                       : 'bg-blue-100/80 text-blue-700 border border-blue-300'
@@ -892,7 +892,7 @@ const Interview = () => {
             {/* Video Container (The Lens) - Renderizado Condicional Estricto */}
             {isReviewMode ? (
               /* Estado: Review - Solo muestra el video grabado */
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/20" style={{ aspectRatio: '16/9' }}>
+              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/20" style={{ aspectRatio: '16/9' }}>
                 {recordedVideo && (
                   <video
                     src={recordedVideo}
@@ -903,10 +903,10 @@ const Interview = () => {
               </div>
             ) : (
               /* Estado: Recording/Idle - Solo muestra la cámara */
-              <div className={`relative rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
+              <div className={`relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
                 isRecording 
-                  ? 'ring-4 ring-red-500/50 animate-pulse border-4 border-red-400' 
-                  : 'border-4 border-white/20'
+                  ? 'ring-2 sm:ring-4 ring-red-500/50 animate-pulse border-2 sm:border-4 border-red-400' 
+                  : 'border-2 sm:border-4 border-white/20'
               }`} style={{ aspectRatio: '16/9' }}>
                 <video
                   ref={videoRef}
@@ -927,9 +927,9 @@ const Interview = () => {
                 )}
                 {/* Recording Indicator */}
                 {isRecording && (
-                  <div className="absolute top-4 left-4 flex items-center gap-2 glass-card bg-red-500/90 backdrop-blur-md px-4 py-2 rounded-full">
-                    <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white font-bold text-sm">REC</span>
+                  <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2 glass-card bg-red-500/90 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full">
+                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse"></div>
+                    <span className="text-white font-bold text-xs sm:text-sm">REC</span>
                   </div>
                 )}
               </div>
@@ -978,26 +978,26 @@ const Interview = () => {
                 // Estado: Review Mode para video question
                 if (isReviewMode && !isTranscribing) {
                   return (
-                    <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-2xl -mt-8 relative z-20">
-                      <div className="flex items-center justify-center gap-4">
+                    <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
                         <button
                           type="button"
                           onClick={handlePreviousQuestion}
-                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-6 py-3 font-medium text-gray-700 transition-all hover:scale-105"
+                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-medium text-gray-700 transition-all hover:scale-105 text-sm sm:text-base"
                         >
                           Previous
                         </button>
                         <button
                           type="button"
                           onClick={retakeRecording}
-                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-6 py-3 font-semibold transition-all hover:scale-105"
+                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
                         >
                           Retake
                         </button>
                         <button
                           type="submit"
                           disabled={submitting || !recordedVideo}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-3 font-semibold transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                         >
                           {submitting ? 'Submitting...' : 'Submit Interview'}
                         </button>
@@ -1008,12 +1008,12 @@ const Interview = () => {
                 
                 // Estado: Recording/Idle para video question
                 return (
-                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-2xl -mt-8 relative z-20">
-                    <div className="flex items-center justify-center gap-4">
+                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
                       <button
                         type="button"
                         onClick={handlePreviousQuestion}
-                        className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-6 py-3 font-medium text-gray-700 transition-all hover:scale-105"
+                        className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-medium text-gray-700 transition-all hover:scale-105 text-sm sm:text-base w-full sm:w-auto"
                       >
                         Previous
                       </button>
@@ -1022,9 +1022,9 @@ const Interview = () => {
                         <button
                           type="button"
                           onClick={startUnifiedRecording}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110"
                         >
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                           </svg>
                         </button>
@@ -1032,9 +1032,9 @@ const Interview = () => {
                         <button
                           type="button"
                           onClick={stopUnifiedRecording}
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 animate-pulse"
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 animate-pulse"
                         >
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
                           </svg>
                         </button>
@@ -1057,15 +1057,15 @@ const Interview = () => {
               // Estado: Answer Saved - Solo botón Next
               if (answerSaved && !isReviewMode && !isTranscribing) {
                 return (
-                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-2xl -mt-8 relative z-20">
+                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
                     <div className="flex items-center justify-center">
                       <button
                         type="button"
                         onClick={handleNextQuestion}
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-4 font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-3"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 flex items-center gap-2 sm:gap-3"
                       >
                         <span>Next Question</span>
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
                       </button>
@@ -1077,12 +1077,12 @@ const Interview = () => {
               // Estado: Review Mode - Botones Retake y Keep
               if (isReviewMode && !isTranscribing) {
                 return (
-                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-2xl -mt-8 relative z-20">
-                    <div className="flex items-center justify-center gap-4">
+                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
                       <button
                         type="button"
                         onClick={retakeRecording}
-                        className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-6 py-3 font-semibold transition-all hover:scale-105"
+                        className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
                       >
                         Retake Recording
                       </button>
@@ -1098,7 +1098,7 @@ const Interview = () => {
                           setIsReviewMode(false);
                           setVideoBlob(null);
                         }}
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-8 py-3 font-semibold transition shadow-lg hover:shadow-xl"
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl text-sm sm:text-base"
                       >
                         Keep This Answer
                       </button>
@@ -1110,16 +1110,16 @@ const Interview = () => {
               // Estado: Recording/Idle - Botones de grabación
               if (!isReviewMode && !isTranscribing && !answerSaved) {
                 return (
-                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 shadow-2xl -mt-8 relative z-20">
-                    <div className="flex items-center justify-center gap-4">
+                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                    <div className="flex items-center justify-center gap-3 sm:gap-4">
                       {/* Main Record/Stop Button (Center) */}
                       {!isRecording && !recordedVideo ? (
                         <button
                           type="button"
                           onClick={startUnifiedRecording}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110"
+                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110"
                         >
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                           </svg>
                         </button>
@@ -1127,9 +1127,9 @@ const Interview = () => {
                         <button
                           type="button"
                           onClick={stopUnifiedRecording}
-                          className="bg-red-600 hover:bg-red-700 text-white rounded-full w-20 h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 animate-pulse"
+                          className="bg-red-600 hover:bg-red-700 text-white rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shadow-xl hover:shadow-2xl transition-all hover:scale-110 animate-pulse"
                         >
-                          <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clipRule="evenodd" />
                           </svg>
                         </button>
@@ -1140,7 +1140,7 @@ const Interview = () => {
                         <button
                           type="button"
                           onClick={handleNextQuestion}
-                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-6 py-3 font-medium text-gray-700 transition-all hover:scale-105"
+                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-medium text-gray-700 transition-all hover:scale-105 text-sm sm:text-base"
                         >
                           Next
                         </button>
@@ -1176,22 +1176,22 @@ const Interview = () => {
 
             {/* Editable Transcription - Panel lateral/colapsable solo en Review Mode */}
             {isReviewMode && !isTranscribing && (
-              <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
+              <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6">
+                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                   Review and edit your transcribed answer:
                 </label>
                 <textarea
                   value={answers[currentQuestionIndex] || transcribedText}
                   onChange={(e) => handleAnswerChange(e.target.value)}
                   onPaste={handlePaste}
-                  className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-4 px-6 text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                   style={{ 
                     userSelect: 'text',
                     WebkitUserSelect: 'text',
                     MozUserSelect: 'text',
                     msUserSelect: 'text'
                   }}
-                  rows="6"
+                  rows="5"
                   required
                   placeholder="Your transcribed answer will appear here. You can edit any typos or mistakes..."
                 />

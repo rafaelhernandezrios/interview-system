@@ -149,15 +149,20 @@ const Dashboard = () => {
       <div className="ambient-orb-3"></div>
       
       <Navbar />
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 auto-rows-min">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 auto-rows-min">
           
           {/* Your Journey Card - Large (spans 2 columns) */}
-          <div className="lg:col-span-5 glass-card p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Journey</h2>
-            <div className="flex flex-col items-center justify-center py-8">
-              <CircularProgress percentage={overallProgress} size={200} />
+          <div className="lg:col-span-5 glass-card p-4 sm:p-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Your Journey</h2>
+            <div className="flex flex-col items-center justify-center py-4 sm:py-8">
+              <div className="hidden sm:block">
+                <CircularProgress percentage={overallProgress} size={200} />
+              </div>
+              <div className="block sm:hidden">
+                <CircularProgress percentage={overallProgress} size={150} />
+              </div>
               <div className="mt-8 w-full space-y-4 px-4">
                 <div className="flex items-center gap-3 relative">
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -200,19 +205,19 @@ const Dashboard = () => {
           </div>
 
           {/* CV Analysis Card */}
-          <div className="lg:col-span-3 glass-card group cursor-pointer hover:scale-[1.02] transition-transform duration-300 p-6">
+          <div className="lg:col-span-3 glass-card group cursor-pointer hover:scale-[1.02] transition-transform duration-300 p-4 sm:p-6">
             <Link to="/cv-upload" className="block h-full">
               <div className="flex flex-col h-full">
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4 sm:mb-6">
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">CV Analysis</h3>
-                    <p className="text-sm text-gray-600">Upload and analyze your CV</p>
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">CV Analysis</h3>
+                    <p className="text-xs sm:text-sm text-gray-600">Upload and analyze your CV</p>
                   </div>
                   <div className="flex-shrink-0 mb-4">
                     <img 
                       src={cvIcon} 
                       alt="CV Analysis" 
-                      className="w-24 h-24 object-contain drop-shadow-xl"
+                      className="w-16 h-16 sm:w-24 sm:h-24 object-contain drop-shadow-xl"
                       style={{ 
                         filter: 'drop-shadow(0 20px 25px rgba(34, 197, 94, 0.4)) drop-shadow(0 10px 10px rgba(34, 197, 94, 0.2))'
                       }}
@@ -245,26 +250,26 @@ const Dashboard = () => {
           </div>
 
           {/* Interview Card */}
-          <div className="lg:col-span-4 glass-card group cursor-pointer hover:scale-[1.02] transition-transform duration-300 p-6">
+          <div className="lg:col-span-4 glass-card group cursor-pointer hover:scale-[1.02] transition-transform duration-300 p-4 sm:p-6">
             <Link to={profile?.cvAnalyzed ? "/interview" : "/cv-upload"} className="block h-full">
               <div className="flex flex-col h-full">
-                <div className="flex items-start justify-between mb-6">
+                <div className="flex items-start justify-between mb-4 sm:mb-6">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <h3 className="text-xl font-bold text-gray-900">Interview</h3>
+                      <h3 className="text-lg sm:text-xl font-bold text-gray-900">Interview</h3>
                       {!profile?.interviewCompleted && (
                         <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-semibold">
                           • Pending
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600">Answer personalized questions</p>
+                    <p className="text-xs sm:text-sm text-gray-600">Answer personalized questions</p>
                   </div>
                   <div className="flex-shrink-0 mb-4">
                     <img 
                       src={interviewIcon} 
                       alt="Interview" 
-                      className="w-24 h-24 object-contain drop-shadow-xl"
+                      className="w-16 h-16 sm:w-24 sm:h-24 object-contain drop-shadow-xl"
                       style={{ 
                         filter: 'drop-shadow(0 20px 25px rgba(147, 51, 234, 0.4)) drop-shadow(0 10px 10px rgba(147, 51, 234, 0.2))'
                       }}
@@ -322,11 +327,11 @@ const Dashboard = () => {
           )}
 
           {/* Profile Card - Full Width */}
-          <div className="lg:col-span-12 glass-card p-6">
-            <div className="flex items-center gap-6">
+          <div className="lg:col-span-12 glass-card p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               {/* Avatar Section */}
               <div className="relative flex-shrink-0">
-                <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                   {profile?.profilePhoto ? (
                     <img 
                       src={profile.profilePhoto} 
@@ -364,50 +369,50 @@ const Dashboard = () => {
               </div>
 
               {/* Profile Info */}
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 items-center">
                 <div className="flex flex-col">
-                  <p className="text-sm text-gray-600 mb-1">Name</p>
-                  <p className="text-lg font-bold text-gray-900 truncate">{profile?.name}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1">Name</p>
+                  <p className="text-base sm:text-lg font-bold text-gray-900 truncate">{profile?.name}</p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1 flex items-center gap-1">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     ID
                   </p>
-                  <p className="text-lg font-bold text-gray-900 truncate">{profile?.digitalId || 'N/A'}</p>
+                  <p className="text-base sm:text-lg font-bold text-gray-900 truncate">{profile?.digitalId || 'N/A'}</p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1 flex items-center gap-1">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                     </svg>
                     Level
                   </p>
-                  <p className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                  <p className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
                     <span className="truncate">{profile?.academic_level || 'N/A'}</span>
-                    <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                     </svg>
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <p className="text-xs sm:text-sm text-gray-600 mb-1 flex items-center gap-1">
+                    <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                     Email
                   </p>
-                  <p className="text-lg font-bold text-gray-900 truncate" title={profile?.email}>
+                  <p className="text-base sm:text-lg font-bold text-gray-900 truncate" title={profile?.email}>
                     {profile?.email}
                   </p>
                 </div>
               </div>
 
               {/* Status Badge */}
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-start">
                 <div className={`px-4 py-2 rounded-full flex items-center gap-2 ${
                   profile?.isActive 
                     ? 'bg-green-100 text-green-700' 

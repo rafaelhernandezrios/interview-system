@@ -144,14 +144,14 @@ const AdminPanel = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Administration Panel</h1>
-          <p className="text-lg text-gray-600">Manage users, view statistics and administer the system</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">Administration Panel</h1>
+          <p className="text-base sm:text-lg text-gray-600">Manage users, view statistics and administer the system</p>
         </div>
 
         {/* KPIs Grid - 4 Tarjetas de Cristal */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Total Usuarios */}
             <div className="glass-card p-6 relative overflow-hidden">
               <div className="flex items-start justify-between mb-4">
@@ -223,12 +223,12 @@ const AdminPanel = () => {
         )}
 
         {/* Tabla de Usuarios - Contenedor de Cristal */}
-        <div className="glass-card p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Users</h2>
+        <div className="glass-card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Users</h2>
             
             {/* Filters */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="Search by name or email..."
@@ -257,23 +257,23 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full min-w-[640px] sm:min-w-0">
               <thead>
                 <tr className="border-b border-white/20">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Avatar</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Name</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Email</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Role</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Actions</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Avatar</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Name</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Email</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Role</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredUsers.map((user) => (
                   <tr key={user._id} className="border-b border-white/10 hover:bg-white/20 transition">
-                    <td className="px-6 py-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                         {user.profilePhoto ? (
                           <img 
                             src={user.profilePhoto} 
@@ -287,67 +287,68 @@ const AdminPanel = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="font-semibold text-gray-900">{user.name}</p>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <p className="font-semibold text-gray-900 text-sm sm:text-base">{user.name}</p>
+                      <p className="text-gray-500 text-xs md:hidden">{user.email}</p>
                     </td>
-                    <td className="px-6 py-4">
-                      <p className="text-gray-700 text-sm">{user.email}</p>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">
+                      <p className="text-gray-700 text-xs sm:text-sm">{user.email}</p>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <select
                         value={user.role}
                         onChange={(e) => changeUserRole(user._id, e.target.value)}
-                        className="glass-card bg-white/40 border border-white/40 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        className="glass-card bg-white/40 border border-white/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                       </select>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-2 bg-white/40 backdrop-blur-sm border rounded-full px-3 py-1 text-sm font-medium ${
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <span className={`inline-flex items-center gap-1 sm:gap-2 bg-white/40 backdrop-blur-sm border rounded-full px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium ${
                         user.isActive 
                           ? 'bg-green-100/50 text-green-700 border-green-200/60' 
                           : 'bg-red-100/50 text-red-700 border-red-200/60'
                       }`}>
-                        <span className={`w-2 h-2 rounded-full ${
+                        <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                           user.isActive ? 'bg-green-500' : 'bg-red-500'
                         }`}></span>
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           onClick={() => fetchUserDetails(user._id)}
-                          className="w-10 h-10 rounded-lg bg-blue-100/50 hover:bg-blue-200/70 text-blue-600 flex items-center justify-center transition hover:scale-110"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-100/50 hover:bg-blue-200/70 text-blue-600 flex items-center justify-center transition hover:scale-110"
                           title="View Details"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                           </svg>
                         </button>
                         <button
                           onClick={() => toggleUserStatus(user._id)}
-                          className="w-10 h-10 rounded-lg bg-orange-100/50 hover:bg-orange-200/70 text-orange-600 flex items-center justify-center transition hover:scale-110"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-orange-100/50 hover:bg-orange-200/70 text-orange-600 flex items-center justify-center transition hover:scale-110"
                           title={user.isActive ? 'Deactivate' : 'Activate'}
                         >
                           {user.isActive ? (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           ) : (
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
                           )}
                         </button>
                         <button
                           onClick={() => deleteUser(user._id)}
-                          className="w-10 h-10 rounded-lg bg-red-100/50 hover:bg-red-200/70 text-red-600 flex items-center justify-center transition hover:scale-110"
+                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-100/50 hover:bg-red-200/70 text-red-600 flex items-center justify-center transition hover:scale-110"
                           title="Delete"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
