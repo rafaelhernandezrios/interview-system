@@ -6,13 +6,17 @@ Sistema completo de evaluación de habilidades con análisis de CV mediante IA, 
 
 - ✅ Autenticación completa con JWT
 - ✅ Subida y análisis de CV con IA (OpenAI GPT-4o-mini)
-- ✅ Sistema de entrevista con evaluación automática
-- ✅ Transcripción de audio con Whisper AI
+- ✅ Sistema de entrevista con evaluación automática y estilo "Estudio Virtual"
+- ✅ Transcripción de audio automática
 - ✅ Cuestionarios de habilidades blandas (160 preguntas)
 - ✅ Cuestionarios de habilidades duras - Inteligencias Múltiples (35 preguntas)
-- ✅ Panel de administración
+- ✅ Panel de administración moderno con glassmorphism
 - ✅ Almacenamiento de CVs en AWS S3 (opcional, con fallback local)
 - ✅ Guardado automático de progreso de entrevista
+- ✅ Sistema de Digital ID único por usuario (formato: PROGRAMNAME-YEAR-USERNUMBER)
+- ✅ Subida de foto de perfil
+- ✅ Diseño moderno con Glassmorphism y Bento Grid
+- ✅ Interfaz de usuario premium con efectos visuales avanzados
 
 ## 📋 Requisitos Previos
 
@@ -142,14 +146,22 @@ Mirai-Intervieweb/
 
 ## 🎯 Flujo de Usuario
 
-1. **Registro**: El usuario se registra (cuenta inactiva por defecto)
-2. **Activación**: Un administrador activa la cuenta
-3. **Login**: El usuario inicia sesión y recibe un token JWT
-4. **Subida de CV**: El usuario sube su CV en formato PDF
+1. **Registro**: El usuario se registra y recibe un Digital ID único (formato: PROGRAMNAME-YEAR-USERNUMBER)
+2. **Login**: El usuario inicia sesión y recibe un token JWT
+3. **Dashboard**: El usuario accede a su dashboard moderno con:
+   - Vista de progreso con gráfico circular
+   - Tarjetas de CV Analysis e Interview con estilo glassmorphism
+   - Digital ID Card con opción de subir foto de perfil
+4. **Subida de CV**: El usuario sube su CV en formato PDF con interfaz drag & drop
 5. **Análisis**: El sistema analiza el CV con IA y genera preguntas personalizadas
-6. **Entrevista**: 
-   - El usuario responde preguntas con grabación de video/audio
-   - Transcripción automática con Whisper AI
+   - Visualización de métricas y habilidades detectadas
+   - Pills de habilidades con estilo glassmorphism
+6. **Entrevista (Estudio Virtual)**: 
+   - Interfaz centrada tipo teleprompter
+   - Pregunta visible en tarjeta de cristal sobre el video
+   - Timer integrado en la tarjeta de pregunta
+   - Grabación con feedback visual (borde rojo pulsante)
+   - Transcripción automática (solo para preguntas de texto)
    - Guardado automático de progreso
    - Si sale, puede continuar desde donde se quedó
 7. **Cuestionarios**: El usuario completa los cuestionarios de habilidades
@@ -166,7 +178,10 @@ Mirai-Intervieweb/
 
 ## 📝 Notas
 
-- Las cuentas nuevas están inactivas por defecto y requieren activación por un administrador
+- **Digital ID**: Cada usuario recibe un ID único al registrarse (ej: MIRI-2025-1)
+- **Foto de Perfil**: Los usuarios pueden subir una foto de perfil que se muestra en el dashboard y admin panel
+- **Diseño Visual**: El sistema utiliza un diseño moderno con glassmorphism, bento grid y efectos visuales premium
+- **Entrevista**: La última pregunta es de video solamente (no se transcribe), las demás preguntas se transcriben automáticamente
 - El análisis de CV requiere una API key válida de OpenAI
 - La subida de CVs puede usar AWS S3 o almacenamiento local (configurable con `STORAGE_TYPE`)
 - El sistema de email es opcional pero recomendado para recuperación de contraseñas
@@ -187,10 +202,15 @@ Mirai-Intervieweb/
 ### Frontend
 - React 18
 - React Router DOM
-- Tailwind CSS
+- Tailwind CSS (con utilidades personalizadas de glassmorphism)
 - Axios
 - MediaRecorder API para grabación de video
-- Web Speech API (reemplazado por Whisper)
+- Diseño moderno con:
+  - **Glassmorphism**: Efectos de vidrio esmerilado con backdrop-blur
+  - **Bento Grid**: Layouts tipo grid con tarjetas de diferentes tamaños
+  - **Mesh Gradients**: Fondos con gradientes suaves y orbes flotantes
+  - **3D Icons**: Iconos PNG con efectos de sombra y profundidad
+  - **Estudio Virtual**: Interfaz de entrevista centrada con teleprompter
 
 ## 📄 Licencia
 
