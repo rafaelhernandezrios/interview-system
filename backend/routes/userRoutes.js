@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import upload, { STORAGE_TYPE } from "../middleware/upload.js";
 import videoUpload, { STORAGE_TYPE as VIDEO_STORAGE_TYPE } from "../middleware/videoUpload.js";
+import photoUpload, { STORAGE_TYPE as PHOTO_STORAGE_TYPE } from "../middleware/photoUpload.js";
 import {
   extractTextFromPdf,
   analyzeCvText,
@@ -27,6 +28,10 @@ const router = express.Router();
 // Servir archivos estáticos de CVs (solo para almacenamiento local)
 if (STORAGE_TYPE === 'local') {
   router.use('/uploads/cvs', express.static(path.join(process.cwd(), 'uploads/cvs')));
+}
+// Servir archivos estáticos de fotos (solo para almacenamiento local)
+if (PHOTO_STORAGE_TYPE === 'local') {
+  router.use('/uploads/photos', express.static(path.join(process.cwd(), 'uploads/photos')));
 }
 
 // Subida de CV
@@ -518,6 +523,55 @@ router.get("/profile", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error obteniendo perfil:", error);
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Subir foto de perfil
+router.post("/upload-photo", authMiddleware, photoUpload.single("photo"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Si ya existe una foto, borrar la anterior (solo para almacenamiento local)
+    if (user.profilePhoto && PHOTO_STORAGE_TYPE === 'local') {
+      try {
+        const fileName = path.basename(user.profilePhoto);
+        const filePath = path.join(__dirname, '../uploads/photos', fileName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (err) {
+        console.error("Error deleting old photo file:", err);
+      }
+    }
+
+    // Determinar la ruta del archivo según el tipo de almacenamiento
+    let filePath;
+    if (PHOTO_STORAGE_TYPE === 's3') {
+      // Para S3, usar la URL del archivo
+      filePath = req.file.location;
+    } else {
+      // Para almacenamiento local, crear una URL relativa
+      const fileName = path.basename(req.file.path);
+      filePath = `/api/users/uploads/photos/${fileName}`;
+    }
+
+    user.profilePhoto = filePath;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Photo uploaded successfully",
+      profilePhoto: filePath
+    });
+  } catch (error) {
+    console.error("Error uploading photo:", error);
+    return res.status(500).json({ message: "Error uploading photo" });
   }
 });
 

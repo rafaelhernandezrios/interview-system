@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: false },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
+    profilePhoto: { type: String }, // URL or path to profile photo
     
     // CV y análisis
     cvPath: { type: String },
