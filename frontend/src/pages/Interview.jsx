@@ -28,6 +28,7 @@ const Interview = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordedVideo, setRecordedVideo] = useState(null);
   const [videoBlob, setVideoBlob] = useState(null);
+  const [videoBlobType, setVideoBlobType] = useState(null); // Store the MIME type of the video blob
   const [recordingTime, setRecordingTime] = useState(0);
   const [transcribedText, setTranscribedText] = useState('');
   const [isReviewMode, setIsReviewMode] = useState(false);
@@ -237,6 +238,7 @@ const Interview = () => {
     // Reset ALL states for next question
     setRecordedVideo(null);
     setVideoBlob(null);
+    setVideoBlobType(null); // Reset MIME type
     setTranscribedText('');
     setIsReviewMode(false);
     setIsTranscribing(false);
@@ -287,6 +289,7 @@ const Interview = () => {
       // Reset states when going back
       setRecordedVideo(null);
       setVideoBlob(null);
+      setVideoBlobType(null); // Reset MIME type
       setTranscribedText('');
       setIsReviewMode(false);
       setIsTranscribing(false);
@@ -450,7 +453,9 @@ const Interview = () => {
         }
         
         // Use the actual MIME type from MediaRecorder, or fallback
-        const recordedMimeType = mediaRecorder.mimeType || 'video/webm';
+        const recordedMimeType = mediaRecorder.mimeType || mediaRecorderRef.current?.mimeType || 'video/webm';
+        console.log(`📹 [RECORDING] MediaRecorder MIME type: ${recordedMimeType}`);
+        
         const blob = new Blob(chunks, { type: recordedMimeType });
         
         // Validate blob size (should be at least 1KB)
@@ -462,7 +467,11 @@ const Interview = () => {
         }
         
         console.log(`✅ [RECORDING] Video blob created: ${blob.size} bytes, type: ${blob.type}`);
+        console.log(`✅ [RECORDING] Storing MIME type: ${recordedMimeType}`);
+        
+        // Store both blob and its type
         setVideoBlob(blob);
+        setVideoBlobType(recordedMimeType);
         const videoURL = URL.createObjectURL(blob);
         setRecordedVideo(videoURL);
         
@@ -605,6 +614,7 @@ const Interview = () => {
       // Reset all recording-related states
       setRecordedVideo(null);
       setVideoBlob(null);
+      setVideoBlobType(null); // Reset MIME type
       setTranscribedText('');
       setIsReviewMode(false);
       setAnswerSaved(false); // Reset answer saved flag
@@ -673,19 +683,34 @@ const Interview = () => {
         ? `Transcribing audio... (Attempt ${retryCount + 1}/${MAX_RETRIES + 1})`
         : 'Transcribing audio...');
       
-      // Determine file extension based on blob type
-      let fileExtension = 'webm';
-      let mimeType = videoBlob.type || 'video/webm';
+      // Use stored MIME type or fallback to blob type
+      let mimeType = videoBlobType || videoBlob.type || 'video/webm';
       
+      // Ensure we have a valid video MIME type
+      if (!mimeType.startsWith('video/')) {
+        console.warn(`⚠️ [TRANSCRIBE] Invalid MIME type detected: ${mimeType}, using fallback`);
+        // Try to detect from blob content or use default
+        mimeType = 'video/webm';
+      }
+      
+      // Determine file extension based on MIME type
+      let fileExtension = 'webm';
       if (mimeType.includes('mp4')) {
         fileExtension = 'mp4';
+        mimeType = 'video/mp4'; // Ensure correct MIME type
       } else if (mimeType.includes('webm')) {
         fileExtension = 'webm';
+        mimeType = 'video/webm'; // Ensure correct MIME type
+      } else if (mimeType.includes('quicktime') || mimeType.includes('mov')) {
+        fileExtension = 'mov';
+        mimeType = 'video/quicktime';
       }
       
       console.log(`📤 [TRANSCRIBE] Preparing video for transcription:`, {
         size: videoBlob.size,
         type: mimeType,
+        blobType: videoBlob.type,
+        storedType: videoBlobType,
         extension: fileExtension,
         questionIndex: questionIndexAtStart
       });
@@ -694,6 +719,14 @@ const Interview = () => {
       const videoFile = new File([videoBlob], `recording_${Date.now()}.${fileExtension}`, {
         type: mimeType
       });
+      
+      // Verify the File object has correct type
+      console.log(`📤 [TRANSCRIBE] File object created:`, {
+        name: videoFile.name,
+        type: videoFile.type,
+        size: videoFile.size
+      });
+      
       formData.append('video', videoFile);
 
       // Add timeout of 90 seconds for transcription (increased for larger files)
@@ -820,6 +853,7 @@ const Interview = () => {
     // Clear all recording states
     setRecordedVideo(null);
     setVideoBlob(null);
+    setVideoBlobType(null); // Reset MIME type
     setRecordingTime(0);
     setTranscribedText('');
     setIsReviewMode(false);
@@ -882,9 +916,31 @@ const Interview = () => {
       
       // Add final video question video if available (only for the final video question)
       if (videoBlob && isVideoQuestion) {
-        const videoFile = new File([videoBlob], `interview_video_${Date.now()}.webm`, {
-          type: 'video/webm'
+        // Use stored MIME type or fallback
+        let mimeType = videoBlobType || videoBlob.type || 'video/webm';
+        let fileExtension = 'webm';
+        
+        if (mimeType.includes('mp4')) {
+          fileExtension = 'mp4';
+          mimeType = 'video/mp4';
+        } else if (mimeType.includes('webm')) {
+          fileExtension = 'webm';
+          mimeType = 'video/webm';
+        } else if (mimeType.includes('quicktime') || mimeType.includes('mov')) {
+          fileExtension = 'mov';
+          mimeType = 'video/quicktime';
+        }
+        
+        const videoFile = new File([videoBlob], `interview_video_${Date.now()}.${fileExtension}`, {
+          type: mimeType
         });
+        
+        console.log(`📤 [SUBMIT] Final video file:`, {
+          name: videoFile.name,
+          type: videoFile.type,
+          size: videoFile.size
+        });
+        
         formData.append('video', videoFile);
       }
 
@@ -1358,6 +1414,7 @@ const Interview = () => {
                           setIsTranscribing(false);
                           setIsReviewMode(false);
                           setVideoBlob(null);
+                          setVideoBlobType(null); // Reset MIME type
                         }}
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl text-sm sm:text-base"
                       >

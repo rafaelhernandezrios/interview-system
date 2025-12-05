@@ -88,16 +88,43 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         'application/octet-stream' // Fallback for unknown types
       ];
       
-      const isValidVideo = file.mimetype.startsWith('video/') || 
-                           allowedMimeTypes.includes(file.mimetype) ||
+      // Check if it's a video MIME type
+      const isVideoMimeType = file.mimetype.startsWith('video/');
+      
+      // Check if it's in allowed list
+      const isInAllowedList = allowedMimeTypes.includes(file.mimetype);
+      
+      // Check file extension as fallback (some browsers send wrong MIME type)
+      const fileExtension = file.originalname.split('.').pop()?.toLowerCase();
+      const videoExtensions = ['webm', 'mp4', 'mov', 'avi', 'mkv', 'm4v'];
+      const hasVideoExtension = videoExtensions.includes(fileExtension || '');
+      
+      // Special case: if MIME type is text/plain but extension is video, accept it
+      // This happens when browsers incorrectly detect MIME type
+      const isMisdetectedVideo = file.mimetype === 'text/plain' && hasVideoExtension;
+      
+      const isValidVideo = isVideoMimeType || 
+                           isInAllowedList || 
+                           isMisdetectedVideo ||
                            file.mimetype === 'application/octet-stream';
       
       if (isValidVideo) {
-        console.log('✅ [VIDEO UPLOAD] File accepted:', file.mimetype);
+        if (isMisdetectedVideo) {
+          console.log(`⚠️ [VIDEO UPLOAD] MIME type misdetected as text/plain, but extension is ${fileExtension}, accepting file`);
+        }
+        console.log('✅ [VIDEO UPLOAD] File accepted:', {
+          mimetype: file.mimetype,
+          originalName: file.originalname,
+          extension: fileExtension
+        });
         cb(null, true);
       } else {
-        console.log('❌ [VIDEO UPLOAD] File rejected - invalid mimetype:', file.mimetype);
-        cb(new Error(`Only video files are allowed. Received: ${file.mimetype}`), false);
+        console.log('❌ [VIDEO UPLOAD] File rejected - invalid mimetype:', {
+          mimetype: file.mimetype,
+          originalName: file.originalname,
+          extension: fileExtension
+        });
+        cb(new Error(`Only video files are allowed. Received: ${file.mimetype} (extension: ${fileExtension})`), false);
       }
     },
     limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
