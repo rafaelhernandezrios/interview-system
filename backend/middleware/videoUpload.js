@@ -50,9 +50,23 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         cb(null, { fieldName: file.fieldname });
       },
       key: function (req, file, cb) {
+        // Determine file extension based on MIME type
+        let extension = 'webm'; // default
+        if (file.mimetype.includes('mp4')) {
+          extension = 'mp4';
+        } else if (file.mimetype.includes('quicktime') || file.mimetype.includes('mov')) {
+          extension = 'mov';
+        } else if (file.mimetype.includes('x-msvideo') || file.mimetype.includes('avi')) {
+          extension = 'avi';
+        } else if (file.mimetype.includes('webm')) {
+          extension = 'webm';
+        }
+        
         // Guardar en la carpeta videos/ del bucket
-        const fileName = `videos/interview_${Date.now()}_${req.userId || 'unknown'}.webm`;
+        const fileName = `videos/interview_${Date.now()}_${req.userId || 'unknown'}.${extension}`;
         console.log('📤 [VIDEO UPLOAD] S3 key:', fileName);
+        console.log('📤 [VIDEO UPLOAD] MIME type:', file.mimetype);
+        console.log('📤 [VIDEO UPLOAD] Extension:', extension);
         console.log('📤 [VIDEO UPLOAD] User ID:', req.userId);
         cb(null, fileName);
       },
@@ -61,15 +75,29 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
     fileFilter: (req, file, cb) => {
       console.log('📤 [VIDEO UPLOAD] File filter check:', {
         mimetype: file.mimetype,
-        originalName: file.originalname
+        originalName: file.originalname,
+        fieldname: file.fieldname
       });
-      // Aceptar videos webm y otros formatos comunes
-      if (file.mimetype.startsWith('video/') || file.mimetype === 'application/octet-stream') {
-        console.log('✅ [VIDEO UPLOAD] File accepted');
+      
+      // Aceptar videos en formatos comunes (WebM, MP4, QuickTime, etc.)
+      const allowedMimeTypes = [
+        'video/webm',
+        'video/mp4',
+        'video/quicktime', // MOV files
+        'video/x-msvideo', // AVI files
+        'application/octet-stream' // Fallback for unknown types
+      ];
+      
+      const isValidVideo = file.mimetype.startsWith('video/') || 
+                           allowedMimeTypes.includes(file.mimetype) ||
+                           file.mimetype === 'application/octet-stream';
+      
+      if (isValidVideo) {
+        console.log('✅ [VIDEO UPLOAD] File accepted:', file.mimetype);
         cb(null, true);
       } else {
-        console.log('❌ [VIDEO UPLOAD] File rejected - invalid mimetype');
-        cb(new Error("Only video files are allowed"), false);
+        console.log('❌ [VIDEO UPLOAD] File rejected - invalid mimetype:', file.mimetype);
+        cb(new Error(`Only video files are allowed. Received: ${file.mimetype}`), false);
       }
     },
     limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
@@ -134,16 +162,43 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         cb(null, videosDir);
       },
       filename: function (req, file, cb) {
-        const fileName = `interview_${Date.now()}_${req.userId || 'unknown'}.webm`;
+        // Determine file extension based on MIME type
+        let extension = 'webm'; // default
+        if (file.mimetype.includes('mp4')) {
+          extension = 'mp4';
+        } else if (file.mimetype.includes('quicktime') || file.mimetype.includes('mov')) {
+          extension = 'mov';
+        } else if (file.mimetype.includes('x-msvideo') || file.mimetype.includes('avi')) {
+          extension = 'avi';
+        } else if (file.mimetype.includes('webm')) {
+          extension = 'webm';
+        }
+        
+        const fileName = `interview_${Date.now()}_${req.userId || 'unknown'}.${extension}`;
+        console.log('📤 [VIDEO UPLOAD] Local filename:', fileName);
+        console.log('📤 [VIDEO UPLOAD] MIME type:', file.mimetype);
+        console.log('📤 [VIDEO UPLOAD] Extension:', extension);
         cb(null, fileName);
       },
     }),
     fileFilter: (req, file, cb) => {
-      // Aceptar videos webm y otros formatos comunes
-      if (file.mimetype.startsWith('video/') || file.mimetype === 'application/octet-stream') {
+      // Aceptar videos en formatos comunes (WebM, MP4, QuickTime, etc.)
+      const allowedMimeTypes = [
+        'video/webm',
+        'video/mp4',
+        'video/quicktime', // MOV files
+        'video/x-msvideo', // AVI files
+        'application/octet-stream' // Fallback for unknown types
+      ];
+      
+      const isValidVideo = file.mimetype.startsWith('video/') || 
+                           allowedMimeTypes.includes(file.mimetype) ||
+                           file.mimetype === 'application/octet-stream';
+      
+      if (isValidVideo) {
         cb(null, true);
       } else {
-        cb(new Error("Only video files are allowed"), false);
+        cb(new Error(`Only video files are allowed. Received: ${file.mimetype}`), false);
       }
     },
     limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos

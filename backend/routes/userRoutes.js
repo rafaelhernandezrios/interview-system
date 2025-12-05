@@ -197,6 +197,21 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
       console.error('❌ [TRANSCRIBE] No video file provided');
       return res.status(400).json({ message: "No video file provided" });
     }
+    
+    // Validate file size (should be at least 1KB and max 50MB)
+    if (req.file.size < 1024) {
+      console.error('❌ [TRANSCRIBE] File too small:', req.file.size);
+      return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
+    }
+    
+    if (req.file.size > 50 * 1024 * 1024) {
+      console.error('❌ [TRANSCRIBE] File too large:', req.file.size);
+      return res.status(400).json({ message: "Video file is too large. Maximum size is 50MB." });
+    }
+    
+    // Log file MIME type for debugging
+    console.log('🎥 [TRANSCRIBE] File MIME type:', req.file.mimetype || 'unknown');
+    console.log('🎥 [TRANSCRIBE] File size:', req.file.size, 'bytes');
 
     // Log file details
     if (VIDEO_STORAGE_TYPE === 's3') {
@@ -290,8 +305,22 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
 
     // Transcribe using Whisper
     console.log('🎥 [TRANSCRIBE] Starting transcription...');
-    const transcription = await transcribeVideoAudio(filePathToTranscribe);
-    console.log('✅ [TRANSCRIBE] Transcription completed');
+    console.log('🎥 [TRANSCRIBE] File path:', filePathToTranscribe);
+    
+    let transcription;
+    try {
+      transcription = await transcribeVideoAudio(filePathToTranscribe);
+      console.log('✅ [TRANSCRIBE] Transcription completed:', transcription ? `${transcription.length} characters` : 'empty');
+    } catch (transcriptionError) {
+      console.error('❌ [TRANSCRIBE] Transcription error:', transcriptionError.message);
+      throw transcriptionError;
+    }
+    
+    if (!transcription || transcription.trim().length === 0) {
+      console.warn('⚠️ [TRANSCRIBE] Empty transcription result');
+      // Return empty string instead of error - let user type manually
+      transcription = '';
+    }
 
     // Delete temporary file after transcription (only local temp, NOT S3 file)
     if (tempFilePath && fs.existsSync(tempFilePath)) {
@@ -314,21 +343,46 @@ router.post("/transcribe-video", authMiddleware, videoUpload.single('video'), as
   } catch (error) {
     console.error("❌ [TRANSCRIBE] Error transcribing video:", error);
     console.error("❌ [TRANSCRIBE] Error stack:", error.stack);
+    
     // Try to delete temp file even on error
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
+        console.log('🗑️  [TRANSCRIBE] Temp file deleted after error');
       } catch (err) {
         console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
       }
     } else if (req.file && req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
+        console.log('🗑️  [TRANSCRIBE] Local file deleted after error');
       } catch (err) {
         console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
       }
     }
-    return res.status(500).json({ message: "Error transcribing audio" });
+    
+    // Return more specific error messages
+    let errorMessage = "Error transcribing audio";
+    let statusCode = 500;
+    
+    if (error.message.includes('format') || error.message.includes('codec')) {
+      errorMessage = "Video format not supported. Please try recording again with a different browser or device.";
+      statusCode = 400;
+    } else if (error.message.includes('timeout')) {
+      errorMessage = "Transcription timeout. The video may be too long. Please try a shorter recording.";
+      statusCode = 408;
+    } else if (error.message.includes('too small') || error.message.includes('no audio')) {
+      errorMessage = "The video appears to have no audio. Please ensure your microphone is working and try again.";
+      statusCode = 400;
+    } else if (error.message.includes('not found')) {
+      errorMessage = "Video file not found. Please try recording again.";
+      statusCode = 404;
+    }
+    
+    return res.status(statusCode).json({ 
+      message: errorMessage,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

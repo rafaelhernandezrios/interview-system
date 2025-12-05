@@ -322,6 +322,45 @@ const Interview = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Helper function to get supported MIME type for MediaRecorder
+  const getSupportedMimeType = () => {
+    // Check for iOS/Safari first (they don't support WebM)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    
+    // Preferred codecs in order of preference
+    const codecs = [
+      // For iOS/Safari, prefer H.264
+      { mimeType: 'video/mp4;codecs=h264,aac', isIOS: true },
+      { mimeType: 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', isIOS: true },
+      { mimeType: 'video/mp4', isIOS: true },
+      // For other browsers, prefer WebM
+      { mimeType: 'video/webm;codecs=vp9,opus', isIOS: false },
+      { mimeType: 'video/webm;codecs=vp8,opus', isIOS: false },
+      { mimeType: 'video/webm', isIOS: false },
+      // Fallback options
+      { mimeType: 'video/mp4', isIOS: false },
+    ];
+    
+    // Filter codecs based on platform
+    const platformCodecs = codecs.filter(c => 
+      isIOS || isSafari ? c.isIOS : !c.isIOS
+    );
+    
+    // Check which codec is supported
+    for (const codec of platformCodecs) {
+      if (MediaRecorder.isTypeSupported(codec.mimeType)) {
+        console.log(`✅ [RECORDING] Using codec: ${codec.mimeType}`);
+        return codec.mimeType;
+      }
+    }
+    
+    // Last resort: use default (browser will choose)
+    console.warn('⚠️ [RECORDING] No preferred codec supported, using browser default');
+    return '';
+  };
+
   // Unified recording function - starts video + audio recording with speech recognition
   const startUnifiedRecording = async () => {
     try {
@@ -330,32 +369,99 @@ const Interview = () => {
       setIsReviewMode(false);
       setError('');
 
-      // Request camera and microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
+      // Request camera and microphone access with better constraints
+      const constraints = {
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 44100
+        }
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      
+      // Verify audio track exists
+      const audioTracks = stream.getAudioTracks();
+      if (audioTracks.length === 0) {
+        throw new Error('No audio track available. Please ensure microphone access is granted.');
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Ensure video plays
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Video autoplay prevented, but recording will continue:', playError);
+        }
       }
 
-      // Start video recording
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'video/webm;codecs=vp8,opus'
-      });
+      // Get supported MIME type
+      const mimeType = getSupportedMimeType();
+      
+      // Create MediaRecorder with appropriate codec
+      const options = mimeType ? { mimeType } : {};
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
+      
+      // Log recording details
+      console.log('🎥 [RECORDING] Starting recording with:', {
+        mimeType: mediaRecorder.mimeType || 'browser default',
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+        state: mediaRecorder.state
+      });
 
       const chunks = [];
+      let hasData = false;
+      
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
+        if (e.data && e.data.size > 0) {
           chunks.push(e.data);
+          hasData = true;
+          console.log(`📦 [RECORDING] Data chunk received: ${e.data.size} bytes`);
+        }
+      };
+
+      mediaRecorder.onerror = (error) => {
+        console.error('❌ [RECORDING] MediaRecorder error:', error);
+        setError('Recording error occurred. Please try again.');
+        setIsRecording(false);
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
         }
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'video/webm' });
+        console.log('🛑 [RECORDING] Recording stopped');
+        
+        if (!hasData || chunks.length === 0) {
+          console.error('❌ [RECORDING] No data recorded');
+          setError('No video data was recorded. Please try again.');
+          setIsRecording(false);
+          return;
+        }
+        
+        // Use the actual MIME type from MediaRecorder, or fallback
+        const recordedMimeType = mediaRecorder.mimeType || 'video/webm';
+        const blob = new Blob(chunks, { type: recordedMimeType });
+        
+        // Validate blob size (should be at least 1KB)
+        if (blob.size < 1024) {
+          console.error('❌ [RECORDING] Blob too small:', blob.size);
+          setError('Recorded video is too small. Please ensure camera and microphone are working.');
+          setIsRecording(false);
+          return;
+        }
+        
+        console.log(`✅ [RECORDING] Video blob created: ${blob.size} bytes, type: ${blob.type}`);
         setVideoBlob(blob);
         const videoURL = URL.createObjectURL(blob);
         setRecordedVideo(videoURL);
@@ -366,7 +472,9 @@ const Interview = () => {
         setVideoAnswers(newVideoAnswers);
       };
 
-      mediaRecorder.start();
+      // Start recording with timeslice to ensure data is available
+      // Timeslice: request data every 1 second to avoid issues
+      mediaRecorder.start(1000);
       setIsRecording(true);
       setRecordingTime(0);
 
@@ -387,19 +495,35 @@ const Interview = () => {
   };
 
   const stopUnifiedRecording = () => {
+    console.log('🛑 [RECORDING] Stopping recording...');
+    
     // Stop video recording
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stop();
+    if (mediaRecorderRef.current) {
+      try {
+        if (mediaRecorderRef.current.state === 'recording') {
+          mediaRecorderRef.current.stop();
+          console.log('✅ [RECORDING] MediaRecorder stopped');
+        } else if (mediaRecorderRef.current.state === 'paused') {
+          mediaRecorderRef.current.resume();
+          mediaRecorderRef.current.stop();
+        }
+      } catch (error) {
+        console.error('❌ [RECORDING] Error stopping MediaRecorder:', error);
+      }
     }
 
-    // Stop stream
+    // Stop stream tracks (but don't set streamRef to null yet, wait for onstop)
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach(track => {
+        track.stop();
+        console.log(`🛑 [RECORDING] Stopped track: ${track.kind}`);
+      });
     }
 
     // Stop timer
     if (recordingTimerRef.current) {
       clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
     }
 
     setIsRecording(false);
@@ -411,24 +535,60 @@ const Interview = () => {
     // Calculate if this is a video question (must be done inside useEffect to avoid initialization error)
     const isVideoQuestion = currentQuestionIndex !== undefined && allQuestions.length > 0 && currentQuestionIndex >= allQuestions.length;
     
-    // Only transcribe if we have a video blob, not recording, not already transcribing, not in review mode, and answer not saved
-    // IMPORTANT: Skip transcription for video-only question (final question)
-    // Also check that we're not in the middle of changing questions
-    if (videoBlob && !isReviewMode && !isRecording && !isTranscribing && !answerSaved && currentQuestionIndex !== undefined && !isVideoQuestion) {
-      // Small delay to ensure state is stable
-      const timeoutId = setTimeout(() => {
-        if (videoBlob && !isTranscribing && !answerSaved) {
-          transcribeVideo();
-        }
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
+    // Skip if we don't have a video blob
+    if (!videoBlob) {
+      return;
     }
     
-    // For video-only question, directly enter review mode without transcription
-    if (videoBlob && isVideoQuestion && !isReviewMode && !isRecording && !isTranscribing) {
-      setIsReviewMode(true);
+    // Skip if we're still recording
+    if (isRecording) {
+      return;
     }
+    
+    // Skip if already transcribing or in review mode
+    if (isTranscribing || isReviewMode) {
+      return;
+    }
+    
+    // Skip if answer already saved
+    if (answerSaved) {
+      return;
+    }
+    
+    // Skip if question index is invalid
+    if (currentQuestionIndex === undefined) {
+      return;
+    }
+    
+    // For video-only question (final question), directly enter review mode without transcription
+    if (isVideoQuestion) {
+      console.log('🎥 [EFFECT] Video question detected, entering review mode');
+      setIsReviewMode(true);
+      return;
+    }
+    
+    // For text questions, transcribe the video
+    // Add a small delay to ensure state is stable and blob is complete
+    console.log('🎥 [EFFECT] Video blob ready, starting transcription in 200ms...');
+    const timeoutId = setTimeout(() => {
+      // Double-check all conditions before transcribing
+      if (videoBlob && 
+          !isRecording && 
+          !isTranscribing && 
+          !isReviewMode && 
+          !answerSaved && 
+          currentQuestionIndex !== undefined && 
+          !isVideoQuestion) {
+        console.log('✅ [EFFECT] Conditions met, calling transcribeVideo');
+        transcribeVideo();
+      } else {
+        console.log('⚠️ [EFFECT] Conditions changed, skipping transcription');
+      }
+    }, 200);
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
   }, [videoBlob, isRecording, isReviewMode, isTranscribing, answerSaved, currentQuestionIndex, allQuestions.length]);
 
   // Reset recording states when question changes
@@ -436,36 +596,71 @@ const Interview = () => {
     // Reset recording-related states when question index changes
     // Only reset if not currently recording
     if (!isRecording) {
+      console.log(`🔄 [EFFECT] Question changed to ${currentQuestionIndex}, resetting recording states`);
+      
+      // Cancel any ongoing transcription
+      setIsTranscribing(false);
+      setMessage('');
+      
+      // Reset all recording-related states
       setRecordedVideo(null);
       setVideoBlob(null);
       setTranscribedText('');
       setIsReviewMode(false);
-      setIsTranscribing(false);
       setAnswerSaved(false); // Reset answer saved flag
       setRecordingTime(0);
       setError('');
-      setMessage('');
       
       // Clear video stream if exists
       if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
+        streamRef.current.getTracks().forEach(track => {
+          track.stop();
+          console.log(`🛑 [EFFECT] Stopped track: ${track.kind}`);
+        });
         streamRef.current = null;
       }
       
       // Clear media recorder
       if (mediaRecorderRef.current) {
+        if (mediaRecorderRef.current.state === 'recording') {
+          try {
+            mediaRecorderRef.current.stop();
+          } catch (e) {
+            console.warn('⚠️ [EFFECT] Error stopping MediaRecorder:', e);
+          }
+        }
         mediaRecorderRef.current = null;
       }
       
       // Clear video element
       if (videoRef.current) {
         videoRef.current.srcObject = null;
+        // Revoke any object URLs to free memory
+        if (recordedVideo) {
+          URL.revokeObjectURL(recordedVideo);
+        }
       }
+    } else {
+      console.log('⚠️ [EFFECT] Question changed but recording is active, skipping reset');
     }
   }, [currentQuestionIndex, isRecording]);
 
   const transcribeVideo = async (retryCount = 0) => {
-    if (!videoBlob || isTranscribing) return;
+    if (!videoBlob || isTranscribing) {
+      console.log('⚠️ [TRANSCRIBE] Skipping transcription:', { 
+        hasBlob: !!videoBlob, 
+        isTranscribing 
+      });
+      return;
+    }
+
+    // Validate blob before sending
+    if (videoBlob.size < 1024) {
+      console.error('❌ [TRANSCRIBE] Blob too small:', videoBlob.size);
+      setError('Recorded video is too small. Please record again.');
+      setIsTranscribing(false);
+      return;
+    }
 
     // Store current question index to prevent transcription for wrong question
     const questionIndexAtStart = currentQuestionIndex;
@@ -478,73 +673,139 @@ const Interview = () => {
         ? `Transcribing audio... (Attempt ${retryCount + 1}/${MAX_RETRIES + 1})`
         : 'Transcribing audio...');
       
+      // Determine file extension based on blob type
+      let fileExtension = 'webm';
+      let mimeType = videoBlob.type || 'video/webm';
+      
+      if (mimeType.includes('mp4')) {
+        fileExtension = 'mp4';
+      } else if (mimeType.includes('webm')) {
+        fileExtension = 'webm';
+      }
+      
+      console.log(`📤 [TRANSCRIBE] Preparing video for transcription:`, {
+        size: videoBlob.size,
+        type: mimeType,
+        extension: fileExtension,
+        questionIndex: questionIndexAtStart
+      });
+      
       const formData = new FormData();
-      const videoFile = new File([videoBlob], `recording_${Date.now()}.webm`, {
-        type: 'video/webm'
+      const videoFile = new File([videoBlob], `recording_${Date.now()}.${fileExtension}`, {
+        type: mimeType
       });
       formData.append('video', videoFile);
 
-      // Add timeout of 60 seconds for transcription
+      // Add timeout of 90 seconds for transcription (increased for larger files)
+      const timeoutMs = 90000;
       const response = await Promise.race([
         api.post('/users/transcribe-video', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 60000, // 60 seconds timeout
+          timeout: timeoutMs,
+          // Add upload progress tracking
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+              console.log(`📤 [TRANSCRIBE] Upload progress: ${percentCompleted}%`);
+            }
+          }
         }),
         new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Request timeout')), 60000)
+          setTimeout(() => reject(new Error('Request timeout')), timeoutMs)
         )
       ]);
+      
+      console.log('✅ [TRANSCRIBE] Transcription request completed');
 
       // Only update if we're still on the same question
       if (currentQuestionIndex === questionIndexAtStart) {
         const transcription = response.data.transcription || '';
-        setTranscribedText(transcription);
-        handleAnswerChange(transcription);
+        
+        if (!transcription || transcription.trim().length === 0) {
+          console.warn('⚠️ [TRANSCRIBE] Empty transcription received');
+          setError('Transcription returned empty. The video may not have audio. You can still type your answer manually.');
+          setIsReviewMode(true);
+        } else {
+          console.log(`✅ [TRANSCRIBE] Transcription received: ${transcription.length} characters`);
+          setTranscribedText(transcription);
+          handleAnswerChange(transcription);
+        }
+        
         setMessage('');
         setIsTranscribing(false);
         
-        // Enter review mode after transcription
+        // Enter review mode after transcription (even if empty)
         setIsReviewMode(true);
       } else {
         // Question changed during transcription, just cancel
+        console.log('⚠️ [TRANSCRIBE] Question changed during transcription, cancelling');
         setIsTranscribing(false);
         setMessage('');
       }
     } catch (err) {
-      console.error('Error transcribing:', err);
+      console.error('❌ [TRANSCRIBE] Error transcribing:', err);
+      console.error('❌ [TRANSCRIBE] Error details:', {
+        message: err.message,
+        code: err.code,
+        response: err.response?.data,
+        status: err.response?.status
+      });
       
       // Only update if we're still on the same question
       if (currentQuestionIndex === questionIndexAtStart) {
         // Check if it's a network error or timeout and we haven't exceeded retries
         const isNetworkError = err.code === 'ECONNABORTED' || 
                               err.code === 'ERR_NETWORK' || 
+                              err.code === 'ECONNRESET' ||
                               err.message === 'Request timeout' ||
+                              err.message.includes('timeout') ||
                               !err.response;
         
-        if (isNetworkError && retryCount < MAX_RETRIES) {
-          // Retry after a short delay
-          console.log(`Retrying transcription (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+        const isServerError = err.response?.status >= 500;
+        const isClientError = err.response?.status >= 400 && err.response?.status < 500;
+        
+        // Retry logic: retry on network errors or server errors
+        if ((isNetworkError || isServerError) && retryCount < MAX_RETRIES) {
+          // Retry after exponential backoff
+          const retryDelay = 2000 * Math.pow(2, retryCount); // 2s, 4s, 8s
+          console.log(`🔄 [TRANSCRIBE] Retrying transcription (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${retryDelay}ms...`);
           setIsTranscribing(false);
+          setMessage(`Retrying in ${retryDelay/1000} seconds...`);
+          
           setTimeout(() => {
             if (currentQuestionIndex === questionIndexAtStart && videoBlob) {
               transcribeVideo(retryCount + 1);
             }
-          }, 2000); // Wait 2 seconds before retry
+          }, retryDelay);
           return;
         }
         
-        // If retries exhausted or not a network error, show error
-        setError(isNetworkError 
-          ? 'Network error during transcription. Please check your connection and try recording again.'
-          : 'Error transcribing audio. You can still type your answer manually.');
+        // If retries exhausted or client error, show specific error message
+        let errorMessage = 'Error transcribing audio. You can still type your answer manually.';
+        
+        if (isNetworkError) {
+          errorMessage = 'Network error during transcription. Please check your connection and try recording again.';
+        } else if (isClientError) {
+          const serverMessage = err.response?.data?.message || '';
+          if (serverMessage.includes('format') || serverMessage.includes('codec')) {
+            errorMessage = 'Video format not supported. Please try recording again with a different browser.';
+          } else {
+            errorMessage = serverMessage || 'Error processing video. You can still type your answer manually.';
+          }
+        } else if (isServerError) {
+          errorMessage = 'Server error during transcription. Please try again in a moment.';
+        }
+        
+        setError(errorMessage);
         setMessage('');
         setIsTranscribing(false);
         // Still allow review mode even if transcription fails
         setIsReviewMode(true);
         setTranscribedText('');
       } else {
+        console.log('⚠️ [TRANSCRIBE] Question changed, cancelling error handling');
         setIsTranscribing(false);
         setMessage('');
       }

@@ -519,6 +519,18 @@ export async function transcribeVideoAudio(filePath) {
   let transcriptionAttempts = 0;
   const maxTranscriptionAttempts = 3;
   
+  // Validate file exists and has content
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`Video file not found: ${filePath}`);
+  }
+  
+  const fileStats = fs.statSync(filePath);
+  if (fileStats.size < 1024) {
+    throw new Error(`Video file is too small (${fileStats.size} bytes). The video may not contain audio.`);
+  }
+  
+  console.log(`📁 [WHISPER] File to transcribe: ${filePath} (${fileStats.size} bytes)`);
+  
   while (transcriptionAttempts < maxTranscriptionAttempts) {
     try {
       transcriptionAttempts++;
@@ -527,25 +539,48 @@ export async function transcribeVideoAudio(filePath) {
       // Create a readable stream from the file for OpenAI
       const fileStream = fs.createReadStream(filePath);
       
-      // Add timeout wrapper for Whisper API call
+      // Add timeout wrapper for Whisper API call (increased to 90 seconds for larger files)
       const transcriptionPromise = openai.audio.transcriptions.create({
         file: fileStream,
         model: 'whisper-1',
         language: 'en',
-        response_format: 'text'
+        response_format: 'text',
+        // Add prompt to help with accuracy
+        prompt: 'This is an interview response. The speaker is answering questions in English.'
       });
       
-      // Race between transcription and timeout (60 seconds)
+      // Race between transcription and timeout (90 seconds for larger files)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Whisper API timeout')), 60000)
+        setTimeout(() => reject(new Error('Whisper API timeout after 90 seconds')), 90000)
       );
       
       const transcription = await Promise.race([transcriptionPromise, timeoutPromise]);
       
-      console.log(`✅ [WHISPER] Transcription completed successfully`);
-      return transcription.trim();
+      const transcriptionText = typeof transcription === 'string' ? transcription : transcription.text || '';
+      const trimmedText = transcriptionText.trim();
+      
+      if (!trimmedText || trimmedText.length === 0) {
+        throw new Error('Transcription returned empty result. The video may not contain audible speech.');
+      }
+      
+      console.log(`✅ [WHISPER] Transcription completed successfully (${trimmedText.length} characters)`);
+      return trimmedText;
     } catch (error) {
       console.error(`❌ [WHISPER] Transcription attempt ${transcriptionAttempts} failed:`, error.message);
+      console.error(`❌ [WHISPER] Error details:`, {
+        name: error.name,
+        code: error.code,
+        status: error.status,
+        response: error.response?.data
+      });
+      
+      // If it's a file format error, don't retry
+      if (error.message.includes('format') || 
+          error.message.includes('codec') || 
+          error.message.includes('not supported') ||
+          error.status === 400) {
+        throw new Error(`Video format error: ${error.message}`);
+      }
       
       // If it's the last attempt, throw the error
       if (transcriptionAttempts >= maxTranscriptionAttempts) {
@@ -553,7 +588,7 @@ export async function transcribeVideoAudio(filePath) {
       }
       
       // Wait before retry (exponential backoff)
-      const waitTime = 1000 * Math.pow(2, transcriptionAttempts - 1);
+      const waitTime = 2000 * Math.pow(2, transcriptionAttempts - 1); // 2s, 4s, 8s
       console.log(`⏳ [WHISPER] Waiting ${waitTime}ms before retry...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
