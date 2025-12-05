@@ -376,7 +376,7 @@ const Dashboard = () => {
                     </svg>
                     ID
                   </p>
-                  <p className="text-lg font-bold text-gray-900 truncate">Digitalizard ID</p>
+                  <p className="text-lg font-bold text-gray-900 truncate">{profile?.digitalId || 'N/A'}</p>
                 </div>
                 <div className="flex flex-col">
                   <p className="text-sm text-gray-600 mb-1 flex items-center gap-1">

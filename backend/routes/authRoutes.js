@@ -58,6 +58,23 @@ router.post("/register", async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Generar Digital ID: PROGRAMA-AÑO-NÚMERO
+    const currentYear = new Date().getFullYear();
+    const programCode = program.toUpperCase(); // Asegurar mayúsculas
+    
+    // Contar cuántos usuarios hay con este programa en este año
+    const usersInProgramThisYear = await User.countDocuments({
+      program: programCode,
+      createdAt: {
+        $gte: new Date(currentYear, 0, 1), // Desde el 1 de enero del año actual
+        $lt: new Date(currentYear + 1, 0, 1) // Hasta el 1 de enero del año siguiente
+      }
+    });
+    
+    // El siguiente número será el contador + 1
+    const userNumber = usersInProgramThisYear + 1;
+    const digitalId = `${programCode}-${currentYear}-${userNumber}`;
+
     const userData = {
       name: name.trim(),
       email: normalizedEmail,
@@ -65,7 +82,8 @@ router.post("/register", async (req, res) => {
       dob,
       gender,
       academic_level,
-      program,
+      program: programCode,
+      digitalId: digitalId,
       // ACTIVACIÓN POR ADMIN - COMENTADO: Las cuentas nuevas se crean activas automáticamente
       // isActive: false,  // Descomentar esta línea para reactivar la activación por admin
       isActive: true,  // Cuentas activas automáticamente al registrarse

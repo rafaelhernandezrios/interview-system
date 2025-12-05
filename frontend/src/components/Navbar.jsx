@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthContext';
+import logo from '../assets/logo.png';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -16,14 +17,11 @@ const Navbar = () => {
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <div className="flex justify-between items-center">
           <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 12c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z" />
-                <path d="M9 12c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z" />
-                <path d="M15 12c0-1.657 1.343-3 3-3s3 1.343 3 3-1.343 3-3 3-3-1.343-3-3z" />
-                <path d="M3 12h18" />
-              </svg>
-            </div>
+            <img 
+              src={logo} 
+              alt="Mirai Innovation" 
+              className="h-10 w-auto object-contain group-hover:scale-110 transition-transform"
+            />
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Mirai Innovation
             </span>
