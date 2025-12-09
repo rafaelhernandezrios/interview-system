@@ -10,11 +10,10 @@ import adminRoutes from "./routes/adminRoutes.js";
 dotenv.config();
 
 const app = express();
-// Increase body size limit to 50MB for video uploads
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// CORS
+// ============================================
+// CORS CONFIGURATION - DEBE SER LO PRIMERO
+// ============================================
 let allowedOrigins = [];
 
 if (process.env.CORS_ORIGINS) {
@@ -114,20 +113,28 @@ const corsOptions = {
   preflightContinue: false,
 };
 
-// Middleware de CORS manual como respaldo (se ejecuta antes del middleware de cors)
+// ============================================
+// APLICAR CORS PRIMERO - ANTES DE CUALQUIER OTRO MIDDLEWARE
+// ============================================
+
+// Middleware de CORS manual como PRIMERA línea de defensa
+// Esto asegura que los headers CORS se envíen SIEMPRE, incluso si hay errores
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Si el origin está en la lista de permitidos, agregar headers CORS
+  // Si el origin está en la lista de permitidos, agregar headers CORS SIEMPRE
   if (origin) {
     const normalizedOrigin = origin.replace(/\/$/, '');
-    if (allowedOrigins.includes(normalizedOrigin) || 
-        allowedOrigins.some(allowed => allowed.toLowerCase() === normalizedOrigin.toLowerCase())) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Access-Control-Allow-Credentials', 'true');
-      res.header('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-      res.header('Access-Control-Max-Age', '86400');
+    const isAllowed = allowedOrigins.includes(normalizedOrigin) || 
+                     allowedOrigins.some(allowed => allowed.toLowerCase() === normalizedOrigin.toLowerCase());
+    
+    if (isAllowed) {
+      // Establecer headers CORS SIEMPRE
+      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
+      res.setHeader('Access-Control-Max-Age', '86400');
     }
   }
   
@@ -139,12 +146,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Aplicar CORS a todas las rutas ANTES de cualquier otra ruta
+// Aplicar middleware de CORS de la librería cors (segunda línea de defensa)
 app.use(cors(corsOptions));
 
 // Manejar preflight requests explícitamente para todas las rutas
-// Esto es importante para requests con Content-Type: multipart/form-data
 app.options('*', cors(corsOptions));
+
+// ============================================
+// OTROS MIDDLEWARES (después de CORS)
+// ============================================
+
+// Increase body size limit to 50MB for video uploads
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Conectar DB
 connectDB();
@@ -162,8 +176,18 @@ app.get("/", (req, res) => {
   res.json({ message: "API de Evaluación de Habilidades funcionando" });
 });
 
-const PORT = process.env.PORT || 20352;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
-});
+// Exportar app para Vercel (serverless functions)
+// Esto permite que Vercel use la app como serverless function
+export default app;
+
+// Solo iniciar el servidor si NO estamos en Vercel (desarrollo local)
+// Vercel detecta automáticamente si hay un export default y usa eso
+if (process.env.VERCEL !== '1') {
+  const PORT = process.env.PORT || 20352;
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+  });
+} else {
+  console.log('🚀 Running on Vercel (serverless mode)');
+}
 
