@@ -46,7 +46,6 @@ export async function extractTextFromPdf(pdfPathOrUrl) {
     
     return text.trim();
   } catch (error) {
-    console.error('Error al extraer texto del PDF:', error);
     throw error;
   }
 }
@@ -203,7 +202,6 @@ Return the skills as a JSON object with a 'skills' array.`;
     
     return sortedSkills;
   } catch (error) {
-    console.error("Error in analyzeCvText:", error);
     return [];
   }
 }
@@ -240,7 +238,6 @@ Respond ONLY in the following format, without adding anything else:
 
     return questions.slice(0, 4);
   } catch (error) {
-    console.error("Error in generateQuestions:", error);
     return [];
   }
 }
@@ -301,7 +298,6 @@ Respond ONLY in the following JSON format with an object containing an "evaluati
       evaluations: evaluation,
     };
   } catch (error) {
-    console.error("Error evaluating answers:", error);
     return {
       total_score: 0,
       evaluations: [],
@@ -529,12 +525,10 @@ export async function transcribeVideoAudio(filePath) {
     throw new Error(`Video file is too small (${fileStats.size} bytes). The video may not contain audio.`);
   }
   
-  console.log(`📁 [WHISPER] File to transcribe: ${filePath} (${fileStats.size} bytes)`);
   
   while (transcriptionAttempts < maxTranscriptionAttempts) {
     try {
       transcriptionAttempts++;
-      console.log(`🎤 [WHISPER] Transcription attempt ${transcriptionAttempts}/${maxTranscriptionAttempts}`);
       
       // Create a readable stream from the file for OpenAI
       const fileStream = fs.createReadStream(filePath);
@@ -563,17 +557,8 @@ export async function transcribeVideoAudio(filePath) {
         throw new Error('Transcription returned empty result. The video may not contain audible speech.');
       }
       
-      console.log(`✅ [WHISPER] Transcription completed successfully (${trimmedText.length} characters)`);
       return trimmedText;
     } catch (error) {
-      console.error(`❌ [WHISPER] Transcription attempt ${transcriptionAttempts} failed:`, error.message);
-      console.error(`❌ [WHISPER] Error details:`, {
-        name: error.name,
-        code: error.code,
-        status: error.status,
-        response: error.response?.data
-      });
-      
       // If it's a file format error, don't retry
       if (error.message.includes('format') || 
           error.message.includes('codec') || 
@@ -589,7 +574,6 @@ export async function transcribeVideoAudio(filePath) {
       
       // Wait before retry (exponential backoff)
       const waitTime = 2000 * Math.pow(2, transcriptionAttempts - 1); // 2s, 4s, 8s
-      console.log(`⏳ [WHISPER] Waiting ${waitTime}ms before retry...`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
     }
   }

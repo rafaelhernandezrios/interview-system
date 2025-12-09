@@ -44,7 +44,6 @@ export const sendPasswordResetEmail = async (email, resetToken) => {
     const result = await transporter.sendMail(mailOptions);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Error enviando email:', error);
     return { success: false, error: error.message };
   }
 };
@@ -70,7 +69,6 @@ export const sendPasswordChangeConfirmation = async (email, userName) => {
     const result = await transporter.sendMail(mailOptions);
     return { success: true, messageId: result.messageId };
   } catch (error) {
-    console.error('Error enviando email de confirmación:', error);
     return { success: false, error: error.message };
   }
 };

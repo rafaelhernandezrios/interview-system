@@ -39,7 +39,6 @@ router.get("/users", async (req, res) => {
       total
     });
   } catch (error) {
-    console.error("Error listando usuarios:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -61,7 +60,6 @@ router.get("/stats", async (req, res) => {
       interviewCompleted
     });
   } catch (error) {
-    console.error("Error obteniendo estadísticas:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -76,7 +74,6 @@ router.get("/users/:userId", async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error("Error obteniendo usuario:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -97,7 +94,6 @@ router.get("/users/:userId/survey-results", async (req, res) => {
       cvScore: user.score
     });
   } catch (error) {
-    console.error("Error obteniendo resultados:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -113,7 +109,6 @@ router.delete("/users/:userId", async (req, res) => {
     await User.findByIdAndDelete(req.params.userId);
     res.json({ message: "Usuario eliminado exitosamente" });
   } catch (error) {
-    console.error("Error eliminando usuario:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -137,7 +132,6 @@ router.patch("/users/:userId/role", async (req, res) => {
 
     res.json({ message: "Rol actualizado exitosamente", user });
   } catch (error) {
-    console.error("Error cambiando rol:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -158,7 +152,6 @@ router.patch("/users/:userId/toggle-status", async (req, res) => {
       user 
     });
   } catch (error) {
-    console.error("Error cambiando estado:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });

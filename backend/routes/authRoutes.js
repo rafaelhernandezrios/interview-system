@@ -34,7 +34,6 @@ export const authMiddleware = async (req, res, next) => {
     
     next();
   } catch (error) {
-    console.error("Error verificando token:", error.message);
     res.status(401).json({ message: "Token inválido" });
   }
 };
@@ -102,7 +101,6 @@ router.post("/register", async (req, res) => {
         details: error.errors 
       });
     }
-    console.error("Error en el registro:", error);
     return res.status(500).json({ message: "Error en el servidor" });
   }
 });
@@ -146,7 +144,6 @@ router.post("/login", async (req, res) => {
       role: user.role 
     });
   } catch (error) {
-    console.error("Error en el login:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
@@ -179,7 +176,6 @@ router.post("/forgot-password", async (req, res) => {
       res.status(500).json({ message: "Error al enviar el email" });
     }
   } catch (error) {
-    console.error("Error en forgot-password:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
@@ -200,7 +196,6 @@ router.get("/verify-reset-token/:token", async (req, res) => {
 
     res.json({ message: "Token válido" });
   } catch (error) {
-    console.error("Error verificando token:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });
@@ -238,7 +233,6 @@ router.post("/reset-password", async (req, res) => {
 
     res.json({ message: "Contraseña restablecida exitosamente" });
   } catch (error) {
-    console.error("Error en reset-password:", error);
     res.status(500).json({ message: "Error en el servidor" });
   }
 });

@@ -13,11 +13,7 @@ if (import.meta.env.PROD && API_URL && !API_URL.endsWith('/api')) {
 }
 
 // Validación: en producción, la URL debe ser del backend, no del frontend
-if (import.meta.env.PROD && API_URL && API_URL.includes('interview-system-ivory')) {
-  console.error('⚠️ [AXIOS] WARNING: VITE_API_URL parece ser la URL del frontend, no del backend!');
-  console.error('⚠️ [AXIOS] Debe ser: https://interview-system-c1q9.vercel.app o https://interview-system-c1q9.vercel.app/api');
-  console.error('⚠️ [AXIOS] Actual:', API_URL);
-}
+// (validación silenciosa - no mostrar logs al usuario)
 
 const api = axios.create({
   baseURL: API_URL,

@@ -35,35 +35,21 @@ if (process.env.NODE_ENV !== 'production') {
   }
 }
 
-// Debug: Mostrar configuración de CORS
-console.log('🌐 CORS Configuration:');
-console.log('  NODE_ENV:', process.env.NODE_ENV);
-console.log('  CORS_ORIGINS env:', process.env.CORS_ORIGINS);
-console.log('  CORS_ORIGINS type:', typeof process.env.CORS_ORIGINS);
-console.log('  CORS_ORIGINS length:', process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.length : 0);
-console.log('  Allowed Origins:', allowedOrigins);
-console.log('  Allowed Origins count:', allowedOrigins.length);
+// CORS Configuration (logs removidos para producción)
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Log para debugging
-    console.log(`\n🔍 [CORS] Request received - Origin: ${origin || '(no origin)'}`);
-    console.log(`🔍 [CORS] Allowed origins: ${JSON.stringify(allowedOrigins)}`);
-    
     // Permitir requests sin origin (mobile apps, Postman, etc.)
     if (!origin) {
-      console.log('  ✅ CORS: Allowing request without origin');
       return callback(null, true);
     }
     
     // Normalizar origin: remover barra final si existe
     const normalizedOrigin = origin.replace(/\/$/, '');
-    console.log(`🔍 [CORS] Normalized origin: ${normalizedOrigin}`);
     
     // Verificar coincidencia exacta
     const exactMatchIndex = allowedOrigins.indexOf(normalizedOrigin);
     if (exactMatchIndex !== -1) {
-      console.log(`  ✅ CORS: Allowing origin (exact match at index ${exactMatchIndex}): ${normalizedOrigin}`);
       return callback(null, true);
     }
     
@@ -72,7 +58,6 @@ const corsOptions = {
       allowed.toLowerCase() === normalizedOrigin.toLowerCase()
     );
     if (caseInsensitiveMatch) {
-      console.log(`  ✅ CORS: Allowing origin (case-insensitive match): ${normalizedOrigin}`);
       return callback(null, true);
     }
     
@@ -82,19 +67,11 @@ const corsOptions = {
         const pattern = allowedOrigin.replace(/\*/g, '.*');
         const regex = new RegExp(`^${pattern}$`);
         if (regex.test(normalizedOrigin)) {
-          console.log(`  ✅ CORS: Allowing origin (wildcard match): ${normalizedOrigin} matches ${allowedOrigin}`);
           return callback(null, true);
         }
       }
     }
     
-    console.log(`  ❌ CORS: Blocked origin: ${normalizedOrigin}`);
-    console.log(`  Allowed origins: ${allowedOrigins.join(', ')}`);
-    console.log(`  Comparison details:`);
-    allowedOrigins.forEach((allowed, idx) => {
-      console.log(`    [${idx}] "${allowed}" === "${normalizedOrigin}" ? ${allowed === normalizedOrigin}`);
-      console.log(`    [${idx}] "${allowed.toLowerCase()}" === "${normalizedOrigin.toLowerCase()}" ? ${allowed.toLowerCase() === normalizedOrigin.toLowerCase()}`);
-    });
     callback(new Error('Not allowed by CORS'));
   },
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
@@ -165,7 +142,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Middleware para manejar errores de tamaño de body
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 413 || err.statusCode === 413) {
-    console.error('❌ [ERROR] Request body too large:', err.message);
     return res.status(413).json({ 
       error: 'File too large',
       message: 'The video file is too large. Maximum size is 50MB. Please record a shorter video or compress the file.',
@@ -173,7 +149,6 @@ app.use((err, req, res, next) => {
     });
   }
   if (err.type === 'entity.too.large') {
-    console.error('❌ [ERROR] Request entity too large:', err.message);
     return res.status(413).json({ 
       error: 'File too large',
       message: 'The video file is too large. Maximum size is 50MB. Please record a shorter video or compress the file.',
@@ -208,9 +183,7 @@ export default app;
 if (process.env.VERCEL !== '1') {
   const PORT = process.env.PORT || 20352;
   app.listen(PORT, () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    // Server started (logs removidos)
   });
-} else {
-  console.log('🚀 Running on Vercel (serverless mode)');
 }
 

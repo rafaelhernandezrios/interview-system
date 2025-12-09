@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { AuthContext } from '../contexts/AuthContext';
 import cvIcon from '../assets/cv.png';
 import interviewIcon from '../assets/interview.png';
 
@@ -70,7 +71,6 @@ const Dashboard = () => {
       const response = await api.get('/users/profile');
       setProfile(response.data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
     }
@@ -106,7 +106,6 @@ const Dashboard = () => {
       // Actualizar el perfil con la nueva foto
       setProfile({ ...profile, profilePhoto: response.data.profilePhoto });
     } catch (error) {
-      console.error('Error uploading photo:', error);
       alert('Error uploading photo. Please try again.');
     } finally {
       setUploadingPhoto(false);
@@ -251,19 +250,25 @@ const Dashboard = () => {
 
           {/* Interview Card */}
           <div className="lg:col-span-4 glass-card group cursor-pointer hover:scale-[1.02] transition-transform duration-300 p-4 sm:p-6">
-            <Link to={profile?.cvAnalyzed ? "/interview" : "/cv-upload"} className="block h-full">
+            <Link to={profile?.interviewCompleted ? "/results" : (profile?.cvAnalyzed ? "/interview" : "/cv-upload")} className="block h-full">
               <div className="flex flex-col h-full">
                 <div className="flex items-start justify-between mb-4 sm:mb-6">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-lg sm:text-xl font-bold text-gray-900">Interview</h3>
-                      {!profile?.interviewCompleted && (
+                      {profile?.interviewCompleted ? (
+                        <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-semibold">
+                          ✓ Completed
+                        </span>
+                      ) : (
                         <span className="bg-orange-100 text-orange-600 px-2 py-1 rounded-full text-xs font-semibold">
                           • Pending
                         </span>
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-600">Answer personalized questions</p>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {profile?.interviewCompleted ? 'View your interview results' : 'Answer personalized questions'}
+                    </p>
                   </div>
                   <div className="flex-shrink-0 mb-4">
                     <img 
@@ -277,7 +282,16 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="mt-auto">
-                  {profile?.cvAnalyzed ? (
+                  {profile?.interviewCompleted ? (
+                    <Link to="/results">
+                      <button className="w-full bg-gradient-to-r from-green-600 via-green-700 to-emerald-600 hover:from-green-700 hover:via-green-800 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mb-2 transform hover:scale-[1.02]">
+                        View Results
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    </Link>
+                  ) : profile?.cvAnalyzed ? (
                     <button className="w-full bg-gradient-to-r from-purple-600 via-purple-700 to-blue-600 hover:from-purple-700 hover:via-purple-800 hover:to-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mb-2 transform hover:scale-[1.02]">
                       Start Interview Now
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

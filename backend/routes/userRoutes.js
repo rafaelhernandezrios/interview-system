@@ -30,20 +30,14 @@ const router = express.Router();
 // Helper function to transcribe and respond
 async function transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res) {
   try {
-    console.log('🎥 [TRANSCRIBE] Starting transcription...');
-    console.log('🎥 [TRANSCRIBE] File path:', filePathToTranscribe);
-    
     let transcription;
     try {
       transcription = await transcribeVideoAudio(filePathToTranscribe);
-      console.log('✅ [TRANSCRIBE] Transcription completed:', transcription ? `${transcription.length} characters` : 'empty');
     } catch (transcriptionError) {
-      console.error('❌ [TRANSCRIBE] Transcription error:', transcriptionError.message);
       throw transcriptionError;
     }
     
     if (!transcription || transcription.trim().length === 0) {
-      console.warn('⚠️ [TRANSCRIBE] Empty transcription result');
       transcription = '';
     }
 
@@ -51,16 +45,14 @@ async function transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
-        console.log('🗑️  [TRANSCRIBE] Temp file deleted');
       } catch (err) {
-        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
+        // Error deleting temp file (silent)
       }
     } else if (req.file && req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
-        console.log('🗑️  [TRANSCRIBE] Local file deleted');
       } catch (err) {
-        console.error("❌ [TRANSCRIBE] Error deleting local file:", err);
+        // Error deleting local file (silent)
       }
     }
 
@@ -71,7 +63,7 @@ async function transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res
       try {
         fs.unlinkSync(tempFilePath);
       } catch (err) {
-        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
+        // Error deleting temp file (silent)
       }
     }
     throw error;
@@ -108,7 +100,6 @@ router.post("/upload-cv", authMiddleware, upload.single("file"), async (req, res
           fs.unlinkSync(filePath);
         }
       } catch (err) {
-        console.error("Error deleting old CV file:", err);
       }
     }
 
@@ -144,7 +135,6 @@ router.post("/upload-cv", authMiddleware, upload.single("file"), async (req, res
       storageType: STORAGE_TYPE
     });
   } catch (error) {
-    console.error("Error uploading file:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -170,7 +160,6 @@ router.delete("/cv", authMiddleware, async (req, res) => {
           fs.unlinkSync(filePath);
         }
       } catch (err) {
-        console.error("Error deleting CV file:", err);
       }
     }
 
@@ -193,7 +182,6 @@ router.delete("/cv", authMiddleware, async (req, res) => {
       message: "CV deleted successfully"
     });
   } catch (error) {
-    console.error("Error deleting CV:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -232,7 +220,6 @@ router.post("/analyze-cv", authMiddleware, async (req, res) => {
       skills: allSkills
     });
   } catch (error) {
-    console.error("Error procesando CV:", error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
@@ -301,12 +288,6 @@ router.post("/get-upload-url", authMiddleware, async (req, res) => {
     // Generate the public URL where the file will be accessible
     const publicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
 
-    console.log('✅ [PRESIGNED URL] Generated:', {
-      s3Key,
-      contentType,
-      expiresIn: '15 minutes'
-    });
-
     res.json({
       uploadUrl: presignedUrl,
       s3Key: s3Key,
@@ -314,7 +295,6 @@ router.post("/get-upload-url", authMiddleware, async (req, res) => {
       expiresIn: 900 // 15 minutes in seconds
     });
   } catch (error) {
-    console.error('❌ [PRESIGNED URL] Error:', error);
     res.status(500).json({ 
       error: 'Failed to generate upload URL',
       message: error.message 
@@ -330,17 +310,10 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
   let s3Url = null;
   
   try {
-    console.log('🎥 [TRANSCRIBE] Video transcription request received');
-    console.log('🎥 [TRANSCRIBE] Storage type:', VIDEO_STORAGE_TYPE);
-    console.log('🎥 [TRANSCRIBE] Request body keys:', Object.keys(req.body));
-    console.log('🎥 [TRANSCRIBE] Request has file:', !!req.file);
-    console.log('🎥 [TRANSCRIBE] Request has s3Url:', !!req.body.s3Url);
-    
     // Check if we have an S3 URL (direct upload) or a file upload
     if (req.body.s3Url) {
       // Direct S3 upload - use the URL directly
       s3Url = req.body.s3Url;
-      console.log('🎥 [TRANSCRIBE] Using S3 URL for transcription:', s3Url);
       
       if (!s3Url.startsWith('http://') && !s3Url.startsWith('https://')) {
         return res.status(400).json({ message: "Invalid S3 URL provided" });
@@ -355,7 +328,6 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       }
       
       tempFilePath = path.join(tempDir, `temp_${Date.now()}_transcribe.webm`);
-      console.log('🎥 [TRANSCRIBE] Downloading from S3 URL to temp location:', tempFilePath);
       
       // Download from S3 with timeout and retry logic
       let downloadSuccess = false;
@@ -365,7 +337,6 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       while (!downloadSuccess && downloadAttempts < maxDownloadAttempts) {
         try {
           downloadAttempts++;
-          console.log(`🎥 [TRANSCRIBE] Download attempt ${downloadAttempts}/${maxDownloadAttempts}`);
           
           const response = await axios({
             method: 'GET',
@@ -398,10 +369,8 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
           });
           
           downloadSuccess = true;
-          console.log('✅ [TRANSCRIBE] File downloaded successfully from S3');
           filePathToTranscribe = tempFilePath;
         } catch (downloadError) {
-          console.error(`❌ [TRANSCRIBE] Download attempt ${downloadAttempts} failed:`, downloadError.message);
           if (downloadAttempts >= maxDownloadAttempts) {
             throw new Error(`Failed to download video from S3 after ${maxDownloadAttempts} attempts: ${downloadError.message}`);
           }
@@ -414,12 +383,10 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       return new Promise((resolve, reject) => {
         videoUpload.single('video')(req, res, async (err) => {
           if (err) {
-            console.error('❌ [TRANSCRIBE] Multer error:', err);
             return res.status(400).json({ message: err.message || "Error uploading file" });
           }
           
           if (!req.file) {
-            console.error('❌ [TRANSCRIBE] No video file provided');
             return res.status(400).json({ message: "No video file provided. Either upload a file or provide an s3Url." });
           }
           
@@ -438,7 +405,6 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       // Validate file exists and has reasonable size
       const stats = fs.statSync(filePathToTranscribe);
       if (stats.size < 1024) {
-        console.error('❌ [TRANSCRIBE] File too small:', stats.size);
         if (tempFilePath && fs.existsSync(tempFilePath)) {
           fs.unlinkSync(tempFilePath);
         }
@@ -446,41 +412,31 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       }
       
       if (stats.size > 50 * 1024 * 1024) {
-        console.error('❌ [TRANSCRIBE] File too large:', stats.size);
         if (tempFilePath && fs.existsSync(tempFilePath)) {
           fs.unlinkSync(tempFilePath);
         }
         return res.status(400).json({ message: "Video file is too large. Maximum size is 50MB." });
       }
-      
-      console.log('🎥 [TRANSCRIBE] File size:', stats.size, 'bytes');
     } else {
       // Traditional file upload path - handle with multer
       return new Promise((resolve, reject) => {
         videoUpload.single('video')(req, res, async (err) => {
           if (err) {
-            console.error('❌ [TRANSCRIBE] Multer error:', err);
             return res.status(400).json({ message: err.message || "Error uploading file" });
           }
           
           if (!req.file) {
-            console.error('❌ [TRANSCRIBE] No video file provided');
             return res.status(400).json({ message: "No video file provided. Either upload a file or provide an s3Url." });
           }
           
           // Validate file size
           if (req.file.size < 1024) {
-            console.error('❌ [TRANSCRIBE] File too small:', req.file.size);
             return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
           }
           
           if (req.file.size > 50 * 1024 * 1024) {
-            console.error('❌ [TRANSCRIBE] File too large:', req.file.size);
             return res.status(400).json({ message: "Video file is too large. Maximum size is 50MB." });
           }
-          
-          console.log('🎥 [TRANSCRIBE] File MIME type:', req.file.mimetype || 'unknown');
-          console.log('🎥 [TRANSCRIBE] File size:', req.file.size, 'bytes');
           
           // Determine file path based on storage type
           if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
@@ -552,23 +508,18 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
     // Transcribe using the file path we have
     await transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res);
   } catch (error) {
-    console.error("❌ [TRANSCRIBE] Error transcribing video:", error);
-    console.error("❌ [TRANSCRIBE] Error stack:", error.stack);
-    
     // Try to delete temp file even on error
     if (tempFilePath && fs.existsSync(tempFilePath)) {
       try {
         fs.unlinkSync(tempFilePath);
-        console.log('🗑️  [TRANSCRIBE] Temp file deleted after error');
       } catch (err) {
-        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
+        // Error deleting temp file (silent)
       }
     } else if (req.file && req.file.path && VIDEO_STORAGE_TYPE === 'local') {
       try {
         fs.unlinkSync(req.file.path);
-        console.log('🗑️  [TRANSCRIBE] Local file deleted after error');
       } catch (err) {
-        console.error("❌ [TRANSCRIBE] Error deleting temp file:", err);
+        // Error deleting local file (silent)
       }
     }
     
@@ -604,12 +555,6 @@ router.post("/submit-interview", authMiddleware, async (req, res) => {
   let s3VideoUrl = null;
   
   try {
-    console.log('📝 [SUBMIT INTERVIEW] Interview submission received');
-    console.log('📝 [SUBMIT INTERVIEW] Storage type:', VIDEO_STORAGE_TYPE);
-    console.log('📝 [SUBMIT INTERVIEW] Request body keys:', Object.keys(req.body));
-    console.log('📝 [SUBMIT INTERVIEW] Request has files:', !!req.files);
-    console.log('📝 [SUBMIT INTERVIEW] Request has s3VideoUrl:', !!req.body.s3VideoUrl);
-    
     const user = await User.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -621,13 +566,11 @@ router.post("/submit-interview", authMiddleware, async (req, res) => {
     if (bodyS3VideoUrl) {
       // Video was uploaded directly to S3
       s3VideoUrl = bodyS3VideoUrl;
-      console.log('📝 [SUBMIT INTERVIEW] Using S3 URL for video:', s3VideoUrl);
     } else {
       // Traditional file upload - use multer middleware
       return new Promise((resolve, reject) => {
         videoUpload.any()(req, res, async (err) => {
           if (err) {
-            console.error('❌ [SUBMIT INTERVIEW] Multer error:', err);
             return res.status(400).json({ message: err.message || "Error uploading file" });
           }
           
@@ -647,8 +590,6 @@ router.post("/submit-interview", authMiddleware, async (req, res) => {
     // Process with S3 URL
     await processSubmitInterview(req, res, null, s3VideoUrl);
   } catch (error) {
-    console.error("❌ [SUBMIT INTERVIEW] Error processing interview:", error);
-    console.error("❌ [SUBMIT INTERVIEW] Error stack:", error.stack);
     return res.status(500).json({ message: error.message || "Internal server error" });
   }
 });
@@ -662,23 +603,6 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl) {
     }
 
     const { answers } = req.body;
-    
-    console.log('📝 [SUBMIT INTERVIEW] Video file found:', videoFile ? 'Yes' : 'No');
-    console.log('📝 [SUBMIT INTERVIEW] S3 video URL found:', s3VideoUrl ? 'Yes' : 'No');
-    
-    if (videoFile) {
-      if (VIDEO_STORAGE_TYPE === 's3') {
-        console.log('📝 [SUBMIT INTERVIEW] S3 Video details:');
-        console.log('   - Location:', videoFile.location);
-        console.log('   - Key:', videoFile.key);
-        console.log('   - Bucket:', videoFile.bucket);
-        console.log('   - Size:', videoFile.size);
-      } else {
-        console.log('📝 [SUBMIT INTERVIEW] Local video details:');
-        console.log('   - Path:', videoFile.path);
-        console.log('   - Size:', videoFile.size);
-      }
-    }
 
     // Parse answers if it's a string (from FormData)
     let parsedAnswers = answers;
@@ -705,21 +629,9 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl) {
     
     // Separate text answers from video
     const textAnswers = videoFile ? parsedAnswers : parsedAnswers;
-    const hasVideo = !!videoFile;
-
-    console.log('📝 [SUBMIT INTERVIEW] Total questions:', allQuestions.length);
-    console.log('📝 [SUBMIT INTERVIEW] Total answers:', textAnswers.length);
-    console.log('📝 [SUBMIT INTERVIEW] Has video:', hasVideo);
-    console.log('📝 [SUBMIT INTERVIEW] Generated questions count:', generatedQuestions.length);
-    console.log('📝 [SUBMIT INTERVIEW] Default questions count:', defaultQuestions.length);
 
     // Validate that we have the correct number of answers
     if (textAnswers.length !== allQuestions.length) {
-      console.error('❌ [SUBMIT INTERVIEW] Mismatch detected:');
-      console.error('   - Expected answers:', allQuestions.length);
-      console.error('   - Received answers:', textAnswers.length);
-      console.error('   - Generated questions:', generatedQuestions.length);
-      console.error('   - Default questions:', defaultQuestions.length);
       return res.status(400).json({ 
         message: `Number of answers (${textAnswers.length}) does not match the number of questions (${allQuestions.length}). Please make sure all ${allQuestions.length} text questions are answered.` 
       });
@@ -734,29 +646,23 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl) {
     if (s3VideoUrl) {
       // Video was uploaded directly to S3
       user.interviewVideo = s3VideoUrl;
-      console.log('✅ [SUBMIT INTERVIEW] Video URL from S3:', s3VideoUrl);
     } else if (videoFile) {
       // Video was uploaded traditionally
       let videoPath;
       if (VIDEO_STORAGE_TYPE === 's3') {
         // Para S3, usar la URL del archivo
         videoPath = videoFile.location;
-        console.log('✅ [SUBMIT INTERVIEW] Video saved to S3:', videoPath);
       } else {
         // Para almacenamiento local, crear una URL relativa
         videoPath = `/api/users/uploads/videos/${path.basename(videoFile.path)}`;
-        console.log('✅ [SUBMIT INTERVIEW] Video saved locally:', videoPath);
       }
       user.interviewVideo = videoPath;
-    } else {
-      console.log('⚠️  [SUBMIT INTERVIEW] No video file provided');
     }
     user.interviewScore = total_score;
     user.interviewAnalysis = evaluations;
     user.interviewCompleted = true;
 
     await user.save();
-    console.log('✅ [SUBMIT INTERVIEW] Interview saved successfully');
 
     return res.json({
       message: "Interview evaluated and stored successfully",
@@ -764,8 +670,6 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl) {
       evaluations,
     });
   } catch (error) {
-    console.error("❌ [SUBMIT INTERVIEW] Error processing interview:", error);
-    console.error("❌ [SUBMIT INTERVIEW] Error stack:", error.stack);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -795,7 +699,6 @@ router.post("/save-interview-progress", authMiddleware, async (req, res) => {
       currentQuestionIndex: currentQuestionIndex || 0
     });
   } catch (error) {
-    console.error("Error saving interview progress:", error);
     return res.status(500).json({ message: "Error saving progress" });
   }
 });
@@ -828,7 +731,6 @@ router.get("/interview-responses", authMiddleware, async (req, res) => {
       score: user.interviewScore || 0
     });
   } catch (error) {
-    console.error("Error fetching interview responses:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -843,7 +745,6 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error("Error obteniendo perfil:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -869,7 +770,6 @@ router.post("/upload-photo", authMiddleware, photoUpload.single("photo"), async 
           fs.unlinkSync(filePath);
         }
       } catch (err) {
-        console.error("Error deleting old photo file:", err);
       }
     }
 
@@ -892,7 +792,6 @@ router.post("/upload-photo", authMiddleware, photoUpload.single("photo"), async 
       profilePhoto: filePath
     });
   } catch (error) {
-    console.error("Error uploading photo:", error);
     return res.status(500).json({ message: "Error uploading photo" });
   }
 });

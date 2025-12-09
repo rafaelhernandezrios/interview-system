@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import { AuthContext } from '../contexts/AuthContext';
 import cvIcon from '../assets/cv.png';
 
 const CVUpload = () => {
@@ -15,6 +16,8 @@ const CVUpload = () => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     fetchProfile();
@@ -25,7 +28,6 @@ const CVUpload = () => {
       const response = await api.get('/users/profile');
       setProfile(response.data);
     } catch (error) {
-      console.error('Error fetching profile:', error);
     }
   };
 
@@ -472,18 +474,20 @@ const CVUpload = () => {
         {profile?.cvAnalyzed && (
           <>
             {/* Métricas Bento - Dos tarjetas cuadradas */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="glass-card p-8">
-                <div className="flex flex-col items-center text-center">
-                  <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                    {profile.score || 0}%
+            <div className={`grid grid-cols-1 ${isAdmin ? 'md:grid-cols-2' : 'md:grid-cols-1'} gap-6 mb-8`}>
+              {isAdmin && (
+                <div className="glass-card p-8">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                      {profile.score || 0}%
+                    </div>
+                    <p className="text-gray-600 font-medium mb-1">Initial Score</p>
+                    <p className="text-sm text-gray-500">Based on skills identified</p>
                   </div>
-                  <p className="text-gray-600 font-medium mb-1">Initial Score</p>
-                  <p className="text-sm text-gray-500">Based on skills identified</p>
                 </div>
-              </div>
+              )}
 
-              <div className="glass-card p-8">
+              <div className={`glass-card p-8 ${isAdmin ? '' : 'md:max-w-md mx-auto'}`}>
                 <div className="flex flex-col items-center text-center">
                   <div className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
                     {profile.skills?.length || 0}

@@ -25,7 +25,6 @@ if (STORAGE_TYPE === 'local') {
 let videoUpload;
 
 if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY) {
-  console.log('✅ Using AWS S3 for video storage');
   // Configuración para AWS S3
   const s3Client = new S3Client({
     region: process.env.AWS_REGION,
@@ -41,12 +40,6 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
       bucket: process.env.AWS_BUCKET_NAME,
       acl: 'public-read',
       metadata: function (req, file, cb) {
-        console.log('📤 [VIDEO UPLOAD] File metadata:', {
-          fieldName: file.fieldname,
-          originalName: file.originalname,
-          mimetype: file.mimetype,
-          size: file.size
-        });
         cb(null, { fieldName: file.fieldname });
       },
       key: function (req, file, cb) {
@@ -64,20 +57,11 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         
         // Guardar en la carpeta videos/ del bucket
         const fileName = `videos/interview_${Date.now()}_${req.userId || 'unknown'}.${extension}`;
-        console.log('📤 [VIDEO UPLOAD] S3 key:', fileName);
-        console.log('📤 [VIDEO UPLOAD] MIME type:', file.mimetype);
-        console.log('📤 [VIDEO UPLOAD] Extension:', extension);
-        console.log('📤 [VIDEO UPLOAD] User ID:', req.userId);
         cb(null, fileName);
       },
       contentType: multerS3.AUTO_CONTENT_TYPE,
     }),
     fileFilter: (req, file, cb) => {
-      console.log('📤 [VIDEO UPLOAD] File filter check:', {
-        mimetype: file.mimetype,
-        originalName: file.originalname,
-        fieldname: file.fieldname
-      });
       
       // Aceptar videos en formatos comunes (WebM, MP4, QuickTime, etc.)
       const allowedMimeTypes = [
@@ -109,21 +93,8 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
                            file.mimetype === 'application/octet-stream';
       
       if (isValidVideo) {
-        if (isMisdetectedVideo) {
-          console.log(`⚠️ [VIDEO UPLOAD] MIME type misdetected as text/plain, but extension is ${fileExtension}, accepting file`);
-        }
-        console.log('✅ [VIDEO UPLOAD] File accepted:', {
-          mimetype: file.mimetype,
-          originalName: file.originalname,
-          extension: fileExtension
-        });
         cb(null, true);
       } else {
-        console.log('❌ [VIDEO UPLOAD] File rejected - invalid mimetype:', {
-          mimetype: file.mimetype,
-          originalName: file.originalname,
-          extension: fileExtension
-        });
         cb(new Error(`Only video files are allowed. Received: ${file.mimetype} (extension: ${fileExtension})`), false);
       }
     },
@@ -139,15 +110,9 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
     return (req, res, next) => {
       middleware(req, res, (err) => {
         if (err) {
-          console.error('❌ [VIDEO UPLOAD] Upload error:', err);
           return next(err);
         }
         if (req.file) {
-          console.log('✅ [VIDEO UPLOAD] File uploaded successfully:');
-          console.log('   - Location:', req.file.location);
-          console.log('   - Key:', req.file.key);
-          console.log('   - Bucket:', req.file.bucket);
-          console.log('   - Size:', req.file.size);
         }
         next();
       });
@@ -159,19 +124,9 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
     return (req, res, next) => {
       middleware(req, res, (err) => {
         if (err) {
-          console.error('❌ [VIDEO UPLOAD] Upload error:', err);
           return next(err);
         }
         if (req.files && req.files.length > 0) {
-          console.log(`✅ [VIDEO UPLOAD] ${req.files.length} file(s) uploaded successfully:`);
-          req.files.forEach((file, index) => {
-            console.log(`   File ${index + 1}:`);
-            console.log('   - Fieldname:', file.fieldname);
-            console.log('   - Location:', file.location);
-            console.log('   - Key:', file.key);
-            console.log('   - Bucket:', file.bucket);
-            console.log('   - Size:', file.size);
-          });
         }
         next();
       });
@@ -180,8 +135,6 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
 } else {
   // Configuración para almacenamiento local
   if (STORAGE_TYPE === 's3') {
-    console.log('⚠️  Using LOCAL storage for videos (not S3)');
-    console.log('   Reason: Missing AWS credentials or configuration');
   }
   videoUpload = multer({
     storage: multer.diskStorage({
@@ -202,9 +155,6 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         }
         
         const fileName = `interview_${Date.now()}_${req.userId || 'unknown'}.${extension}`;
-        console.log('📤 [VIDEO UPLOAD] Local filename:', fileName);
-        console.log('📤 [VIDEO UPLOAD] MIME type:', file.mimetype);
-        console.log('📤 [VIDEO UPLOAD] Extension:', extension);
         cb(null, fileName);
       },
     }),

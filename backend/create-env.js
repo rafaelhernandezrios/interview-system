@@ -10,21 +10,12 @@ const envPath = path.join(__dirname, '.env');
 const examplePath = path.join(__dirname, 'env.example.txt');
 
 if (fs.existsSync(envPath)) {
-  console.log('✅ El archivo .env ya existe');
   process.exit(0);
 }
-
-console.log('📝 Creando archivo .env desde env.example.txt...');
 
 if (fs.existsSync(examplePath)) {
   const exampleContent = fs.readFileSync(examplePath, 'utf8');
   fs.writeFileSync(envPath, exampleContent);
-  console.log('✅ Archivo .env creado exitosamente');
-  console.log('⚠️  IMPORTANTE: Edita el archivo .env y configura tus credenciales:');
-  console.log('   - MONGO_URI con tu connection string de MongoDB Atlas');
-  console.log('   - JWT_SECRET con una clave secreta segura');
-  console.log('   - OPENAI_API_KEY con tu API key de OpenAI');
-  console.log('   - AWS credentials si vas a usar S3');
 } else {
   // Crear un .env básico si no existe el ejemplo
   const basicEnv = `# Base de Datos MongoDB - Cluster MiraiInnovation
@@ -55,7 +46,5 @@ EMAIL_PASS=your_app_password
 FRONTEND_URL=http://localhost:3000
 `;
   fs.writeFileSync(envPath, basicEnv);
-  console.log('✅ Archivo .env creado con configuración básica');
-  console.log('⚠️  IMPORTANTE: Edita el archivo .env y configura tus credenciales');
 }
 

@@ -166,7 +166,6 @@ const Interview = () => {
         setTimeRemaining(180); // Reset timer to 3 minutes
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
     }
   };
 
@@ -213,7 +212,6 @@ const Interview = () => {
         currentQuestionIndex: currentQuestionIndex
       });
     } catch (error) {
-      console.error('Error auto-saving answers:', error);
       // Don't show error to user, just log it
     }
   };
@@ -354,13 +352,11 @@ const Interview = () => {
     // Check which codec is supported
     for (const codec of platformCodecs) {
       if (MediaRecorder.isTypeSupported(codec.mimeType)) {
-        console.log(`✅ [RECORDING] Using codec: ${codec.mimeType}`);
         return codec.mimeType;
       }
     }
     
     // Last resort: use default (browser will choose)
-    console.warn('⚠️ [RECORDING] No preferred codec supported, using browser default');
     return '';
   };
 
@@ -402,7 +398,6 @@ const Interview = () => {
         try {
           await videoRef.current.play();
         } catch (playError) {
-          console.warn('Video autoplay prevented, but recording will continue:', playError);
         }
       }
 
@@ -413,14 +408,6 @@ const Interview = () => {
       const options = mimeType ? { mimeType } : {};
       const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
-      
-      // Log recording details
-      console.log('🎥 [RECORDING] Starting recording with:', {
-        mimeType: mediaRecorder.mimeType || 'browser default',
-        videoTracks: stream.getVideoTracks().length,
-        audioTracks: stream.getAudioTracks().length,
-        state: mediaRecorder.state
-      });
 
       const chunks = [];
       let hasData = false;
@@ -429,12 +416,10 @@ const Interview = () => {
         if (e.data && e.data.size > 0) {
           chunks.push(e.data);
           hasData = true;
-          console.log(`📦 [RECORDING] Data chunk received: ${e.data.size} bytes`);
         }
       };
 
       mediaRecorder.onerror = (error) => {
-        console.error('❌ [RECORDING] MediaRecorder error:', error);
         setError('Recording error occurred. Please try again.');
         setIsRecording(false);
         if (streamRef.current) {
@@ -443,10 +428,7 @@ const Interview = () => {
       };
 
       mediaRecorder.onstop = () => {
-        console.log('🛑 [RECORDING] Recording stopped');
-        
         if (!hasData || chunks.length === 0) {
-          console.error('❌ [RECORDING] No data recorded');
           setError('No video data was recorded. Please try again.');
           setIsRecording(false);
           return;
@@ -454,20 +436,14 @@ const Interview = () => {
         
         // Use the actual MIME type from MediaRecorder, or fallback
         const recordedMimeType = mediaRecorder.mimeType || mediaRecorderRef.current?.mimeType || 'video/webm';
-        console.log(`📹 [RECORDING] MediaRecorder MIME type: ${recordedMimeType}`);
-        
         const blob = new Blob(chunks, { type: recordedMimeType });
         
         // Validate blob size (should be at least 1KB)
         if (blob.size < 1024) {
-          console.error('❌ [RECORDING] Blob too small:', blob.size);
           setError('Recorded video is too small. Please ensure camera and microphone are working.');
           setIsRecording(false);
           return;
         }
-        
-        console.log(`✅ [RECORDING] Video blob created: ${blob.size} bytes, type: ${blob.type}`);
-        console.log(`✅ [RECORDING] Storing MIME type: ${recordedMimeType}`);
         
         // Store both blob and its type
         setVideoBlob(blob);
@@ -498,26 +474,22 @@ const Interview = () => {
         });
       }, 1000);
     } catch (error) {
-      console.error('Error accessing camera/microphone:', error);
       setError('Could not access camera or microphone. Please check permissions.');
     }
   };
 
   const stopUnifiedRecording = () => {
-    console.log('🛑 [RECORDING] Stopping recording...');
     
     // Stop video recording
     if (mediaRecorderRef.current) {
       try {
         if (mediaRecorderRef.current.state === 'recording') {
           mediaRecorderRef.current.stop();
-          console.log('✅ [RECORDING] MediaRecorder stopped');
         } else if (mediaRecorderRef.current.state === 'paused') {
           mediaRecorderRef.current.resume();
           mediaRecorderRef.current.stop();
         }
       } catch (error) {
-        console.error('❌ [RECORDING] Error stopping MediaRecorder:', error);
       }
     }
 
@@ -525,7 +497,6 @@ const Interview = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => {
         track.stop();
-        console.log(`🛑 [RECORDING] Stopped track: ${track.kind}`);
       });
     }
 
@@ -571,14 +542,12 @@ const Interview = () => {
     
     // For video-only question (final question), directly enter review mode without transcription
     if (isVideoQuestion) {
-      console.log('🎥 [EFFECT] Video question detected, entering review mode');
       setIsReviewMode(true);
       return;
     }
     
     // For text questions, transcribe the video
     // Add a small delay to ensure state is stable and blob is complete
-    console.log('🎥 [EFFECT] Video blob ready, starting transcription in 200ms...');
     const timeoutId = setTimeout(() => {
       // Double-check all conditions before transcribing
       if (videoBlob && 
@@ -588,10 +557,8 @@ const Interview = () => {
           !answerSaved && 
           currentQuestionIndex !== undefined && 
           !isVideoQuestion) {
-        console.log('✅ [EFFECT] Conditions met, calling transcribeVideo');
         transcribeVideo();
       } else {
-        console.log('⚠️ [EFFECT] Conditions changed, skipping transcription');
       }
     }, 200);
     
@@ -605,7 +572,6 @@ const Interview = () => {
     // Reset recording-related states when question index changes
     // Only reset if not currently recording
     if (!isRecording) {
-      console.log(`🔄 [EFFECT] Question changed to ${currentQuestionIndex}, resetting recording states`);
       
       // Cancel any ongoing transcription
       setIsTranscribing(false);
@@ -625,7 +591,6 @@ const Interview = () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => {
           track.stop();
-          console.log(`🛑 [EFFECT] Stopped track: ${track.kind}`);
         });
         streamRef.current = null;
       }
@@ -636,7 +601,6 @@ const Interview = () => {
           try {
             mediaRecorderRef.current.stop();
           } catch (e) {
-            console.warn('⚠️ [EFFECT] Error stopping MediaRecorder:', e);
           }
         }
         mediaRecorderRef.current = null;
@@ -651,36 +615,29 @@ const Interview = () => {
         }
       }
     } else {
-      console.log('⚠️ [EFFECT] Question changed but recording is active, skipping reset');
     }
   }, [currentQuestionIndex, isRecording]);
 
   const transcribeVideo = async (retryCount = 0) => {
     if (!videoBlob || isTranscribing) {
-      console.log('⚠️ [TRANSCRIBE] Skipping transcription:', { 
-        hasBlob: !!videoBlob, 
-        isTranscribing 
-      });
       return;
     }
 
-      // Validate blob before sending
-      if (videoBlob.size < 1024) {
-        console.error('❌ [TRANSCRIBE] Blob too small:', videoBlob.size);
-        setError('Recorded video is too small. Please record again.');
-        setIsTranscribing(false);
-        return;
-      }
+    // Validate blob before sending
+    if (videoBlob.size < 1024) {
+      setError('Recorded video is too small. Please record again.');
+      setIsTranscribing(false);
+      return;
+    }
 
-      // Check file size limit (50MB = 50 * 1024 * 1024 bytes)
-      const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-      if (videoBlob.size > MAX_FILE_SIZE) {
-        const sizeInMB = (videoBlob.size / (1024 * 1024)).toFixed(2);
-        console.error('❌ [TRANSCRIBE] Blob too large:', videoBlob.size, 'bytes (', sizeInMB, 'MB)');
-        setError(`Video file is too large (${sizeInMB}MB). Maximum size is 50MB. Please record a shorter video.`);
-        setIsTranscribing(false);
-        return;
-      }
+    // Check file size limit (50MB = 50 * 1024 * 1024 bytes)
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    if (videoBlob.size > MAX_FILE_SIZE) {
+      const sizeInMB = (videoBlob.size / (1024 * 1024)).toFixed(2);
+      setError(`Video file is too large (${sizeInMB}MB). Maximum size is 50MB. Please record a shorter video.`);
+      setIsTranscribing(false);
+      return;
+    }
 
     // Store current question index to prevent transcription for wrong question
     const questionIndexAtStart = currentQuestionIndex;
@@ -698,7 +655,6 @@ const Interview = () => {
       
       // Ensure we have a valid video MIME type
       if (!mimeType.startsWith('video/')) {
-        console.warn(`⚠️ [TRANSCRIBE] Invalid MIME type detected: ${mimeType}, using fallback`);
         // Try to detect from blob content or use default
         mimeType = 'video/webm';
       }
@@ -716,18 +672,8 @@ const Interview = () => {
         mimeType = 'video/quicktime';
       }
       
-      console.log(`📤 [TRANSCRIBE] Preparing video for transcription:`, {
-        size: videoBlob.size,
-        type: mimeType,
-        blobType: videoBlob.type,
-        storedType: videoBlobType,
-        extension: fileExtension,
-        questionIndex: questionIndexAtStart
-      });
-      
       // Step 1: Get presigned URL from backend for direct S3 upload
       setMessage('Getting upload URL...');
-      console.log('📤 [S3 UPLOAD] Requesting presigned URL...');
       
       const uploadUrlResponse = await api.post('/users/get-upload-url', {
         fileName: `recording_${Date.now()}.${fileExtension}`,
@@ -735,12 +681,9 @@ const Interview = () => {
       });
       
       const { uploadUrl, publicUrl } = uploadUrlResponse.data;
-      console.log('✅ [S3 UPLOAD] Presigned URL received:', uploadUrl.substring(0, 50) + '...');
-      console.log('✅ [S3 UPLOAD] Public URL will be:', publicUrl);
       
       // Step 2: Upload video directly to S3
       setMessage('Uploading video to S3...');
-      console.log('📤 [S3 UPLOAD] Uploading video to S3...');
       
       const videoFile = new File([videoBlob], `recording_${Date.now()}.${fileExtension}`, {
         type: mimeType
@@ -758,12 +701,9 @@ const Interview = () => {
         throw new Error(`S3 upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
       }
       
-      console.log('✅ [S3 UPLOAD] Video uploaded successfully to S3');
-      console.log('✅ [S3 UPLOAD] Public URL:', publicUrl);
       
       // Step 3: Send S3 URL to backend for transcription
       setMessage('Transcribing audio...');
-      console.log('📤 [TRANSCRIBE] Sending S3 URL for transcription...');
       
       const timeoutMs = 180000; // 3 minutes for transcription (longer since file is already uploaded)
       const response = await Promise.race([
@@ -780,18 +720,15 @@ const Interview = () => {
         )
       ]);
       
-      console.log('✅ [TRANSCRIBE] Transcription request completed');
 
       // Only update if we're still on the same question
       if (currentQuestionIndex === questionIndexAtStart) {
         const transcription = response.data.transcription || '';
         
         if (!transcription || transcription.trim().length === 0) {
-          console.warn('⚠️ [TRANSCRIBE] Empty transcription received');
           setError('Transcription returned empty. The video may not have audio. You can still type your answer manually.');
           setIsReviewMode(true);
         } else {
-          console.log(`✅ [TRANSCRIBE] Transcription received: ${transcription.length} characters`);
           setTranscribedText(transcription);
           handleAnswerChange(transcription);
         }
@@ -803,19 +740,10 @@ const Interview = () => {
         setIsReviewMode(true);
       } else {
         // Question changed during transcription, just cancel
-        console.log('⚠️ [TRANSCRIBE] Question changed during transcription, cancelling');
         setIsTranscribing(false);
         setMessage('');
       }
     } catch (err) {
-      console.error('❌ [TRANSCRIBE] Error transcribing:', err);
-      console.error('❌ [TRANSCRIBE] Error details:', {
-        message: err.message,
-        code: err.code,
-        response: err.response?.data,
-        status: err.response?.status
-      });
-      
       // Only update if we're still on the same question
       if (currentQuestionIndex === questionIndexAtStart) {
         // Check if it's a network error or timeout and we haven't exceeded retries
@@ -833,7 +761,6 @@ const Interview = () => {
         if ((isNetworkError || isServerError) && retryCount < MAX_RETRIES) {
           // Retry after exponential backoff
           const retryDelay = 2000 * Math.pow(2, retryCount); // 2s, 4s, 8s
-          console.log(`🔄 [TRANSCRIBE] Retrying transcription (attempt ${retryCount + 1}/${MAX_RETRIES}) after ${retryDelay}ms...`);
           setIsTranscribing(false);
           setMessage(`Retrying in ${retryDelay/1000} seconds...`);
           
@@ -852,7 +779,6 @@ const Interview = () => {
         if (err.response?.status === 413 || err.code === 'ERR_FAILED' && err.message?.includes('413')) {
           const sizeInMB = videoBlob ? (videoBlob.size / (1024 * 1024)).toFixed(2) : 'unknown';
           errorMessage = `Video file is too large (${sizeInMB}MB). Maximum size is 50MB. Please record a shorter video or the system will compress it automatically.`;
-          console.error('❌ [TRANSCRIBE] File too large error (413)');
         } else if (isNetworkError) {
           errorMessage = 'Network error during transcription. Please check your connection and try recording again.';
         } else if (isClientError) {
@@ -873,7 +799,6 @@ const Interview = () => {
         setIsReviewMode(true);
         setTranscribedText('');
       } else {
-        console.log('⚠️ [TRANSCRIBE] Question changed, cancelling error handling');
         setIsTranscribing(false);
         setMessage('');
       }
@@ -950,7 +875,6 @@ const Interview = () => {
       if (videoBlob && isVideoQuestion) {
         // Upload video directly to S3 first
         setMessage('Uploading video to S3...');
-        console.log('📤 [SUBMIT] Uploading final video to S3...');
         
         try {
           // Get presigned URL
@@ -975,9 +899,7 @@ const Interview = () => {
           }
           
           s3VideoUrl = publicUrl;
-          console.log('✅ [SUBMIT] Video uploaded to S3:', s3VideoUrl);
         } catch (uploadError) {
-          console.error('❌ [SUBMIT] Error uploading video to S3:', uploadError);
           setError('Failed to upload video. Please try again.');
           setSubmitting(false);
           return;
@@ -1046,7 +968,6 @@ const Interview = () => {
       const response = await api.get('/users/interview-responses');
       setResults(response.data);
     } catch (error) {
-      console.error('Error fetching results:', error);
     }
   };
 

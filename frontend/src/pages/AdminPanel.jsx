@@ -23,7 +23,6 @@ const AdminPanel = () => {
       const response = await api.get('/admin/users');
       setUsers(response.data.users);
     } catch (error) {
-      console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
@@ -34,7 +33,6 @@ const AdminPanel = () => {
       const response = await api.get('/admin/stats');
       setStats(response.data);
     } catch (error) {
-      console.error('Error fetching stats:', error);
     }
   };
 
@@ -77,7 +75,6 @@ const AdminPanel = () => {
       setUserDetails(response.data);
       setSelectedUser(userId);
     } catch (error) {
-      console.error('Error fetching user details:', error);
       alert('Error fetching user details');
     } finally {
       setLoadingDetails(false);
