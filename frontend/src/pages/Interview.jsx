@@ -1428,6 +1428,31 @@ const Interview = () => {
 
               // Estado: Review Mode - Botones Retake y Keep
               if (isReviewMode && !isTranscribing) {
+                // Para la pregunta de video final, mostrar botón de Submit directamente
+                if (isVideoQuestion) {
+                  return (
+                    <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+                        <button
+                          type="button"
+                          onClick={retakeRecording}
+                          className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                        >
+                          Retake Recording
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {submitting ? 'Submitting...' : 'Submit Interview'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // Para preguntas de texto, mostrar botón "Keep This Answer"
                 return (
                   <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
@@ -1522,13 +1547,18 @@ const Interview = () => {
                   <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <p className="font-semibold text-green-800">Recording Complete! Review and edit your transcribed answer below.</p>
+                  <p className="font-semibold text-green-800">
+                    {isVideoQuestion 
+                      ? 'Recording Complete! Review your video above. You can proceed to submit the interview.'
+                      : 'Recording Complete! Review and edit your transcribed answer below.'}
+                  </p>
                 </div>
               </div>
             )}
 
             {/* Editable Transcription - Panel lateral/colapsable solo en Review Mode */}
-            {isReviewMode && !isTranscribing && (
+            {/* Ocultar para la pregunta de video final (describe yourself) */}
+            {isReviewMode && !isTranscribing && !isVideoQuestion && (
               <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6">
                 <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
                   Review and edit your transcribed answer:
