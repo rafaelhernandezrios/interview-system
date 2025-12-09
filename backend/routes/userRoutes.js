@@ -237,6 +237,91 @@ router.post("/analyze-cv", authMiddleware, async (req, res) => {
   }
 });
 
+// Get presigned URL for direct S3 upload
+router.post("/get-upload-url", authMiddleware, async (req, res) => {
+  try {
+    // Only allow if using S3 storage
+    if (VIDEO_STORAGE_TYPE !== 's3') {
+      return res.status(400).json({ 
+        error: 'Direct upload not available',
+        message: 'Direct S3 upload is only available when using S3 storage. Please use the regular upload endpoint.'
+      });
+    }
+
+    const { fileName, contentType } = req.body;
+    
+    if (!fileName || !contentType) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        message: 'fileName and contentType are required'
+      });
+    }
+
+    // Validate content type is a video
+    if (!contentType.startsWith('video/')) {
+      return res.status(400).json({ 
+        error: 'Invalid content type',
+        message: 'Only video files are allowed'
+      });
+    }
+
+    // Determine file extension
+    let extension = 'webm';
+    if (contentType.includes('mp4')) {
+      extension = 'mp4';
+    } else if (contentType.includes('quicktime') || contentType.includes('mov')) {
+      extension = 'mov';
+    } else if (contentType.includes('webm')) {
+      extension = 'webm';
+    }
+
+    // Generate S3 key
+    const s3Key = `videos/interview_${Date.now()}_${req.userId || 'unknown'}.${extension}`;
+
+    // Create S3 client
+    const s3Client = new S3Client({
+      region: process.env.AWS_REGION,
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    });
+
+    // Create PutObject command
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: s3Key,
+      ContentType: contentType,
+      ACL: 'public-read', // Make the file publicly readable
+    });
+
+    // Generate presigned URL (valid for 15 minutes)
+    const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 900 });
+
+    // Generate the public URL where the file will be accessible
+    const publicUrl = `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`;
+
+    console.log('✅ [PRESIGNED URL] Generated:', {
+      s3Key,
+      contentType,
+      expiresIn: '15 minutes'
+    });
+
+    res.json({
+      uploadUrl: presignedUrl,
+      s3Key: s3Key,
+      publicUrl: publicUrl,
+      expiresIn: 900 // 15 minutes in seconds
+    });
+  } catch (error) {
+    console.error('❌ [PRESIGNED URL] Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate upload URL',
+      message: error.message 
+    });
+  }
+});
+
 // Transcribe video audio using Whisper
 // Now supports both direct file upload and S3 URL
 router.post("/transcribe-video", authMiddleware, async (req, res) => {
