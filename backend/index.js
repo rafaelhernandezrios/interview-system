@@ -122,27 +122,7 @@ const corsOptions = {
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   
-  // Si es un preflight request (OPTIONS), responder inmediatamente con headers CORS
-  if (req.method === 'OPTIONS') {
-    if (origin) {
-      const normalizedOrigin = origin.replace(/\/$/, '');
-      const isAllowed = allowedOrigins.includes(normalizedOrigin) || 
-                       allowedOrigins.some(allowed => allowed.toLowerCase() === normalizedOrigin.toLowerCase());
-      
-      if (isAllowed) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
-        res.setHeader('Access-Control-Max-Age', '86400');
-        return res.status(200).end();
-      }
-    }
-    // Si no hay origin o no está permitido, aún responder 200 pero sin headers CORS
-    return res.status(200).end();
-  }
-  
-  // Para requests normales, agregar headers CORS si el origin está permitido
+  // Si el origin está en la lista de permitidos, agregar headers CORS SIEMPRE
   if (origin) {
     const normalizedOrigin = origin.replace(/\/$/, '');
     const isAllowed = allowedOrigins.includes(normalizedOrigin) || 
@@ -156,6 +136,11 @@ app.use((req, res, next) => {
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers');
       res.setHeader('Access-Control-Max-Age', '86400');
     }
+  }
+  
+  // Si es un preflight request (OPTIONS), responder inmediatamente
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
   
   next();
@@ -212,43 +197,6 @@ app.use("/api/admin", adminRoutes);
 // Ruta de prueba
 app.get("/", (req, res) => {
   res.json({ message: "API de Evaluación de Habilidades funcionando" });
-});
-
-// Error handling middleware - debe estar después de todas las rutas
-// Asegurar que los headers CORS se mantengan incluso en errores
-app.use((err, req, res, next) => {
-  // Preservar headers CORS en caso de error
-  const origin = req.headers.origin;
-  if (origin) {
-    const normalizedOrigin = origin.replace(/\/$/, '');
-    const isAllowed = allowedOrigins.includes(normalizedOrigin) || 
-                     allowedOrigins.some(allowed => allowed.toLowerCase() === normalizedOrigin.toLowerCase());
-    
-    if (isAllowed) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-    }
-  }
-  
-  // Si ya se envió una respuesta, no hacer nada más
-  if (res.headersSent) {
-    return next(err);
-  }
-  
-  // Manejar errores específicos
-  if (err.message === 'Not allowed by CORS') {
-    return res.status(403).json({ 
-      error: 'CORS Error',
-      message: 'Origin not allowed by CORS policy' 
-    });
-  }
-  
-  // Error genérico
-  console.error('❌ [ERROR] Unhandled error:', err);
-  res.status(err.status || 500).json({ 
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'An error occurred'
-  });
 });
 
 // Exportar app para Vercel (serverless functions)
