@@ -76,16 +76,26 @@ const corsOptions = {
     callback(new Error('Not allowed by CORS'));
   },
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+  allowedHeaders: [
+    "Content-Type", 
+    "Authorization", 
+    "X-Requested-With", 
+    "Accept", 
+    "Origin",
+    "Access-Control-Request-Method",
+    "Access-Control-Request-Headers"
+  ],
   exposedHeaders: ["Content-Length", "Content-Type"],
   credentials: true,
   optionsSuccessStatus: 200, // Para navegadores legacy
   preflightContinue: false,
 };
 
+// Aplicar CORS a todas las rutas ANTES de cualquier otra ruta
 app.use(cors(corsOptions));
 
-// Manejar preflight requests explícitamente
+// Manejar preflight requests explícitamente para todas las rutas
+// Esto es importante para requests con Content-Type: multipart/form-data
 app.options('*', cors(corsOptions));
 
 // Conectar DB
