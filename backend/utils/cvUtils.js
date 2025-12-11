@@ -619,11 +619,11 @@ export async function transcribeVideoAudio(filePath) {
       const transcriptionPromise = openai.audio.transcriptions.create({
         file: fileStream,
         model: 'whisper-1',
-        language: 'es', // Forzar español para evitar alucinaciones en inglés
+        language: 'en', // Critical: Set to Spanish to correctly identify source audio
         response_format: 'text',
-        temperature: 0, // Reducir alucinaciones: 0 = más determinista, menos creativo
-        // Prompt en español para guiar el modelo y reducir alucinaciones
-        prompt: 'Esta es una respuesta de entrevista. El hablante está respondiendo preguntas en español. Solo transcribe el habla real del entrevistado, no agregues texto adicional.'
+        temperature: 0, // Reduce hallucinations: 0 = more deterministic, less creative
+        // Context-setting prompt to prime the style (instructions are often ignored by Whisper)
+        prompt: 'Job interview in English. Precise transcription of the candidate\'s answer:'
       });
       
       // Race between transcription and timeout (90 seconds for larger files)
