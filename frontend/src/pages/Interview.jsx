@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 import { AuthContext } from '../contexts/AuthContext';
 
 const Interview = () => {
   const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
   const [questions, setQuestions] = useState([]);
   const [allQuestions, setAllQuestions] = useState([]); // Includes default questions
@@ -1264,8 +1265,8 @@ const Interview = () => {
       });
       
       setMessage('Interview submitted successfully');
-      setResults(response.data);
-      await fetchResults();
+      // Redirect to Results page (Summary) instead of showing results here
+      navigate('/results');
     } catch (err) {
       setError(err.response?.data?.message || 'Error submitting interview');
     } finally {
@@ -1309,7 +1310,7 @@ const Interview = () => {
                   to="/results"
                   className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-lg transition shadow-lg hover:shadow-xl"
                 >
-                  View Results
+                  View Summary
                 </Link>
               </div>
             </div>
@@ -1473,42 +1474,6 @@ const Interview = () => {
     );
   }
 
-  if (results) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-        <Navbar />
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-6">Interview Results</h1>
-
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-            {isAdmin && results.score !== undefined && (
-              <div className="text-center mb-6">
-                <p className="text-3xl font-bold text-blue-600">Score: {results.score}%</p>
-              </div>
-            )}
-
-            {results.analysis && results.analysis.map((item, index) => (
-              <div key={index} className="mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="font-semibold text-lg mb-2 text-gray-900">
-                  Question {index + 1}: {results.questions[index]}
-                </p>
-                <p className="text-gray-600 mb-3">Your answer: {results.responses[index]}</p>
-                {isAdmin && item.score !== undefined && (
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold text-blue-600">Score: {item.score}/100</span>
-                  </div>
-                )}
-                {item.explanation && (
-                  <p className="text-sm text-gray-700 mt-3">{item.explanation}</p>
-                )}
-              </div>
-            ))}
-          </div>
-
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-mesh-gradient relative">

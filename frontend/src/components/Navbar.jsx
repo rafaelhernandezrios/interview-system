@@ -56,7 +56,7 @@ const Navbar = () => {
                   to="/results" 
                   className="text-gray-700 hover:text-blue-600 font-medium transition px-3 py-2 rounded-lg hover:bg-white/50"
                 >
-                  Results
+                  Summary
                 </Link>
                 {user.role === 'admin' && (
                   <Link 
@@ -137,7 +137,7 @@ const Navbar = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-gray-700 hover:text-blue-600 font-medium transition px-3 py-2 rounded-lg hover:bg-white/50"
               >
-                Results
+                Summary
               </Link>
               {user.role === 'admin' && (
                 <Link 

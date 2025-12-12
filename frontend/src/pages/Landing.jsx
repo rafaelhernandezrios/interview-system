@@ -348,7 +348,7 @@ const Landing = () => {
                     </li>
                     <li>
                       <Link to="/results" className="hover:text-white transition">
-                        Results
+                        Summary
                       </Link>
                     </li>
                   </>

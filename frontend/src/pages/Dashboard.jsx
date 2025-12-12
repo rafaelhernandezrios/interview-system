@@ -285,7 +285,7 @@ const Dashboard = () => {
                   {profile?.interviewCompleted ? (
                     <Link to="/results">
                       <button className="w-full bg-gradient-to-r from-green-600 via-green-700 to-emerald-600 hover:from-green-700 hover:via-green-800 hover:to-emerald-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2 mb-2 transform hover:scale-[1.02]">
-                        View Results
+                        View Summary
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
@@ -326,7 +326,7 @@ const Dashboard = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold text-white mb-1">View Complete Results</h3>
+                      <h3 className="text-2xl font-bold text-white mb-1">View Summary</h3>
                       <p className="text-white/90 text-sm">
                         See your comprehensive evaluation and all your assessment results
                       </p>

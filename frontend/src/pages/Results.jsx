@@ -111,8 +111,8 @@ const Results = () => {
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
         {/* Header */}
         <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Complete Results</h1>
-          <p className="text-gray-600">View your comprehensive evaluation and assessment results</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Summary</h1>
+          <p className="text-gray-600">View your comprehensive evaluation and assessment summary</p>
         </div>
 
         {/* Bento Grid Layout */}
@@ -261,7 +261,7 @@ const Results = () => {
                 />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Interview Results</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Interview Summary</h2>
                 <p className="text-sm text-gray-600">Video interview evaluation</p>
               </div>
             </div>
