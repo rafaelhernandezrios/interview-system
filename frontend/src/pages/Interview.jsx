@@ -54,7 +54,8 @@ const Interview = () => {
   // - REVIEW_MODE: Usuario revisando transcripción
   // ============================================================================
   const [voiceState, setVoiceState] = useState('IDLE'); // Estado de la máquina de estados
-  const speechSynthesisRef = useRef(null); // Ref para el utterance actual de TTS
+  const speechSynthesisRef = useRef(null); // Ref para el utterance actual de TTS (fallback)
+  const audioRef = useRef(null); // Ref para el audio de Eleven Labs
   const ttsPromiseRef = useRef(null); // Ref para la Promise de TTS (para manejar onAudioEnd)
   const currentQuestionIndexRef = useRef(null); // Ref para rastrear pregunta actual sin causar re-renders
   const reviewEditRef = useRef(null); // Ref para el cuadro de Review and edit (para scroll automático)
@@ -111,6 +112,10 @@ const Interview = () => {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
       // Stop any ongoing speech
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -441,14 +446,14 @@ const Interview = () => {
   // TTS CONTROL: Text-to-Speech con máquina de estados
   // ============================================================================
   /**
-   * Lee una pregunta en voz alta usando Web Speech API
+   * Lee una pregunta en voz alta usando Eleven Labs API (natural voice)
    * REQUERIMIENTO: Debe esperar estrictamente a onAudioEnd antes de resolver
    * 
    * @param {string} questionText - Texto de la pregunta a leer
-   * @returns {Promise<void>} - Resuelve cuando onAudioEnd es disparado
+   * @returns {Promise<void>} - Resuelve cuando el audio termina de reproducirse
    */
-  const readQuestionAloud = (questionText) => {
-    return new Promise((resolve, reject) => {
+  const readQuestionAloud = async (questionText) => {
+    return new Promise(async (resolve, reject) => {
       // PROHIBICIÓN: No leer durante transcripción
       if (voiceState === 'TRANSCRIBING') {
         console.warn('[TTS] Bloqueado: Estado TRANSCRIBING activo');
@@ -457,91 +462,143 @@ const Interview = () => {
       }
 
       // LIMPIEZA: Cancelar cualquier TTS activo (Estado de Transición)
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
       if (speechSynthesisRef.current || (window.speechSynthesis && window.speechSynthesis.speaking)) {
         window.speechSynthesis.cancel();
-        // Limpiar refs
-        if (ttsPromiseRef.current) {
-          ttsPromiseRef.current = null;
-        }
       }
-
-      // Verificar soporte de Speech Synthesis
-      if (!('speechSynthesis' in window)) {
-        console.warn('[TTS] No soportado, continuando sin lectura');
-        resolve();
-        return;
+      if (ttsPromiseRef.current) {
+        ttsPromiseRef.current = null;
       }
 
       // TRANSICIÓN: IDLE/RECORDING → READING_QUESTION
       setVoiceState('READING_QUESTION');
 
-      const utterance = new SpeechSynthesisUtterance(questionText);
-      
-      // Configuración de voz
-      utterance.rate = 0.9; // Velocidad ligeramente reducida para claridad
-      utterance.pitch = 1;
-      utterance.volume = 1;
-      
-      // Selección de voz preferida
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoices = voices.filter(voice => 
-        voice.lang.includes('en') && 
-        (voice.name.includes('Natural') || voice.name.includes('Premium') || voice.name.includes('Enhanced'))
-      );
-      
-      if (preferredVoices.length > 0) {
-        utterance.voice = preferredVoices[0];
-      } else if (voices.length > 0) {
-        const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
-        utterance.voice = englishVoices.length > 0 ? englishVoices[0] : voices[0];
+      try {
+        // Llamar al endpoint de Eleven Labs
+        console.log('[TTS] Generando audio con Eleven Labs...');
+        const response = await api.post('/users/text-to-speech', { text: questionText });
+        
+        const { audio: base64Audio, mimeType } = response.data;
+
+        // Convertir base64 a blob
+        const binaryString = atob(base64Audio);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const audioBlob = new Blob([bytes], { type: mimeType || 'audio/mpeg' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        // Crear elemento de audio
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        // REQUERIMIENTO CRÍTICO: Esperar estrictamente a onAudioEnd
+        audio.onended = () => {
+          console.log('[TTS] Audio terminado - Lectura completada');
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+          ttsPromiseRef.current = null;
+          setVoiceState('IDLE');
+          resolve();
+        };
+
+        // Manejo de errores
+        audio.onerror = (event) => {
+          console.error('[TTS] Error reproduciendo audio:', event);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+          ttsPromiseRef.current = null;
+          setVoiceState('IDLE');
+          // Fallback a speechSynthesis si Eleven Labs falla
+          fallbackToSpeechSynthesis(questionText, resolve);
+        };
+
+        // Guardar referencia
+        ttsPromiseRef.current = { resolve, reject };
+
+        // Reproducir audio
+        await audio.play();
+        console.log('[TTS] Reproduciendo audio de Eleven Labs');
+      } catch (error) {
+        console.error('[TTS] Error con Eleven Labs, usando fallback:', error);
+        // Fallback a speechSynthesis si Eleven Labs no está disponible
+        fallbackToSpeechSynthesis(questionText, resolve);
       }
-
-      // REQUERIMIENTO CRÍTICO: Esperar estrictamente a onAudioEnd
-      utterance.onend = () => {
-        console.log('[TTS] onAudioEnd disparado - Lectura completada');
-        speechSynthesisRef.current = null;
-        ttsPromiseRef.current = null;
-        setVoiceState('IDLE');
-        // Resolver Promise solo cuando onAudioEnd ocurre
-        resolve();
-      };
-
-      // Manejo de errores
-      utterance.onerror = (event) => {
-        console.error('[TTS] Error:', event.error);
-        speechSynthesisRef.current = null;
-        ttsPromiseRef.current = null;
-        setVoiceState('IDLE');
-        // Resolver para no bloquear flujo, pero registrar error
-        resolve();
-      };
-
-      // Guardar referencias
-      speechSynthesisRef.current = utterance;
-      ttsPromiseRef.current = { resolve, reject };
-
-      // Iniciar lectura
-      window.speechSynthesis.speak(utterance);
-      console.log('[TTS] Iniciando lectura de pregunta');
     });
   };
 
   /**
-   * Cancela cualquier TTS activo
+   * Fallback a Web Speech API si Eleven Labs falla
+   */
+  const fallbackToSpeechSynthesis = (questionText, resolve) => {
+    if (!('speechSynthesis' in window)) {
+      console.warn('[TTS] Fallback no disponible, continuando sin lectura');
+      setVoiceState('IDLE');
+      resolve();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(questionText);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    
+    const voices = window.speechSynthesis.getVoices();
+    const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+    utterance.voice = englishVoices.length > 0 ? englishVoices[0] : voices[0];
+
+    utterance.onend = () => {
+      console.log('[TTS] Fallback: Lectura completada');
+      speechSynthesisRef.current = null;
+      ttsPromiseRef.current = null;
+      setVoiceState('IDLE');
+      resolve();
+    };
+
+    utterance.onerror = (event) => {
+      console.error('[TTS] Fallback error:', event.error);
+      speechSynthesisRef.current = null;
+      ttsPromiseRef.current = null;
+      setVoiceState('IDLE');
+      resolve();
+    };
+
+    speechSynthesisRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    console.log('[TTS] Usando fallback (Web Speech API)');
+  };
+
+  /**
+   * Cancela cualquier TTS activo (Eleven Labs o Speech Synthesis)
    * REQUERIMIENTO: Debe ejecutarse en Estado de Transición
    */
   const cancelTTS = () => {
+    // Cancelar audio de Eleven Labs
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      audioRef.current = null;
+      console.log('[TTS] Cancelando audio de Eleven Labs');
+    }
+    
+    // Cancelar Speech Synthesis (fallback)
     if ('speechSynthesis' in window) {
       if (window.speechSynthesis.speaking || speechSynthesisRef.current) {
-        console.log('[TTS] Cancelando lectura activa');
+        console.log('[TTS] Cancelando lectura activa (fallback)');
         window.speechSynthesis.cancel();
       }
       speechSynthesisRef.current = null;
-      if (ttsPromiseRef.current) {
-        ttsPromiseRef.current = null;
-      }
-      setVoiceState('IDLE');
     }
+    
+    if (ttsPromiseRef.current) {
+      ttsPromiseRef.current = null;
+    }
+    setVoiceState('IDLE');
   };
 
   // Unified recording function - starts video + audio recording with speech recognition

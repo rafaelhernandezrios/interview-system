@@ -728,6 +728,62 @@ router.post("/save-interview-progress", authMiddleware, async (req, res) => {
   }
 });
 
+// Text-to-Speech using Eleven Labs
+router.post("/text-to-speech", authMiddleware, async (req, res) => {
+  try {
+    const { text } = req.body;
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      return res.status(400).json({ message: "Text is required" });
+    }
+
+    const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+    const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // Default: Rachel
+
+    if (!ELEVENLABS_API_KEY) {
+      return res.status(500).json({ message: "Eleven Labs API key not configured" });
+    }
+
+    // Call Eleven Labs API
+    const response = await axios.post(
+      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`,
+      {
+        text: text,
+        model_id: "eleven_multilingual_v2", // Multilingual model for better quality
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true
+        }
+      },
+      {
+        headers: {
+          'Accept': 'audio/mpeg',
+          'Content-Type': 'application/json',
+          'xi-api-key': ELEVENLABS_API_KEY
+        },
+        responseType: 'arraybuffer' // Get audio as binary data
+      }
+    );
+
+    // Convert arraybuffer to base64 for sending to frontend
+    const audioBuffer = Buffer.from(response.data);
+    const base64Audio = audioBuffer.toString('base64');
+
+    res.json({
+      audio: base64Audio,
+      mimeType: 'audio/mpeg'
+    });
+  } catch (error) {
+    console.error('Eleven Labs TTS Error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      message: "Error generating speech",
+      error: error.response?.data?.message || error.message 
+    });
+  }
+});
+
 // Obtener respuestas de entrevista
 router.get("/interview-responses", authMiddleware, async (req, res) => {
   try {
