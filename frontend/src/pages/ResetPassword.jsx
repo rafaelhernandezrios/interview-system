@@ -19,7 +19,7 @@ const ResetPassword = () => {
     const verifyToken = async () => {
       if (!token) {
         setTokenValid(false);
-        setError('Token no válido o faltante.');
+        setError('Invalid or missing token.');
         return;
       }
 
@@ -28,7 +28,7 @@ const ResetPassword = () => {
         setTokenValid(true);
       } catch (err) {
         setTokenValid(false);
-        setError('El enlace de recuperación no es válido o ha expirado. Por favor, solicita uno nuevo.');
+        setError('The recovery link is invalid or has expired. Please request a new one.');
       }
     };
 
@@ -41,12 +41,12 @@ const ResetPassword = () => {
     setSuccess('');
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden.');
+      setError('Passwords do not match.');
       return;
     }
 
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+      setError('Password must be at least 6 characters long.');
       return;
     }
 
@@ -54,13 +54,13 @@ const ResetPassword = () => {
 
     try {
       await api.post('/auth/reset-password', { token, password });
-      setSuccess('Tu contraseña ha sido restablecida exitosamente. Redirigiendo al login...');
+      setSuccess('Your password has been reset successfully. Redirecting to login...');
       
       setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al restablecer la contraseña. Por favor, intenta de nuevo.');
+      setError(err.response?.data?.message || 'Error resetting password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +77,7 @@ const ResetPassword = () => {
               className="h-10 w-auto object-contain"
             />
           </div>
-          <p className="text-gray-600">Verificando enlace...</p>
+          <p className="text-gray-600">Verifying link...</p>
         </div>
       </div>
     );
@@ -95,7 +95,7 @@ const ResetPassword = () => {
             />
           </div>
           <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
-            Enlace Inválido
+            Invalid Link
           </h2>
           
           {error && (
@@ -107,12 +107,12 @@ const ResetPassword = () => {
           <div className="mt-4 text-center text-sm space-y-2">
             <p>
               <Link to="/forgot-password" className="text-blue-500 hover:underline">
-                Solicitar nuevo enlace de recuperación
+                Request new recovery link
               </Link>
             </p>
             <p>
               <Link to="/login" className="text-gray-500 hover:text-gray-700 hover:underline">
-                Volver al login
+                Back to login
               </Link>
             </p>
           </div>
@@ -132,7 +132,7 @@ const ResetPassword = () => {
           />
         </div>
         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
-          Restablecer Contraseña
+          Reset Password
         </h2>
         
         {error && (

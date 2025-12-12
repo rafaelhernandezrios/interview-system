@@ -17,10 +17,10 @@ const ForgotPassword = () => {
 
     try {
       const response = await api.post('/auth/forgot-password', { email });
-      setSuccess('Se ha enviado un correo electrónico con las instrucciones para recuperar tu contraseña.');
+      setSuccess('An email with password recovery instructions has been sent.');
       setEmail('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al enviar el correo. Por favor, intenta de nuevo.');
+      setError(err.response?.data?.message || 'Error sending email. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -37,7 +37,7 @@ const ForgotPassword = () => {
           />
         </div>
         <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center">
-          Recuperar Contraseña
+          Recover Password
         </h2>
         
         {error && (
@@ -62,11 +62,11 @@ const ForgotPassword = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Ingresa tu correo electrónico"
+              placeholder="Enter your email address"
               required
             />
             <p className="text-gray-600 text-xs mt-2">
-              Te enviaremos un enlace para restablecer tu contraseña.
+              We will send you a link to reset your password.
             </p>
           </div>
 
@@ -75,20 +75,20 @@ const ForgotPassword = () => {
             disabled={loading}
             className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
           >
-            {loading ? 'Enviando...' : 'Enviar Correo de Recuperación'}
+            {loading ? 'Sending...' : 'Send Recovery Email'}
           </button>
         </form>
 
         <div className="mt-4 text-center text-sm space-y-2">
           <p>
-            ¿Recordaste tu contraseña?{' '}
+            Remember your password?{' '}
             <Link to="/login" className="text-blue-500 hover:underline">
-              Iniciar sesión
+              Sign in
             </Link>
           </p>
           <p>
             <Link to="/" className="text-gray-500 hover:text-gray-700 hover:underline">
-              ← Volver al inicio
+              ← Back to home
             </Link>
           </p>
         </div>
