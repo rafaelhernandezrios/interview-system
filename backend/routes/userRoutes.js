@@ -11,6 +11,7 @@ import {
   calculateScoreBasedOnAnswers,
   transcribeVideoAudio
 } from "../utils/cvUtils.js";
+import { sendCompletionNotificationToAdmins } from "../config/email.js";
 import axios from "axios";
 import dotenv from "dotenv";
 import path from "path";
@@ -663,6 +664,30 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl) {
     user.interviewCompleted = true;
 
     await user.save();
+
+    // Check if both CV and Interview are completed, then notify admins
+    if (user.cvAnalyzed && user.interviewCompleted) {
+      try {
+        // Get all admin users
+        const admins = await User.find({ role: 'admin' });
+        
+        // Send notification email to each admin
+        for (const admin of admins) {
+          if (admin.email) {
+            await sendCompletionNotificationToAdmins(
+              admin.email,
+              user.name,
+              user.email,
+              user.digitalId,
+              user.program
+            );
+          }
+        }
+      } catch (emailError) {
+        // Log error but don't fail the request
+        console.error('Error sending completion notification to admins:', emailError);
+      }
+    }
 
     return res.json({
       message: "Interview evaluated and stored successfully",

@@ -258,10 +258,32 @@ const Interview = () => {
         setVoiceState('REVIEW_MODE');
       }
     } else {
-      // No hay video guardado, iniciar grabación directamente sin TTS
-      console.log('[START INTERVIEW] No hay video guardado, iniciando grabación');
+      // No hay video guardado: leer pregunta con TTS, luego contador de 5s, luego grabar
+      const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills. Record a video using your webcam.";
+      console.log('[START INTERVIEW] No hay video guardado, iniciando con TTS y countdown');
       setIsReviewMode(false);
-      startUnifiedRecording();
+      
+      // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
+      readQuestionAloud(videoQuestion).then(() => {
+        // REQUERIMIENTO 2.4: Pausa de 5s visible antes de grabar
+        setCountdownBeforeRecord(5);
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+        }
+        countdownIntervalRef.current = setInterval(() => {
+          setCountdownBeforeRecord(prev => {
+            if (prev <= 1) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+              setCountdownBeforeRecord(0);
+              console.log('[STATE] Countdown finished → starting recording');
+              startUnifiedRecording();
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      });
     }
   };
 
@@ -822,7 +844,7 @@ const Interview = () => {
 
       // REQUERIMIENTO 2.2: Iniciar lectura de nueva pregunta o video
       if (currentQuestionIndex === 0) {
-        // Video (índice 0): SIEMPRE mostrar el video primero
+        // Video (índice 0): Leer pregunta con TTS y mostrar contador de 5s
         // Verificar si hay video guardado
         if (videoAnswers.length > 0 && videoAnswers[0]) {
           // Hay video guardado, mostrarlo en modo review
@@ -840,10 +862,32 @@ const Interview = () => {
             setVoiceState('REVIEW_MODE');
           }
         } else {
-          // No hay video guardado, iniciar grabación directamente sin TTS
-          console.log('[STATE] Iniciando video de autopresentación (índice 0)');
+          // No hay video guardado: leer pregunta con TTS, luego contador de 5s, luego grabar
+          const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills. Record a video using your webcam.";
+          console.log('[STATE] Iniciando video de autopresentación (índice 0) con TTS y countdown');
           setIsReviewMode(false); // Asegurar que no esté en modo review
-          startUnifiedRecording();
+          
+          // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
+          readQuestionAloud(videoQuestion).then(() => {
+            // REQUERIMIENTO 2.4: Pausa de 5s visible antes de grabar
+            setCountdownBeforeRecord(5);
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+            }
+            countdownIntervalRef.current = setInterval(() => {
+              setCountdownBeforeRecord(prev => {
+                if (prev <= 1) {
+                  clearInterval(countdownIntervalRef.current);
+                  countdownIntervalRef.current = null;
+                  setCountdownBeforeRecord(0);
+                  console.log('[STATE] Countdown finished → starting recording');
+                  startUnifiedRecording();
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          });
         }
       } else if (currentQuestionIndex > 0 && currentQuestionIndex <= allQuestions.length) {
         // Pregunta de texto: índice 1 a allQuestions.length
@@ -935,8 +979,6 @@ const Interview = () => {
       }
       
       // Step 1: Get presigned URL from backend for direct S3 upload
-      setMessage('Getting upload URL...');
-      
       const uploadUrlResponse = await api.post('/users/get-upload-url', {
         fileName: `recording_${Date.now()}.${fileExtension}`,
         contentType: mimeType
@@ -1339,7 +1381,7 @@ const Interview = () => {
                   You have <span className="font-bold text-blue-600 text-2xl">{allQuestions.length + 1}</span> questions to answer
                 </p>
                 <p className="text-gray-500 text-sm sm:text-base">
-                  Each question has a time limit of 3 minutes. The timer will start automatically when you begin.
+                  Each question has a time limit of 1 minute. The timer will start automatically when you begin.
                 </p>
                 {answers.length > 0 && answers.some(a => a && a.trim() !== '') && (
                   <p className="mt-3 text-green-600 font-semibold text-sm sm:text-base">
@@ -1355,7 +1397,7 @@ const Interview = () => {
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Instructions:
+                How the Interview Works:
               </h3>
               <ul className="space-y-3 sm:space-y-4">
                 <li className="flex items-start gap-3">
@@ -1365,7 +1407,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    Flow: starts with a 1-minute video introduction (profile, projects, skills). Then each question is read aloud and the camera starts automatically.
+                    <strong>Video Introduction (1 minute):</strong> Start by introducing yourself, your background, key projects, and relevant skills. This helps our selection committee get to know you better.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1375,7 +1417,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    You have 1 minute to answer each question on video. The timer starts as soon as the question finishes being read.
+                    <strong>Personalized Questions:</strong> Based on your CV, you'll receive customized questions. Each question will be read aloud automatically, and video recording will start immediately after.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1385,7 +1427,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    After transcription ends, you have 1 minute to review and edit the text before moving to the next question.
+                    <strong>Answer Time (1 minute per question):</strong> You have up to 1 minute to answer each question. Speak naturally and clearly - your response will be automatically transcribed to text.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1395,10 +1437,25 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    Everything is recorded on video. Copy/paste is not allowed.
+                    <strong>Review & Edit (1 minute):</strong> After your video response, you'll have 1 minute to review and edit the transcribed text to ensure accuracy before proceeding to the next question.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <div className="flex-shrink-0 w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center mt-0.5">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <span className="text-gray-700 text-sm sm:text-base">
+                    <strong>Important:</strong> All responses are recorded on video for evaluation purposes. Copy and paste functionality is disabled to ensure authentic responses. Your progress is automatically saved as you complete each question.
                   </span>
                 </li>
               </ul>
+              <div className="mt-6 pt-4 border-t border-blue-200">
+                <p className="text-sm text-gray-600 italic">
+                  💡 <strong>Tip:</strong> Find a quiet, well-lit space and ensure your camera and microphone are working properly before starting.
+                </p>
+              </div>
             </div>
 
             {/* Start Button */}
@@ -1464,8 +1521,8 @@ const Interview = () => {
             <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
               <span className="font-medium">
                 {isVideoQuestion 
-                  ? `Video Introduction (First Question)`
-                  : `Question ${currentQuestionIndex} of ${allQuestions.length + 1}`}
+                  ? `Question 1 of ${allQuestions.length + 1} - Video Introduction`
+                  : `Question ${currentQuestionIndex + 1} of ${allQuestions.length + 1}`}
               </span>
               <span className="font-semibold">
                 {Math.round(((currentQuestionIndex + 1) / (allQuestions.length + 1)) * 100)}%
@@ -1531,10 +1588,10 @@ const Interview = () => {
 
             {/* Video Container (The Lens) - Renderizado Condicional Estricto */}
             {/* Ocultar cámara durante transcripción - solo mostrar mensaje de transcripción */}
-            {!isTranscribing && (
+            {!isTranscribing && !answerSaved && (
               <>
-                {isReviewMode ? (
-                  /* Estado: Review - Solo muestra el video grabado */
+                {isReviewMode && isVideoQuestion ? (
+                  /* Estado: Review - Solo muestra el video grabado para la primera pregunta (video) */
                   <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/20" style={{ aspectRatio: '16/9' }}>
                     {recordedVideo && (
                       <video
@@ -1544,7 +1601,7 @@ const Interview = () => {
                       />
                     )}
                   </div>
-                ) : (
+                ) : !isReviewMode ? (
                   /* Estado: Recording/Idle - Solo muestra la cámara */
                   <div className={`relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
                     isRecording 
@@ -1589,7 +1646,7 @@ const Interview = () => {
                       </div>
                     )}
                   </div>
-                )}
+                ) : null}
               </>
             )}
 

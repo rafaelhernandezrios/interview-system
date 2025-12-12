@@ -150,14 +150,14 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Nueva Contraseña
+              New Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Minimum 6 characters"
               required
               minLength={6}
             />
@@ -165,14 +165,14 @@ const ResetPassword = () => {
 
           <div className="mb-6">
             <label className="block text-gray-700 text-sm font-bold mb-2">
-              Confirmar Contraseña
+              Confirm Password
             </label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              placeholder="Confirma tu contraseña"
+              placeholder="Confirm your password"
               required
               minLength={6}
             />
@@ -183,14 +183,14 @@ const ResetPassword = () => {
             disabled={loading}
             className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
           >
-            {loading ? 'Restableciendo...' : 'Restablecer Contraseña'}
+            {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
 
         <div className="mt-4 text-center text-sm">
           <p>
             <Link to="/login" className="text-gray-500 hover:text-gray-700 hover:underline">
-              ← Volver al login
+              ← Back to login
             </Link>
           </p>
         </div>
