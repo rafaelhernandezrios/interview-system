@@ -56,6 +56,7 @@ const Interview = () => {
   const speechSynthesisRef = useRef(null); // Ref para el utterance actual de TTS
   const ttsPromiseRef = useRef(null); // Ref para la Promise de TTS (para manejar onAudioEnd)
   const currentQuestionIndexRef = useRef(null); // Ref para rastrear pregunta actual sin causar re-renders
+  const reviewEditRef = useRef(null); // Ref para el cuadro de Review and edit (para scroll automático)
 
   // Default questions
   const defaultQuestions = [
@@ -743,6 +744,21 @@ const Interview = () => {
     }
   }, []);
 
+  // Scroll automático cuando termine la transcripción
+  useEffect(() => {
+    // Cuando la transcripción termina (isTranscribing pasa de true a false) y entra en review mode
+    const isVideoQuestion = currentQuestionIndex === 0;
+    if (!isTranscribing && isReviewMode && !isVideoQuestion && reviewEditRef.current) {
+      // Pequeño delay para asegurar que el DOM se haya actualizado
+      setTimeout(() => {
+        reviewEditRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'end' 
+        });
+      }, 300);
+    }
+  }, [isTranscribing, isReviewMode, currentQuestionIndex]);
+
   // ============================================================================
   // ESTADO DE TRANSICIÓN: Cambio de pregunta
   // ============================================================================
@@ -929,8 +945,6 @@ const Interview = () => {
       const { uploadUrl, publicUrl } = uploadUrlResponse.data;
       
       // Step 2: Upload video directly to S3
-      setMessage('Uploading video to S3...');
-      
       const videoFile = new File([videoBlob], `recording_${Date.now()}.${fileExtension}`, {
         type: mimeType
       });
@@ -1130,8 +1144,6 @@ const Interview = () => {
       
       if (videoBlob && isVideoQuestion) {
         // Upload video directly to S3 first
-        setMessage('Uploading video to S3...');
-        
         try {
           // Get presigned URL
           const uploadUrlResponse = await api.post('/users/get-upload-url', {
@@ -1514,88 +1526,88 @@ const Interview = () => {
                     </div>
                   )}
                 </div>
-                {/* Correction Timer Badge - visible during review (after transcription) */}
-                {isReviewMode && !isVideoQuestion && (
-                  <div className={`flex-shrink-0 flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-sm sm:text-base md:text-lg ${
-                    timeRemaining < 60 
-                      ? 'bg-red-100/80 text-red-700 border border-red-300' 
-                      : 'bg-blue-100/80 text-blue-700 border border-blue-300'
-                  }`}>
-                    <span>⏱️</span>
-                    <span>{formatTime(timeRemaining)}</span>
-                  </div>
-                )}
-                {!isVideoQuestion && countdownBeforeRecord > 0 && (
-                  <div className="flex-shrink-0 flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-sm sm:text-base md:text-lg bg-yellow-100/80 text-yellow-800 border border-yellow-300">
-                    <span>⏳</span>
-                    <span>Starting in {countdownBeforeRecord}s</span>
-                  </div>
-                )}
               </div>
             </div>
 
             {/* Video Container (The Lens) - Renderizado Condicional Estricto */}
-            {isReviewMode ? (
-              /* Estado: Review - Solo muestra el video grabado */
-              <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/20" style={{ aspectRatio: '16/9' }}>
-                {recordedVideo && (
-                  <video
-                    src={recordedVideo}
-                    controls
-                    className="w-full h-full object-contain bg-black"
-                  />
-                )}
-              </div>
-            ) : (
-              /* Estado: Recording/Idle - Solo muestra la cámara */
-              <div className={`relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
-                isRecording 
-                  ? 'ring-2 sm:ring-4 ring-red-500/50 animate-pulse border-2 sm:border-4 border-red-400' 
-                  : 'border-2 sm:border-4 border-white/20'
-              }`} style={{ aspectRatio: '16/9' }}>
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  className="w-full h-full object-contain bg-black"
-                  style={{ display: isRecording ? 'block' : 'none' }}
-                />
-                {!isRecording && (
-                  <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50 backdrop-blur-sm">
-                    <div className="text-center">
-                      <svg className="w-20 h-20 mx-auto mb-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                      <p className="text-lg text-white/80">Camera preview will appear here</p>
-                    </div>
+            {/* Ocultar cámara durante transcripción - solo mostrar mensaje de transcripción */}
+            {!isTranscribing && (
+              <>
+                {isReviewMode ? (
+                  /* Estado: Review - Solo muestra el video grabado */
+                  <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 sm:border-4 border-white/20" style={{ aspectRatio: '16/9' }}>
+                    {recordedVideo && (
+                      <video
+                        src={recordedVideo}
+                        controls
+                        className="w-full h-full object-contain bg-black"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  /* Estado: Recording/Idle - Solo muestra la cámara */
+                  <div className={`relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 ${
+                    isRecording 
+                      ? 'ring-2 sm:ring-4 ring-red-500/50 animate-pulse border-2 sm:border-4 border-red-400' 
+                      : 'border-2 sm:border-4 border-white/20'
+                  }`} style={{ aspectRatio: '16/9' }}>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      muted
+                      className="w-full h-full object-contain bg-black"
+                      style={{ display: isRecording ? 'block' : 'none' }}
+                    />
+                    {!isRecording && (
+                      <div className="absolute inset-0 flex items-center justify-center text-white bg-black/50 backdrop-blur-sm">
+                        <div className="text-center">
+                          {countdownBeforeRecord > 0 ? (
+                            <>
+                              <div className="mb-4">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto rounded-full bg-yellow-500/90 backdrop-blur-md flex items-center justify-center border-4 border-yellow-400 shadow-2xl">
+                                  <span className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">{countdownBeforeRecord}</span>
+                                </div>
+                              </div>
+                              <p className="text-xl sm:text-2xl font-semibold text-white">Starting in {countdownBeforeRecord} second{countdownBeforeRecord !== 1 ? 's' : ''}</p>
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-20 h-20 mx-auto mb-4 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                              <p className="text-lg text-white/80">Camera preview will appear here</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {/* Recording Indicator */}
+                    {isRecording && (
+                      <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2 glass-card bg-red-500/90 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full">
+                        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse"></div>
+                        <span className="text-white font-bold text-xs sm:text-sm">REC</span>
+                      </div>
+                    )}
                   </div>
                 )}
-                {/* Recording Indicator */}
-                {isRecording && (
-                  <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex items-center gap-2 glass-card bg-red-500/90 backdrop-blur-md px-2 sm:px-4 py-1 sm:py-2 rounded-full">
-                    <div className="w-2 h-2 sm:w-3 sm:h-3 bg-white rounded-full animate-pulse"></div>
-                    <span className="text-white font-bold text-xs sm:text-sm">REC</span>
-                  </div>
-                )}
-              </div>
+              </>
             )}
 
-            {/* Transcription Status - Overlay sutil y minimalista (pequeño, centrado sobre el video) */}
+            {/* Transcription Status - Mostrar solo durante transcripción (sin cámara visible) */}
             {isTranscribing && !isReviewMode && !isVideoQuestion && (
-              <div className="relative -mt-[calc(16/9*100%)] mb-6">
-                <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-                  <div className="glass-card bg-white/90 backdrop-blur-md border border-white/40 rounded-2xl px-6 py-4 text-center shadow-xl">
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="relative">
-                        <div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent"></div>
-                        <svg className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-gray-700">Transcribing...</p>
-                      </div>
-                    </div>
+              <div className="glass-card bg-white/90 backdrop-blur-md border border-white/40 rounded-2xl px-8 py-6 text-center shadow-xl mb-6">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
+                    <svg className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-base font-semibold text-gray-700">Transcribing audio...</p>
+                    {message && (
+                      <p className="text-sm text-gray-600 mt-1">{message}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1741,40 +1753,10 @@ const Interview = () => {
                 );
               }
 
-              // Estado: Review Mode - Botones Retake y Keep
-              if (isReviewMode && !isTranscribing) {
-                // El video ya se maneja arriba, así que aquí solo manejamos preguntas de texto
-                // Para preguntas de texto, mostrar botón "Keep This Answer"
-                return (
-                  <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
-                      <button
-                        type="button"
-                        onClick={retakeRecording}
-                        className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
-                      >
-                        Retake Recording
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const answerToSave = answers[currentQuestionIndex] || transcribedText || '';
-                          if (answerToSave) {
-                            handleAnswerChange(answerToSave);
-                          }
-                          setAnswerSaved(true);
-                          setIsTranscribing(false);
-                          setIsReviewMode(false);
-                          setVideoBlob(null);
-                          setVideoBlobType(null); // Reset MIME type
-                        }}
-                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl text-sm sm:text-base"
-                      >
-                        Keep This Answer
-                      </button>
-                    </div>
-                  </div>
-                );
+              // Estado: Review Mode - Los botones Retake y Keep se muestran después del cuadro de Review and edit
+              // No mostrar nada aquí para preguntas de texto en Review Mode
+              if (isReviewMode && !isTranscribing && !isVideoQuestion) {
+                return null;
               }
 
               // Estado: Recording/Idle - Botones de grabación
@@ -1868,26 +1850,68 @@ const Interview = () => {
             {/* Editable Transcription - Panel lateral/colapsable solo en Review Mode */}
             {/* Ocultar para la pregunta de video final (describe yourself) */}
             {isReviewMode && !isTranscribing && !isVideoQuestion && (
-              <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6">
-                <label className="block text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">
-                  Review and edit your transcribed answer:
-                </label>
-                <textarea
-                  value={answers[currentQuestionIndex] || transcribedText}
-                  onChange={(e) => handleAnswerChange(e.target.value)}
-                  onPaste={handlePaste}
-                  className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  style={{ 
-                    userSelect: 'text',
-                    WebkitUserSelect: 'text',
-                    MozUserSelect: 'text',
-                    msUserSelect: 'text'
-                  }}
-                  rows="5"
-                  required
-                  placeholder="Your transcribed answer will appear here. You can edit any typos or mistakes..."
-                />
-              </div>
+              <>
+                <div ref={reviewEditRef} className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-2 sm:mb-3">
+                    <label className="block text-xs sm:text-sm font-semibold text-gray-700">
+                      Review and edit your transcribed answer:
+                    </label>
+                    {/* Correction Timer Badge - visible during review (after transcription) */}
+                    <div className={`flex-shrink-0 flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-sm sm:text-base md:text-lg ${
+                      timeRemaining < 60 
+                        ? 'bg-red-100/80 text-red-700 border border-red-300' 
+                        : 'bg-blue-100/80 text-blue-700 border border-blue-300'
+                    }`}>
+                      <span>⏱️</span>
+                      <span>{formatTime(timeRemaining)}</span>
+                    </div>
+                  </div>
+                  <textarea
+                    value={answers[currentQuestionIndex] || transcribedText}
+                    onChange={(e) => handleAnswerChange(e.target.value)}
+                    onPaste={handlePaste}
+                    className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    style={{ 
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                    rows="5"
+                    required
+                    placeholder="Your transcribed answer will appear here. You can edit any typos or mistakes..."
+                  />
+                </div>
+                {/* Botones Retake y Keep - Aparecen después del cuadro de Review and edit */}
+                <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+                    <button
+                      type="button"
+                      onClick={retakeRecording}
+                      className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                    >
+                      Retake Recording
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const answerToSave = answers[currentQuestionIndex] || transcribedText || '';
+                        if (answerToSave) {
+                          handleAnswerChange(answerToSave);
+                        }
+                        setAnswerSaved(true);
+                        setIsTranscribing(false);
+                        setIsReviewMode(false);
+                        setVideoBlob(null);
+                        setVideoBlobType(null); // Reset MIME type
+                      }}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full px-6 sm:px-8 py-2 sm:py-3 font-semibold transition shadow-lg hover:shadow-xl text-sm sm:text-base"
+                    >
+                      Keep This Answer
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
 
           </form>
