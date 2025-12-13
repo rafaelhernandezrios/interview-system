@@ -72,9 +72,12 @@ const AdminPanel = () => {
     setLoadingDetails(true);
     try {
       const response = await api.get(`/admin/users/${userId}`);
+      console.log('User details fetched:', response.data);
+      console.log('Interview video:', response.data.interviewVideo);
       setUserDetails(response.data);
       setSelectedUser(userId);
     } catch (error) {
+      console.error('Error fetching user details:', error);
       alert('Error fetching user details');
     } finally {
       setLoadingDetails(false);
@@ -97,13 +100,22 @@ const AdminPanel = () => {
   };
 
   const getVideoUrl = (videoPath) => {
-    if (!videoPath) return null;
+    if (!videoPath) {
+      console.log('getVideoUrl - No video path provided');
+      return null;
+    }
+    console.log('getVideoUrl - Original path:', videoPath);
+    // Si ya es una URL completa (http/https), devolverla tal cual
     if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
+      console.log('getVideoUrl - Returning full URL:', videoPath);
       return videoPath;
     }
+    // Si es una ruta relativa, construir la URL completa
     const baseURL = import.meta.env.VITE_API_URL || 
       (import.meta.env.PROD ? 'https://interview-system-c1q9.vercel.app/api' : '/api');
-    return `${baseURL}${videoPath}`;
+    const fullUrl = `${baseURL}${videoPath}`;
+    console.log('getVideoUrl - Constructed URL:', fullUrl);
+    return fullUrl;
   };
 
   // Filtrar usuarios
@@ -576,13 +588,18 @@ const AdminPanel = () => {
                         </div>
 
                         {/* Video de Presentación con Marco de Cristal */}
-                        {userDetails.interviewVideo && (
+                        {userDetails.interviewVideo ? (
                           <div className="glass-card bg-white/40 border border-white/40 p-4 rounded-2xl">
                             <p className="text-sm font-semibold text-gray-700 mb-3">Presentation Video</p>
                             <video
                               controls
                               className="w-full rounded-xl shadow-lg"
                               src={getVideoUrl(userDetails.interviewVideo)}
+                              onError={(e) => {
+                                console.error('Error loading video:', e);
+                                console.error('Video URL:', getVideoUrl(userDetails.interviewVideo));
+                                console.error('Original video path:', userDetails.interviewVideo);
+                              }}
                             >
                               Your browser does not support video playback.
                             </video>
@@ -594,6 +611,11 @@ const AdminPanel = () => {
                                 </p>
                               </div>
                             )}
+                          </div>
+                        ) : (
+                          <div className="glass-card bg-white/40 border border-white/40 p-4 rounded-2xl">
+                            <p className="text-sm font-semibold text-gray-700 mb-3">Presentation Video</p>
+                            <p className="text-sm text-gray-500 italic">No video uploaded yet</p>
                           </div>
                         )}
 

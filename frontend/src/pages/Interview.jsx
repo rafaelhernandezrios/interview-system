@@ -259,11 +259,12 @@ const Interview = () => {
    * 3. Transición automática a RECORDING
    */
   const startInterview = async () => {
-    console.log('[START INTERVIEW] Iniciando entrevista - SIEMPRE empezar con video (índice 0)');
+    console.log('[START INTERVIEW] Iniciando entrevista - Continuar desde pregunta guardada');
     setInterviewStarted(true);
     
-    // SIEMPRE empezar con video (índice 0) - sin importar si está guardado o no
-    const questionIndex = 0;
+    // Usar el currentQuestionIndex actual (que fue establecido en fetchProfile basado en respuestas guardadas)
+    // Si no hay índice guardado, empezar desde 0 (video de presentación)
+    const questionIndex = currentQuestionIndex !== undefined ? currentQuestionIndex : 0;
     
     console.log('[START INTERVIEW] Estableciendo índice en:', questionIndex);
     console.log('[START INTERVIEW] Video guardado?', videoAnswers.length > 0 && videoAnswers[0] ? 'Sí' : 'No');
@@ -273,58 +274,85 @@ const Interview = () => {
     setTimeRemaining(60); // correction window will run after transcription
     setTimerActive(false); // timer starts after transcription, not at start
     
-    // Limpiar estados previos
-    setIsReviewMode(false);
-    setRecordedVideo(null);
-    setVideoBlob(null);
-    setTranscribedText('');
-    setError('');
-    setMessage('');
+    // Limpiar estados previos solo si no hay respuestas guardadas
+    if (questionIndex === 0) {
+      setIsReviewMode(false);
+      setRecordedVideo(null);
+      setVideoBlob(null);
+      setTranscribedText('');
+      setError('');
+      setMessage('');
+    } else {
+      // Si estamos continuando desde una pregunta de texto, limpiar solo estados de grabación
+      setRecordedVideo(null);
+      setVideoBlob(null);
+      setTranscribedText('');
+      setError('');
+      setMessage('');
+    }
     
-    // Verificar si hay video guardado
-    if (videoAnswers.length > 0 && videoAnswers[0]) {
-      console.log('[START INTERVIEW] Video guardado encontrado, mostrando en modo review');
-      // Hay video guardado, mostrarlo en modo review
-      if (typeof videoAnswers[0] === 'string') {
-        // Es una URL (video guardado desde backend)
-        setRecordedVideo(videoAnswers[0]);
+    // Si estamos en la pregunta de video (índice 0)
+    if (questionIndex === 0) {
+      // Verificar si hay video guardado
+      if (videoAnswers.length > 0 && videoAnswers[0]) {
+        console.log('[START INTERVIEW] Video guardado encontrado, mostrando en modo review');
+        // Hay video guardado, mostrarlo en modo review
+        if (typeof videoAnswers[0] === 'string') {
+          // Es una URL (video guardado desde backend)
+          setRecordedVideo(videoAnswers[0]);
+          setIsReviewMode(true);
+          setVoiceState('REVIEW_MODE');
+        } else {
+          // Es un Blob (video grabado en esta sesión)
+          const videoURL = URL.createObjectURL(videoAnswers[0]);
+          setRecordedVideo(videoURL);
+          setVideoBlob(videoAnswers[0]);
+          setIsReviewMode(true);
+          setVoiceState('REVIEW_MODE');
+        }
+      } else {
+        // No hay video guardado: leer pregunta con TTS, luego contador de 10s, luego grabar
+        const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills. Record a video using your webcam.";
+        console.log('[START INTERVIEW] No hay video guardado, iniciando con TTS y countdown');
+        setIsReviewMode(false);
+        
+        // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
+        readQuestionAloud(videoQuestion).then(() => {
+          // REQUERIMIENTO 2.4: Pausa de 10s visible antes de grabar
+          setCountdownBeforeRecord(10);
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+          }
+          countdownIntervalRef.current = setInterval(() => {
+            setCountdownBeforeRecord(prev => {
+              if (prev <= 1) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+                setCountdownBeforeRecord(0);
+                console.log('[STATE] Countdown finished → starting recording');
+                startUnifiedRecording();
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        });
+      }
+    } else {
+      // Estamos continuando desde una pregunta de texto
+      // Verificar si ya tiene respuesta guardada
+      const answerIndex = questionIndex - 1; // Las respuestas de texto empiezan en índice 0
+      if (answers[answerIndex] && answers[answerIndex].trim() !== '') {
+        // Ya tiene respuesta, mostrar en modo review
+        console.log('[START INTERVIEW] Pregunta de texto con respuesta guardada, mostrando en modo review');
+        setTranscribedText(answers[answerIndex]);
         setIsReviewMode(true);
         setVoiceState('REVIEW_MODE');
       } else {
-        // Es un Blob (video grabado en esta sesión)
-        const videoURL = URL.createObjectURL(videoAnswers[0]);
-        setRecordedVideo(videoURL);
-        setVideoBlob(videoAnswers[0]);
-        setIsReviewMode(true);
-        setVoiceState('REVIEW_MODE');
+        // No tiene respuesta, el useEffect que maneja el cambio de pregunta se encargará de leer la pregunta
+        console.log('[START INTERVIEW] Continuando desde pregunta de texto sin respuesta:', questionIndex);
+        setIsReviewMode(false);
       }
-    } else {
-      // No hay video guardado: leer pregunta con TTS, luego contador de 5s, luego grabar
-      const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills. Record a video using your webcam.";
-      console.log('[START INTERVIEW] No hay video guardado, iniciando con TTS y countdown');
-      setIsReviewMode(false);
-      
-      // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
-      readQuestionAloud(videoQuestion).then(() => {
-        // REQUERIMIENTO 2.4: Pausa de 10s visible antes de grabar
-        setCountdownBeforeRecord(10);
-        if (countdownIntervalRef.current) {
-          clearInterval(countdownIntervalRef.current);
-        }
-        countdownIntervalRef.current = setInterval(() => {
-          setCountdownBeforeRecord(prev => {
-            if (prev <= 1) {
-              clearInterval(countdownIntervalRef.current);
-              countdownIntervalRef.current = null;
-              setCountdownBeforeRecord(0);
-              console.log('[STATE] Countdown finished → starting recording');
-              startUnifiedRecording();
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      });
     }
   };
 
@@ -1517,6 +1545,90 @@ const Interview = () => {
                   </p>
                 )}
               </div>
+
+              {/* Questions Status List */}
+              {answers.length > 0 && allQuestions.length > 0 && (
+                <div className="glass-card bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-blue-200/50 rounded-2xl p-6 sm:p-8 mb-8">
+                  <h3 className="font-bold text-gray-900 mb-4 sm:mb-6 text-lg sm:text-xl flex items-center gap-2">
+                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    Questions Status
+                  </h3>
+                  <div className="space-y-3">
+                    {/* Video Presentation Question */}
+                    <div className={`flex items-center gap-3 p-3 rounded-lg border-2 ${
+                      videoAnswers.length > 0 && videoAnswers[0]
+                        ? 'bg-green-50 border-green-300'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        videoAnswers.length > 0 && videoAnswers[0]
+                          ? 'bg-green-500'
+                          : 'bg-gray-300'
+                      }`}>
+                        {videoAnswers.length > 0 && videoAnswers[0] ? (
+                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <span className="text-white text-xs font-bold">1</span>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-medium ${
+                          videoAnswers.length > 0 && videoAnswers[0]
+                            ? 'text-green-800'
+                            : 'text-gray-600'
+                        }`}>
+                          Video Introduction
+                        </p>
+                        {videoAnswers.length > 0 && videoAnswers[0] && (
+                          <p className="text-xs text-green-600 mt-1">✓ Answer saved</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Text Questions */}
+                    {allQuestions.map((question, index) => {
+                      const hasAnswer = answers[index] && answers[index].trim() !== '';
+                      return (
+                        <div key={index} className={`flex items-center gap-3 p-3 rounded-lg border-2 ${
+                          hasAnswer
+                            ? 'bg-green-50 border-green-300'
+                            : 'bg-gray-50 border-gray-200'
+                        }`}>
+                          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                            hasAnswer
+                              ? 'bg-green-500'
+                              : 'bg-gray-300'
+                          }`}>
+                            {hasAnswer ? (
+                              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            ) : (
+                              <span className="text-white text-xs font-bold">{index + 2}</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className={`text-sm font-medium line-clamp-2 ${
+                              hasAnswer
+                                ? 'text-green-800'
+                                : 'text-gray-600'
+                            }`}>
+                              {question}
+                            </p>
+                            {hasAnswer && (
+                              <p className="text-xs text-green-600 mt-1">✓ Answer saved</p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Instructions Card */}
