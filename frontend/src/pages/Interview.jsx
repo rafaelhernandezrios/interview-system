@@ -265,15 +265,11 @@ const Interview = () => {
    * 3. Transición automática a RECORDING
    */
   const startInterview = async () => {
-    console.log('[START INTERVIEW] Iniciando entrevista - Continuar desde pregunta guardada');
     setInterviewStarted(true);
     
     // Usar el currentQuestionIndex actual (que fue establecido en fetchProfile basado en respuestas guardadas)
     // Si no hay índice guardado, empezar desde 0 (video de presentación)
     const questionIndex = currentQuestionIndex !== undefined ? currentQuestionIndex : 0;
-    
-    console.log('[START INTERVIEW] Estableciendo índice en:', questionIndex);
-    console.log('[START INTERVIEW] Video guardado?', videoAnswers.length > 0 && videoAnswers[0] ? 'Sí' : 'No');
     
     setCurrentQuestionIndex(questionIndex);
     currentQuestionIndexRef.current = questionIndex;
@@ -301,7 +297,6 @@ const Interview = () => {
     if (questionIndex === 0) {
       // Verificar si hay video guardado
       if (videoAnswers.length > 0 && videoAnswers[0]) {
-        console.log('[START INTERVIEW] Video guardado encontrado, mostrando en modo review');
         // Hay video guardado, mostrarlo en modo review
         if (typeof videoAnswers[0] === 'string') {
           // Es una URL (video guardado desde backend)
@@ -319,7 +314,6 @@ const Interview = () => {
       } else {
         // No hay video guardado: leer pregunta con TTS, luego contador de 10s, luego grabar
         const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills.";
-        console.log('[START INTERVIEW] No hay video guardado, iniciando con TTS y countdown');
         setIsReviewMode(false);
         
         // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
@@ -335,7 +329,6 @@ const Interview = () => {
                 clearInterval(countdownIntervalRef.current);
                 countdownIntervalRef.current = null;
                 setCountdownBeforeRecord(0);
-                console.log('[STATE] Countdown finished → starting recording');
                 startUnifiedRecording();
                 return 0;
               }
@@ -350,13 +343,11 @@ const Interview = () => {
       const answerIndex = questionIndex - 1; // Las respuestas de texto empiezan en índice 0
       if (answers[answerIndex] && answers[answerIndex].trim() !== '') {
         // Ya tiene respuesta, mostrar en modo review
-        console.log('[START INTERVIEW] Pregunta de texto con respuesta guardada, mostrando en modo review');
         setTranscribedText(answers[answerIndex]);
         setIsReviewMode(true);
         setVoiceState('REVIEW_MODE');
       } else {
         // No tiene respuesta, el useEffect que maneja el cambio de pregunta se encargará de leer la pregunta
-        console.log('[START INTERVIEW] Continuando desde pregunta de texto sin respuesta:', questionIndex);
         setIsReviewMode(false);
       }
     }
@@ -532,7 +523,6 @@ const Interview = () => {
     return new Promise(async (resolve, reject) => {
       // PROHIBICIÓN: No leer durante transcripción
       if (voiceState === 'TRANSCRIBING') {
-        console.warn('[TTS] Bloqueado: Estado TRANSCRIBING activo');
         resolve(); // Resolver sin leer para no bloquear flujo
         return;
       }
@@ -555,7 +545,6 @@ const Interview = () => {
 
       try {
         // Llamar al endpoint de Eleven Labs
-        console.log('[TTS] Generando audio con Eleven Labs...');
         const response = await api.post('/users/text-to-speech', { text: questionText });
         
         // Verificar que la respuesta tenga audio
@@ -580,7 +569,6 @@ const Interview = () => {
 
         // REQUERIMIENTO CRÍTICO: Esperar estrictamente a onAudioEnd
         audio.onended = () => {
-          console.log('[TTS] Audio terminado - Lectura completada');
           URL.revokeObjectURL(audioUrl);
           audioRef.current = null;
           ttsPromiseRef.current = null;
@@ -604,7 +592,6 @@ const Interview = () => {
 
         // Reproducir audio
         await audio.play();
-        console.log('[TTS] Reproduciendo audio de Eleven Labs');
       } catch (error) {
         console.error('[TTS] Error con Eleven Labs:', error);
         console.error('[TTS] Error details:', {
@@ -614,9 +601,6 @@ const Interview = () => {
         });
         
         // Si el error es 500 o no hay API key configurada, usar fallback
-        if (error.response?.status === 500 || error.response?.data?.message?.includes('not configured')) {
-          console.warn('[TTS] Eleven Labs no configurado o error del servidor, usando fallback');
-        }
         
         // Fallback a speechSynthesis si Eleven Labs no está disponible
         fallbackToSpeechSynthesis(questionText, resolve);
@@ -629,7 +613,6 @@ const Interview = () => {
    */
   const fallbackToSpeechSynthesis = (questionText, resolve) => {
     if (!('speechSynthesis' in window)) {
-      console.warn('[TTS] Fallback no disponible, continuando sin lectura');
       setVoiceState('IDLE');
       resolve();
       return;
@@ -645,7 +628,6 @@ const Interview = () => {
     utterance.voice = englishVoices.length > 0 ? englishVoices[0] : voices[0];
 
     utterance.onend = () => {
-      console.log('[TTS] Fallback: Lectura completada');
       speechSynthesisRef.current = null;
       ttsPromiseRef.current = null;
       setVoiceState('IDLE');
@@ -662,7 +644,6 @@ const Interview = () => {
 
     speechSynthesisRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-    console.log('[TTS] Usando fallback (Web Speech API)');
   };
 
   /**
@@ -675,13 +656,11 @@ const Interview = () => {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
       audioRef.current = null;
-      console.log('[TTS] Cancelando audio de Eleven Labs');
     }
     
     // Cancelar Speech Synthesis (fallback)
     if ('speechSynthesis' in window) {
       if (window.speechSynthesis.speaking || speechSynthesisRef.current) {
-        console.log('[TTS] Cancelando lectura activa (fallback)');
         window.speechSynthesis.cancel();
       }
       speechSynthesisRef.current = null;
@@ -803,7 +782,6 @@ const Interview = () => {
       setRecordingTime(0);
       // TRANSICIÓN: IDLE/READING_QUESTION → RECORDING
       setVoiceState('RECORDING');
-      console.log('[STATE] Transición: → RECORDING');
 
       // Start recording timer (1 minute max)
       recordingTimerRef.current = setInterval(() => {
@@ -871,7 +849,6 @@ const Interview = () => {
     
     // REQUERIMIENTO 3.1: Transición a TRANSCRIBING (TTS completamente silenciado)
     setVoiceState('TRANSCRIBING');
-    console.log('[STATE] Transición: RECORDING → TRANSCRIBING (TTS silenciado)');
     
     // REQUERIMIENTO 3.1: Cancelar cualquier TTS que pudiera estar activo
     cancelTTS();
@@ -962,7 +939,6 @@ const Interview = () => {
 
     // REQUERIMIENTO 3: PROHIBICIÓN durante transcripción
     if (voiceState === 'TRANSCRIBING' || isTranscribing) {
-      console.log('[STATE] Bloqueado: Estado TRANSCRIBING activo - TTS silenciado');
       return;
     }
 
@@ -1026,7 +1002,6 @@ const Interview = () => {
         } else {
           // No hay video guardado: leer pregunta con TTS, luego contador de 5s, luego grabar
           const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills.";
-          console.log('[STATE] Iniciando video de autopresentación (índice 0) con TTS y countdown');
           setIsReviewMode(false); // Asegurar que no esté en modo review
           
           // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
@@ -1042,7 +1017,6 @@ const Interview = () => {
                   clearInterval(countdownIntervalRef.current);
                   countdownIntervalRef.current = null;
                   setCountdownBeforeRecord(0);
-                  console.log('[STATE] Countdown finished → starting recording');
                   startUnifiedRecording();
                   return 0;
                 }
@@ -1069,7 +1043,6 @@ const Interview = () => {
                   clearInterval(countdownIntervalRef.current);
                   countdownIntervalRef.current = null;
                   setCountdownBeforeRecord(0);
-                  console.log('[STATE] Countdown finished → starting recording');
                   startUnifiedRecording();
                   return 0;
                 }
@@ -1215,7 +1188,6 @@ const Interview = () => {
                   s3VideoUrl: publicUrl,
                   videoTranscription: transcription
                 });
-                console.log('[SAVE PROGRESS] Video de presentación guardado en progreso');
               } catch (saveError) {
                 console.error('[SAVE PROGRESS] Error guardando video:', saveError);
               }
@@ -1233,7 +1205,6 @@ const Interview = () => {
         // REQUERIMIENTO 3: Transición a REVIEW_MODE (TTS sigue silenciado)
         setIsReviewMode(true);
         setVoiceState('REVIEW_MODE');
-        console.log('[STATE] Transición: TRANSCRIBING → REVIEW_MODE');
       // Correction timer: 1 minute to edit after transcription (only for text questions)
       if (currentQuestionIndex > 0) {
         setTimeRemaining(60);

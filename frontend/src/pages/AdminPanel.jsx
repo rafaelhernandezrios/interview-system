@@ -72,8 +72,6 @@ const AdminPanel = () => {
     setLoadingDetails(true);
     try {
       const response = await api.get(`/admin/users/${userId}`);
-      console.log('User details fetched:', response.data);
-      console.log('Interview video:', response.data.interviewVideo);
       setUserDetails(response.data);
       setSelectedUser(userId);
     } catch (error) {
@@ -94,27 +92,21 @@ const AdminPanel = () => {
     if (cvPath.startsWith('http://') || cvPath.startsWith('https://')) {
       return cvPath;
     }
-    const baseURL = import.meta.env.VITE_API_URL || 
-      (import.meta.env.PROD ? 'https://interview-system-c1q9.vercel.app/api' : '/api');
+    const baseURL = import.meta.env.VITE_API_URL || '/api';
     return `${baseURL}${cvPath}`;
   };
 
   const getVideoUrl = (videoPath) => {
     if (!videoPath) {
-      console.log('getVideoUrl - No video path provided');
       return null;
     }
-    console.log('getVideoUrl - Original path:', videoPath);
     // Si ya es una URL completa (http/https), devolverla tal cual
     if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
-      console.log('getVideoUrl - Returning full URL:', videoPath);
       return videoPath;
     }
     // Si es una ruta relativa, construir la URL completa
-    const baseURL = import.meta.env.VITE_API_URL || 
-      (import.meta.env.PROD ? 'https://interview-system-c1q9.vercel.app/api' : '/api');
+    const baseURL = import.meta.env.VITE_API_URL || '/api';
     const fullUrl = `${baseURL}${videoPath}`;
-    console.log('getVideoUrl - Constructed URL:', fullUrl);
     return fullUrl;
   };
 
@@ -596,9 +588,7 @@ const AdminPanel = () => {
                               className="w-full rounded-xl shadow-lg"
                               src={getVideoUrl(userDetails.interviewVideo)}
                               onError={(e) => {
-                                console.error('Error loading video:', e);
-                                console.error('Video URL:', getVideoUrl(userDetails.interviewVideo));
-                                console.error('Original video path:', userDetails.interviewVideo);
+                                // Error loading video - handled silently
                               }}
                             >
                               Your browser does not support video playback.

@@ -1,19 +1,14 @@
 import axios from 'axios';
 
-// Usar la URL del backend desde variables de entorno o la URL por defecto
-// En producción, debe ser la URL completa del backend (puede incluir /api o no)
+// Usar la URL del backend desde variables de entorno
+// En producción, debe estar configurada VITE_API_URL en Vercel
 // En desarrollo, usa /api (proxy de Vite)
 let API_URL = import.meta.env.VITE_API_URL;
 
 if (!API_URL) {
-  if (import.meta.env.PROD) {
-    // Si estamos en producción y no hay VITE_API_URL configurada,
-    // usar el dominio del backend de Vercel (fallback)
-    API_URL = 'https://interview-system-c1q9.vercel.app/api';
-  } else {
-    // En desarrollo, usar el proxy de Vite
-    API_URL = '/api';
-  }
+  // En desarrollo, usar el proxy de Vite
+  // En producción, VITE_API_URL debe estar configurada
+  API_URL = '/api';
 }
 
 // Asegurar que la URL termine con /api si no lo hace (solo en producción)
@@ -21,9 +16,6 @@ if (import.meta.env.PROD && API_URL && !API_URL.endsWith('/api')) {
   // Si la URL no termina con /api, agregarlo
   API_URL = API_URL.replace(/\/$/, '') + '/api';
 }
-
-// Validación: en producción, la URL debe ser del backend, no del frontend
-// (validación silenciosa - no mostrar logs al usuario)
 
 const api = axios.create({
   baseURL: API_URL,

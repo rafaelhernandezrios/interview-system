@@ -753,14 +753,11 @@ router.post("/text-to-speech", authMiddleware, async (req, res) => {
     const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // Default: Rachel
 
     if (!ELEVENLABS_API_KEY) {
-      console.error('[Eleven Labs] API key not found in environment variables');
       return res.status(500).json({ 
         message: "Eleven Labs API key not configured",
         error: "ELEVENLABS_API_KEY environment variable is missing"
       });
     }
-
-    console.log('[Eleven Labs] Generating speech with voice:', ELEVENLABS_VOICE_ID);
 
     // Call Eleven Labs API
     const response = await axios.post(
@@ -794,14 +791,6 @@ router.post("/text-to-speech", authMiddleware, async (req, res) => {
       mimeType: 'audio/mpeg'
     });
   } catch (error) {
-    console.error('[Eleven Labs] TTS Error:', error.response?.data || error.message);
-    console.error('[Eleven Labs] Error status:', error.response?.status);
-    console.error('[Eleven Labs] Error details:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
-    
     res.status(500).json({ 
       message: "Error generating speech",
       error: error.response?.data?.message || error.message,

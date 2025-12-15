@@ -123,7 +123,7 @@ const Results = () => {
         {/* Header */}
         <div className="mb-6 sm:mb-8">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">Summary</h1>
-          <p className="text-gray-600">View your comprehensive evaluation and assessment summary</p>
+          <p className="text-gray-600">View your skill analysis results based on your CV and your answers to the interview</p>
         </div>
 
         {/* Bento Grid Layout */}
