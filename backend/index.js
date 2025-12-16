@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 import { authRoutes } from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import applicationRoutes from "./routes/applicationRoutes.js";
 
 dotenv.config();
 
@@ -168,6 +169,7 @@ app.use("/api/users/uploads/videos", express.static(path.join(process.cwd(), 'up
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/application", applicationRoutes);
 
 // Ruta de prueba
 app.get("/", (req, res) => {

@@ -154,6 +154,36 @@ const Interview = () => {
 
   const fetchProfile = async () => {
     try {
+      // First check if Step 1 (Application Form) is completed
+      // Use cache-busting to ensure we get fresh data
+      const appStatusResponse = await api.get('/application/status', {
+        params: { _t: Date.now() } // Cache busting
+      });
+      
+      // Debug logging
+      console.log('Application status check:', {
+        step1Completed: appStatusResponse.data?.step1Completed,
+        currentStep: appStatusResponse.data?.currentStep,
+        isDraft: appStatusResponse.data?.isDraft,
+        fullResponse: appStatusResponse.data
+      });
+      
+      // Check if step1Completed is true (strict check)
+      const step1Completed = appStatusResponse.data?.step1Completed === true;
+      
+      if (!step1Completed && !isAdmin) {
+        console.warn('Step 1 not completed, redirecting to dashboard');
+        // Show error message and redirect to dashboard
+        setError('Please complete the Application Form (Step 1) before starting the interview.');
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 2000);
+        return;
+      }
+      
+      // If we get here, step1Completed is true, proceed with interview
+      console.log('Step 1 completed, proceeding with interview');
+      
       const response = await api.get('/users/profile');
       
       // Check if interview is already completed
@@ -246,8 +276,15 @@ const Interview = () => {
         }
         
         setTimeRemaining(60); // Correction window after transcription
+      } else {
+        // No questions generated - Step 1 is completed but CV not analyzed
+        // Redirect to CV upload page
+        console.log('No questions found, redirecting to CV upload');
+        navigate('/cv-upload');
+        return;
       }
     } catch (error) {
+      console.error('Error fetching profile:', error);
     }
   };
 
@@ -1428,8 +1465,10 @@ const Interview = () => {
       });
       
       setMessage('Interview submitted successfully');
-      // Redirect to Results page (Summary) instead of showing results here
-      navigate('/results');
+      // Redirect to Dashboard to see updated progress
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Error submitting interview');
     } finally {
@@ -1483,14 +1522,22 @@ const Interview = () => {
     );
   }
 
-  if (allQuestions.length === 0) {
+  // If no questions after loading, show loading state (will redirect in fetchProfile)
+  if (allQuestions.length === 0 && !interviewCompleted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <Navbar />
         <div className="container mx-auto px-4 py-8">
-          <div className="bg-yellow-100 border-l-4 border-yellow-400 text-yellow-700 p-4 rounded">
-            <p className="font-semibold">CV Analysis Required</p>
-            <p>You must upload and analyze your CV first to generate interview questions.</p>
+          <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl p-6 max-w-2xl mx-auto">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">Loading...</h2>
+              <p className="text-gray-600 mb-6">
+                Please wait while we check your application status.
+              </p>
+            </div>
           </div>
         </div>
       </div>

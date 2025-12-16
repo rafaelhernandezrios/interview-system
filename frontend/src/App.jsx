@@ -10,6 +10,7 @@ import CVUpload from './pages/CVUpload';
 import Interview from './pages/Interview';
 import Results from './pages/Results';
 import AdminPanel from './pages/AdminPanel';
+import ApplicationForm from './pages/ApplicationForm';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import './App.css';
@@ -29,6 +30,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/application-form"
+            element={
+              <PrivateRoute>
+                <ApplicationForm />
               </PrivateRoute>
             }
           />

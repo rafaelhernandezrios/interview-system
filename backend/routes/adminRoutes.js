@@ -1,5 +1,6 @@
 import express from "express";
 import User from "../models/User.js";
+import Application from "../models/Application.js";
 import { authMiddleware } from "./authRoutes.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
 
@@ -72,8 +73,29 @@ router.get("/users/:userId", async (req, res) => {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
 
-    res.json(user);
+    // Fetch application data if it exists
+    const application = await Application.findOne({ userId: req.params.userId });
+    
+    // Debug logging
+    console.log('Admin fetching user details:', {
+      userId: req.params.userId,
+      applicationFound: !!application,
+      step1Completed: application?.step1Completed,
+      isDraft: application?.isDraft,
+      currentStep: application?.currentStep
+    });
+    
+    // Convert user to plain object and add application data
+    const userObject = user.toObject();
+    if (application) {
+      userObject.application = application.toObject();
+    } else {
+      userObject.application = null;
+    }
+
+    res.json(userObject);
   } catch (error) {
+    console.error("Error fetching user details:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });
@@ -210,6 +232,67 @@ router.delete("/users/:userId/interview", async (req, res) => {
     res.json({ message: "Entrevista eliminada exitosamente" });
   } catch (error) {
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Eliminar/Resetear aplicación de usuario
+router.delete("/users/:userId/application", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Eliminar la aplicación del usuario
+    const deletedApplication = await Application.findOneAndDelete({ userId: req.params.userId });
+
+    if (deletedApplication) {
+      res.json({ 
+        message: "Aplicación eliminada exitosamente. El usuario podrá completar el formulario nuevamente.",
+        deleted: true
+      });
+    } else {
+      res.json({ 
+        message: "No se encontró una aplicación para este usuario.",
+        deleted: false
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting application:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Actualizar aplicación de usuario (Admin only)
+router.patch("/users/:userId/application", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    // Find or create application
+    let application = await Application.findOne({ userId: req.params.userId });
+    
+    if (!application) {
+      // Create new application if it doesn't exist
+      application = new Application({
+        userId: req.params.userId,
+        email: user.email
+      });
+    }
+
+    // Update application with provided data
+    Object.assign(application, req.body);
+    await application.save();
+
+    res.json({ 
+      message: "Aplicación actualizada exitosamente",
+      application
+    });
+  } catch (error) {
+    console.error("Error updating application:", error);
+    res.status(500).json({ message: "Error interno del servidor", error: error.message });
   }
 });
 

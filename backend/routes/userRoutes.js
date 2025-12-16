@@ -1,5 +1,6 @@
 import express from "express";
 import User from "../models/User.js";
+import Application from "../models/Application.js";
 import { authMiddleware } from "./authRoutes.js";
 import upload, { STORAGE_TYPE } from "../middleware/upload.js";
 import videoUpload, { STORAGE_TYPE as VIDEO_STORAGE_TYPE } from "../middleware/videoUpload.js";
@@ -668,6 +669,21 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
     user.interviewCompleted = true;
 
     await user.save();
+
+    // Update Application model - Mark Step 2 as completed
+    try {
+      await Application.findOneAndUpdate(
+        { userId: req.userId },
+        {
+          step2Completed: true,
+          currentStep: 3, // Move to next step
+        },
+        { upsert: false } // Don't create if doesn't exist (Step 1 must be completed first)
+      );
+    } catch (appError) {
+      // Log error but don't fail the request
+      console.error('Error updating application status:', appError);
+    }
 
     // Check if both CV and Interview are completed, then notify admins
     if (user.cvAnalyzed && user.interviewCompleted) {

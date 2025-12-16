@@ -9,6 +9,7 @@ const AdminPanel = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [activeTab, setActiveTab] = useState('application'); // 'application', 'cv', 'interview'
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
@@ -85,7 +86,27 @@ const AdminPanel = () => {
   const closeUserDetails = () => {
     setSelectedUser(null);
     setUserDetails(null);
+    setActiveTab('application'); // Reset to first tab when closing
   };
+
+  // Helper function to format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Data Display Card Component
+  const DataCard = ({ label, value, colSpan = 1 }) => (
+    <div className={`bg-white/40 p-3 rounded-xl border border-white/20 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
+      <p className="text-xs text-gray-500 uppercase mb-1">{label}</p>
+      <p className="text-gray-800 font-medium">{value || 'N/A'}</p>
+    </div>
+  );
 
   const getCVUrl = (cvPath) => {
     if (!cvPath) return null;
@@ -421,50 +442,239 @@ const AdminPanel = () => {
                 </div>
               ) : userDetails ? (
                 <div className="p-8">
-                  {/* Bento Grid de Información */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                    {/* Tarjeta Info Básica */}
-                    <div className="glass-card p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        Basic Information
-                      </h3>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Email</p>
-                          <p className="font-semibold text-gray-900">{userDetails.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Program</p>
-                          <p className="font-semibold text-gray-900">{userDetails.program || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Academic Level</p>
-                          <p className="font-semibold text-gray-900">{userDetails.academic_level || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Digital ID</p>
-                          <p className="font-semibold text-gray-900">{userDetails.digitalId || 'N/A'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">Status</p>
-                          <span className={`inline-flex items-center gap-2 bg-white/40 backdrop-blur-sm border rounded-full px-3 py-1 text-sm font-medium ${
-                            userDetails.isActive 
-                              ? 'bg-green-100/50 text-green-700 border-green-200/60' 
-                              : 'bg-red-100/50 text-red-700 border-red-200/60'
-                          }`}>
-                            <span className={`w-2 h-2 rounded-full ${
-                              userDetails.isActive ? 'bg-green-500' : 'bg-red-500'
-                            }`}></span>
-                            {userDetails.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                  {/* Tabs Navigation */}
+                  <div className="flex gap-2 mb-6 border-b border-white/20 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <button
+                      onClick={() => setActiveTab('application')}
+                      className={`px-6 py-3 rounded-t-xl font-semibold transition-all duration-300 whitespace-nowrap ${
+                        activeTab === 'application'
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                          : 'text-gray-500 hover:bg-white/40'
+                      }`}
+                    >
+                      Application Info
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('cv')}
+                      className={`px-6 py-3 rounded-t-xl font-semibold transition-all duration-300 whitespace-nowrap ${
+                        activeTab === 'cv'
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                          : 'text-gray-500 hover:bg-white/40'
+                      }`}
+                    >
+                      CV & Skills
+                    </button>
+                    {userDetails.interviewCompleted && (
+                      <button
+                        onClick={() => setActiveTab('interview')}
+                        className={`px-6 py-3 rounded-t-xl font-semibold transition-all duration-300 whitespace-nowrap ${
+                          activeTab === 'interview'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                            : 'text-gray-500 hover:bg-white/40'
+                        }`}
+                      >
+                        Interview Results
+                      </button>
+                    )}
+                  </div>
 
-                    {/* Tarjeta CV */}
+                  {/* Tab Content */}
+                  {activeTab === 'application' && (
+                    <div>
+                      {userDetails.application ? (
+                        <div className="space-y-6">
+                          {/* Personal & Contact Section */}
+                          <div className="glass-card p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              Personal & Contact
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <DataCard label="First Name" value={userDetails.application.firstName} />
+                              <DataCard label="Last Name" value={userDetails.application.lastName} />
+                              <DataCard label="Email" value={userDetails.application.email || userDetails.email} />
+                              <DataCard label="Sex" value={userDetails.application.sex} />
+                              <DataCard label="Date of Birth" value={formatDate(userDetails.application.dateOfBirth)} />
+                              <DataCard label="Country of Citizenship" value={userDetails.application.countryOfCitizenship} />
+                              <DataCard label="Country of Residency" value={userDetails.application.countryOfResidency} />
+                              <DataCard label="Phone Type" value={userDetails.application.primaryPhoneType} />
+                              <DataCard label="Phone Number" value={userDetails.application.phoneNumber} />
+                              <DataCard label="LinkedIn Profile" value={userDetails.application.linkedInProfileUrl} colSpan={2} />
+                              {userDetails.application.hasMedicalCondition && (
+                                <DataCard label="Medical Condition Details" value={userDetails.application.medicalConditionDetails} colSpan={2} />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Academic Background Section */}
+                          <div className="glass-card p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
+                              Academic Background
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <DataCard label="Institution Name" value={userDetails.application.institutionName} />
+                              <DataCard label="Main Academic Major" value={userDetails.application.mainAcademicMajor} />
+                              <DataCard label="Current Semester" value={userDetails.application.currentSemester} />
+                              <DataCard label="CV URL" value={userDetails.application.cvUrl} colSpan={2} />
+                              <DataCard label="Portfolio URL" value={userDetails.application.portfolioUrl} colSpan={2} />
+                              <DataCard label="Has Academic Publications" value={userDetails.application.hasAcademicPublications ? 'Yes' : 'No'} />
+                              {userDetails.application.otherStudiesCertifications && (
+                                <DataCard label="Other Studies/Certifications" value={userDetails.application.otherStudiesCertifications} colSpan={2} />
+                              )}
+                              {userDetails.application.participationInChallenges && (
+                                <DataCard label="Participation in Challenges" value={userDetails.application.participationInChallenges} colSpan={2} />
+                              )}
+                              {userDetails.application.awardsAndDistinctions && (
+                                <DataCard label="Awards and Distinctions" value={userDetails.application.awardsAndDistinctions} colSpan={2} />
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Program Specifics Section */}
+                          <div className="glass-card p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                              </svg>
+                              Program Specifics
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <DataCard label="English Level" value={userDetails.application.englishLevel} />
+                              <DataCard label="Has English Certification" value={userDetails.application.hasEnglishCertification ? 'Yes' : 'No'} />
+                              <DataCard label="Payment Source" value={userDetails.application.paymentSource} />
+                              <DataCard label="Applied Before" value={userDetails.application.appliedBefore ? 'Yes' : 'No'} />
+                              <DataCard label="Promotional Code" value={userDetails.application.promotionalCode || 'None'} />
+                            </div>
+                          </div>
+
+                          {/* Application Status */}
+                          <div className="glass-card p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-4">Application Status</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                              <DataCard label="Step 1 Completed" value={userDetails.application.step1Completed ? '✅ Yes' : '❌ No'} />
+                              <DataCard label="Step 2 Completed" value={userDetails.application.step2Completed ? '✅ Yes' : '❌ No'} />
+                              <DataCard label="Step 3 Completed" value={userDetails.application.step3Completed ? '✅ Yes' : '❌ No'} />
+                              <DataCard label="Step 4 Completed" value={userDetails.application.step4Completed ? '✅ Yes' : '❌ No'} />
+                              <DataCard label="Current Step" value={userDetails.application.currentStep} colSpan={2} />
+                              <DataCard label="Is Draft" value={userDetails.application.isDraft ? 'Yes' : 'No'} colSpan={2} />
+                            </div>
+                            
+                            {/* Reset Application Button */}
+                            <div className="pt-6 border-t border-white/20">
+                              <button
+                                onClick={async () => {
+                                  if (!window.confirm('Are you sure you want to delete/reset this user\'s application? This will allow them to complete the application form again from the beginning.')) {
+                                    return;
+                                  }
+                                  try {
+                                    await api.delete(`/admin/users/${selectedUser}/application`);
+                                    await fetchUserDetails(selectedUser);
+                                    alert('Application reset successfully. The user can now complete the form again.');
+                                  } catch (error) {
+                                    console.error('Error resetting application:', error);
+                                    alert('Error resetting application: ' + (error.response?.data?.message || error.message));
+                                  }
+                                }}
+                                className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                Reset Application
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="glass-card p-8 text-center">
+                          <div className="inline-flex items-center gap-2 bg-yellow-100/50 text-yellow-700 border border-yellow-200/60 rounded-full px-4 py-2 mb-4">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="font-semibold">Application Pending</span>
+                          </div>
+                          <p className="text-gray-600 mb-4">
+                            {userDetails.application 
+                              ? 'This user has started the application but has not completed Step 1 yet.' 
+                              : 'This user has not started the application form yet.'}
+                          </p>
+                          
+                          {/* Debug Info - Show application status if it exists */}
+                          {userDetails.application && (
+                            <div className="mt-4 mb-4 p-4 bg-gray-100/50 rounded-lg text-left">
+                              <p className="text-xs font-semibold text-gray-700 mb-2">Application Status:</p>
+                              <div className="text-xs text-gray-600 space-y-1 mb-3">
+                                <p>Application exists: ✅</p>
+                                <p>Step 1 Completed: {userDetails.application.step1Completed ? '✅ Yes' : '❌ No'}</p>
+                                <p>Is Draft: {userDetails.application.isDraft ? 'Yes' : 'No'}</p>
+                                <p>Current Step: {userDetails.application.currentStep || 'N/A'}</p>
+                                {userDetails.application.firstName && (
+                                  <p>Has data: ✅ (First Name: {userDetails.application.firstName})</p>
+                                )}
+                              </div>
+                              {!userDetails.application.step1Completed && userDetails.application.firstName && (
+                                <button
+                                  onClick={async () => {
+                                    if (!window.confirm('Mark Step 1 as completed? This will allow the user to proceed to Step 2 (Interview).')) {
+                                      return;
+                                    }
+                                    try {
+                                      // Update application to mark step 1 as completed (using admin endpoint)
+                                      await api.patch(`/admin/users/${selectedUser}/application`, {
+                                        step1Completed: true,
+                                        currentStep: 2,
+                                        isDraft: false
+                                      });
+                                      await fetchUserDetails(selectedUser);
+                                      alert('Step 1 marked as completed successfully.');
+                                    } catch (error) {
+                                      console.error('Error updating application:', error);
+                                      alert('Error updating application: ' + (error.response?.data?.message || error.message));
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] text-xs"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  Mark Step 1 as Completed
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          
+                          <button
+                            onClick={async () => {
+                              if (!window.confirm('Are you sure you want to delete any existing application data for this user?')) {
+                                return;
+                              }
+                              try {
+                                await api.delete(`/admin/users/${selectedUser}/application`);
+                                await fetchUserDetails(selectedUser);
+                                alert('Application data cleared successfully.');
+                              } catch (error) {
+                                console.error('Error clearing application:', error);
+                                alert('Error clearing application: ' + (error.response?.data?.message || error.message));
+                              }
+                            }}
+                            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            {userDetails.application ? 'Reset Application' : 'Clear Application Data'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'cv' && (
                     <div className="glass-card p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -560,16 +770,15 @@ const AdminPanel = () => {
                         <p className="text-gray-500 text-sm">No CV uploaded</p>
                       )}
                     </div>
-                  </div>
+                  )}
 
-                  {/* Tarjeta Entrevista */}
-                  {userDetails.interviewCompleted && (
-                    <div className="glass-card p-6 mb-8">
+                  {activeTab === 'interview' && userDetails.interviewCompleted && (
+                    <div className="glass-card p-6">
                       <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
-                        Interview
+                        Interview Results
                       </h3>
                       <div className="space-y-6">
                         <div className="flex items-center justify-between">
