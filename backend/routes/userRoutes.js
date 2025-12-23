@@ -412,11 +412,14 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
         return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
       }
       
-      if (stats.size > 50 * 1024 * 1024) {
+      // Allow up to 150MB when using S3 direct upload
+      const MAX_FILE_SIZE = VIDEO_STORAGE_TYPE === 's3' ? 150 * 1024 * 1024 : 50 * 1024 * 1024;
+      if (stats.size > MAX_FILE_SIZE) {
         if (tempFilePath && fs.existsSync(tempFilePath)) {
           fs.unlinkSync(tempFilePath);
         }
-        return res.status(400).json({ message: "Video file is too large. Maximum size is 50MB." });
+        const maxSizeMB = VIDEO_STORAGE_TYPE === 's3' ? '150MB' : '50MB';
+        return res.status(400).json({ message: `Video file is too large. Maximum size is ${maxSizeMB}.` });
       }
     } else {
       // Traditional file upload path - handle with multer
@@ -435,8 +438,11 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
             return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
           }
           
-          if (req.file.size > 50 * 1024 * 1024) {
-            return res.status(400).json({ message: "Video file is too large. Maximum size is 50MB." });
+          // Allow up to 150MB when using S3 storage
+          const MAX_FILE_SIZE = VIDEO_STORAGE_TYPE === 's3' ? 150 * 1024 * 1024 : 50 * 1024 * 1024;
+          if (req.file.size > MAX_FILE_SIZE) {
+            const maxSizeMB = VIDEO_STORAGE_TYPE === 's3' ? '150MB' : '50MB';
+            return res.status(400).json({ message: `Video file is too large. Maximum size is ${maxSizeMB}.` });
           }
           
           // Determine file path based on storage type

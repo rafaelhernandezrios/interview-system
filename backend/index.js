@@ -133,26 +133,26 @@ app.options('*', cors(corsOptions));
 // OTROS MIDDLEWARES (después de CORS)
 // ============================================
 
-// Increase body size limit to 50MB for video uploads
+// Increase body size limit to 150MB for video uploads when using S3
 // Nota: Vercel tiene un límite de 4.5MB para Hobby plan y 50MB para Pro plan
-// Si el archivo es más grande, consideraremos subir directamente a S3 desde el frontend
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// Cuando se usa S3 directo desde el frontend, permitimos hasta 150MB
+app.use(express.json({ limit: '150mb' }));
+app.use(express.urlencoded({ extended: true, limit: '150mb' }));
 
 // Middleware para manejar errores de tamaño de body
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 413 || err.statusCode === 413) {
     return res.status(413).json({ 
       error: 'File too large',
-      message: 'The video file is too large. Maximum size is 50MB. Please record a shorter video or compress the file.',
-      maxSize: '50MB'
+      message: 'The video file is too large. Maximum size is 150MB when using S3. Please record a shorter video or compress the file.',
+      maxSize: '150MB'
     });
   }
   if (err.type === 'entity.too.large') {
     return res.status(413).json({ 
       error: 'File too large',
-      message: 'The video file is too large. Maximum size is 50MB. Please record a shorter video or compress the file.',
-      maxSize: '50MB'
+      message: 'The video file is too large. Maximum size is 150MB when using S3. Please record a shorter video or compress the file.',
+      maxSize: '150MB'
     });
   }
   next(err);

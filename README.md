@@ -172,7 +172,7 @@ Mirai-Intervieweb/
 - Contraseñas hasheadas con bcryptjs
 - Tokens JWT con expiración (8 horas)
 - Middleware de autenticación en rutas protegidas
-- Validación de archivos (solo PDF, máximo 5MB para CVs, 50MB para videos)
+- Validación de archivos (solo PDF, máximo 5MB para CVs, 150MB para videos cuando se usa S3)
 - Verificación de usuario activo en cada request
 - Prevención de copiar/pegar en entrevistas
 

@@ -98,7 +98,7 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         cb(new Error(`Only video files are allowed. Received: ${file.mimetype} (extension: ${fileExtension})`), false);
       }
     },
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
+    limits: { fileSize: 150 * 1024 * 1024 }, // 150MB limit for videos when using S3
   });
   
   // Add logging after upload
@@ -178,7 +178,7 @@ if (STORAGE_TYPE === 's3' && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SE
         cb(new Error(`Only video files are allowed. Received: ${file.mimetype}`), false);
       }
     },
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit for videos
+    limits: { fileSize: 150 * 1024 * 1024 }, // 150MB limit for videos when using S3
   });
 }
 
