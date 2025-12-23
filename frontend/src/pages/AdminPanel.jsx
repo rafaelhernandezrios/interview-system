@@ -612,10 +612,16 @@ const AdminPanel = () => {
                         {/* Preguntas y Respuestas */}
                         {(() => {
                           // Combine all questions (generated + default) to match interviewResponses structure
-                          const defaultQuestions = [
-                            "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
-                            "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?"
-                          ];
+                          // Get default questions based on user's program
+                          const firstQuestion = "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?";
+                          const userProgram = userDetails.program || '';
+                          let lastQuestion;
+                          if (userProgram === 'FUTURE_INNOVATORS_JAPAN') {
+                            lastQuestion = "Why do you deserve to be awarded this scholarship?";
+                          } else {
+                            lastQuestion = "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?";
+                          }
+                          const defaultQuestions = [firstQuestion, lastQuestion];
                           const generatedQuestions = userDetails.questions || [];
                           const allQuestions = [...generatedQuestions, ...defaultQuestions];
                           const responses = userDetails.interviewResponses || [];

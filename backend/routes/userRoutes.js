@@ -619,11 +619,15 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
       return res.status(400).json({ message: "No valid answers were submitted" });
     }
 
-    // Default questions
-    const defaultQuestions = [
-      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
-      "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?"
-    ];
+    // Default questions - last question changes based on program
+    const firstQuestion = "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?";
+    let lastQuestion;
+    if (user.program === 'FUTURE_INNOVATORS_JAPAN') {
+      lastQuestion = "Why do you deserve to be awarded this scholarship?";
+    } else {
+      lastQuestion = "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?";
+    }
+    const defaultQuestions = [firstQuestion, lastQuestion];
 
     const generatedQuestions = user.questions || [];
     const allQuestions = [...generatedQuestions, ...defaultQuestions];
@@ -811,11 +815,15 @@ router.get("/interview-responses", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Interview not completed" });
     }
 
-    // Default questions
-    const defaultQuestions = [
-      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
-      "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?"
-    ];
+    // Default questions - last question changes based on program
+    const firstQuestion = "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?";
+    let lastQuestion;
+    if (user.program === 'FUTURE_INNOVATORS_JAPAN') {
+      lastQuestion = "Why do you deserve to be awarded this scholarship?";
+    } else {
+      lastQuestion = "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?";
+    }
+    const defaultQuestions = [firstQuestion, lastQuestion];
 
     const allQuestions = [...(user.questions || []), ...defaultQuestions];
 

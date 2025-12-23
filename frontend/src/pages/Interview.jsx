@@ -61,11 +61,20 @@ const Interview = () => {
   const currentQuestionIndexRef = useRef(null); // Ref para rastrear pregunta actual sin causar re-renders
   const reviewEditRef = useRef(null); // Ref para el cuadro de Review and edit (para scroll automático)
 
-  // Default questions
-  const defaultQuestions = [
-    "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
-    "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?"
-  ];
+  // Function to get default questions based on program
+  const getDefaultQuestions = (program) => {
+    const firstQuestion = "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?";
+    
+    // Last question changes based on program
+    let lastQuestion;
+    if (program === 'FUTURE_INNOVATORS_JAPAN') {
+      lastQuestion = "Why do you deserve to be awarded this scholarship?";
+    } else {
+      lastQuestion = "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?";
+    }
+    
+    return [firstQuestion, lastQuestion];
+  };
 
   useEffect(() => {
     fetchProfile();
@@ -164,6 +173,9 @@ const Interview = () => {
       
       if (response.data.questions && response.data.questions.length > 0) {
         const generatedQuestions = response.data.questions;
+        // Get default questions based on user's program
+        const userProgram = response.data.program || '';
+        const defaultQuestions = getDefaultQuestions(userProgram);
         // Combine generated questions with default questions
         const combinedQuestions = [...generatedQuestions, ...defaultQuestions];
         setQuestions(generatedQuestions);
