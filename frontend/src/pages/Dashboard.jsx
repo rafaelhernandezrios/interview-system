@@ -345,7 +345,13 @@ const Dashboard = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
               {/* Avatar Section */}
               <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                <div 
+                  onClick={() => !uploadingPhoto && fileInputRef.current?.click()}
+                  className={`relative w-16 h-16 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center cursor-pointer group transition-all duration-300 ${
+                    uploadingPhoto ? 'opacity-50 cursor-not-allowed' : 'hover:ring-4 hover:ring-blue-300 hover:scale-105'
+                  }`}
+                  title={uploadingPhoto ? 'Uploading...' : 'Click to upload profile photo'}
+                >
                   {profile?.profilePhoto ? (
                     <img 
                       src={profile.profilePhoto} 
@@ -357,17 +363,32 @@ const Dashboard = () => {
                       {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                     </span>
                   )}
+                  {/* Overlay on hover */}
+                  {!uploadingPhoto && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                      <div className="text-center">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p className="text-xs sm:text-sm text-white font-semibold">Click to upload</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+                {/* Upload button indicator */}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingPhoto}
-                  className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-lg transition hover:scale-110"
-                  title="Upload photo"
+                  className={`absolute -bottom-1 -right-1 w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center shadow-lg transition-all ${
+                    uploadingPhoto ? 'cursor-not-allowed' : 'hover:scale-110'
+                  }`}
+                  title={uploadingPhoto ? 'Uploading...' : 'Upload profile photo'}
                 >
                   {uploadingPhoto ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
                   ) : (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 001.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
@@ -380,6 +401,13 @@ const Dashboard = () => {
                   onChange={handlePhotoUpload}
                   className="hidden"
                 />
+                {/* Helper text below avatar */}
+                <div className="mt-2 text-center">
+                  <p className="text-xs text-gray-600 font-medium">
+                    {uploadingPhoto ? 'Uploading...' : profile?.profilePhoto ? 'Click to change photo' : 'Click to add photo'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">Max 5MB</p>
+                </div>
               </div>
 
               {/* Profile Info */}
@@ -439,21 +467,6 @@ const Dashboard = () => {
                     {profile?.isActive ? '✓ Active' : '✗ Inactive'}
                   </span>
                 </div>
-              </div>
-
-              {/* Action Icons */}
-              <div className="flex gap-2 flex-shrink-0">
-                <button className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </button>
-                <button className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition">
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>

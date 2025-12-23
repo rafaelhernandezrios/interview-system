@@ -1083,11 +1083,12 @@ const Interview = () => {
       return;
     }
 
-    // Check file size limit (50MB = 50 * 1024 * 1024 bytes)
-    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+    // Check file size limit (150MB when using S3 direct upload)
+    // Since we always use direct S3 upload, we allow up to 150MB
+    const MAX_FILE_SIZE = 150 * 1024 * 1024; // 150MB for S3 direct upload
     if (videoBlob.size > MAX_FILE_SIZE) {
       const sizeInMB = (videoBlob.size / (1024 * 1024)).toFixed(2);
-      setError(`Video file is too large (${sizeInMB}MB). Maximum size is 50MB. Please record a shorter video.`);
+      setError(`Video file is too large (${sizeInMB}MB). Maximum size is 150MB. Please record a shorter video.`);
       setIsTranscribing(false);
       return;
     }
@@ -1263,7 +1264,7 @@ const Interview = () => {
         // Check for specific error codes
         if (err.response?.status === 413 || err.code === 'ERR_FAILED' && err.message?.includes('413')) {
           const sizeInMB = videoBlob ? (videoBlob.size / (1024 * 1024)).toFixed(2) : 'unknown';
-          errorMessage = `Video file is too large (${sizeInMB}MB). Maximum size is 50MB. Please record a shorter video or the system will compress it automatically.`;
+          errorMessage = `Video file is too large (${sizeInMB}MB). Maximum size is 150MB. Please record a shorter video or the system will compress it automatically.`;
         } else if (isNetworkError) {
           errorMessage = 'Network error during transcription. Please check your connection and try recording again.';
         } else if (isClientError) {
