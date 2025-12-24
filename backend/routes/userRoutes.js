@@ -17,7 +17,7 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 dotenv.config();
@@ -806,6 +806,51 @@ router.post("/text-to-speech", authMiddleware, async (req, res) => {
       error: error.response?.data?.message || error.message,
       details: error.response?.data || null
     });
+  }
+});
+
+// Get tutorial video URL
+router.get("/tutorial-video-url", authMiddleware, async (req, res) => {
+  try {
+    // Construct S3 URL using the same pattern as other videos
+    const bucketName = process.env.AWS_BUCKET_NAME || 'mirai-interviews';
+    const region = process.env.AWS_REGION || 'us-east-1';
+    const s3Key = 'videos/tutorial.mp4';
+    const tutorialUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${s3Key}`;
+    
+    // Verify the file exists and is accessible (only if using S3)
+    if (VIDEO_STORAGE_TYPE === 's3') {
+      try {
+        const s3Client = new S3Client({
+          region: region,
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          },
+        });
+        
+        const headCommand = new HeadObjectCommand({
+          Bucket: bucketName,
+          Key: s3Key,
+        });
+        
+        await s3Client.send(headCommand);
+        // File exists, return the URL
+        res.json({ url: tutorialUrl });
+      } catch (s3Error) {
+        // File doesn't exist or not accessible
+        res.status(404).json({ 
+          error: 'Tutorial video not found',
+          message: `The tutorial video (${s3Key}) was not found in the S3 bucket. Please ensure the file exists and has public-read permissions.`,
+          url: tutorialUrl // Still return the URL so frontend can try
+        });
+      }
+    } else {
+      // Local storage - return the URL
+      res.json({ url: tutorialUrl });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 });
 

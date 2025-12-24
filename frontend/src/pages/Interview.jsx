@@ -43,6 +43,8 @@ const Interview = () => {
   const [shouldAutoStartRecording, setShouldAutoStartRecording] = useState(false); // Flag to auto-start recording
   const [countdownBeforeRecord, setCountdownBeforeRecord] = useState(0); // Visible 5s countdown before recording
   const countdownIntervalRef = useRef(null);
+  const [tutorialVideoUrl, setTutorialVideoUrl] = useState(null); // URL del video tutorial
+  const [tutorialVideoError, setTutorialVideoError] = useState(null); // Error al cargar el video tutorial
 
   // ============================================================================
   // STATE MACHINE: TTS/STT Voice Interaction Control
@@ -76,8 +78,29 @@ const Interview = () => {
     return [firstQuestion, lastQuestion];
   };
 
+  // Fetch tutorial video URL from backend
+  const fetchTutorialVideoUrl = async () => {
+    try {
+      const response = await api.get('/users/tutorial-video-url');
+      setTutorialVideoUrl(response.data.url);
+      setTutorialVideoError(null);
+    } catch (error) {
+      // If 404, the video doesn't exist
+      if (error.response?.status === 404) {
+        setTutorialVideoError('Tutorial video not found. Please ensure the file exists in S3 at videos/tutorial.mp4');
+      } else {
+        // Fallback to constructed URL if API fails
+        const bucketName = import.meta.env.VITE_AWS_BUCKET_NAME || 'mirai-interviews';
+        const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+        const fallbackUrl = `https://${bucketName}.s3.${region}.amazonaws.com/videos/tutorial.mp4`;
+        setTutorialVideoUrl(fallbackUrl);
+      }
+    }
+  };
+
   useEffect(() => {
     fetchProfile();
+    fetchTutorialVideoUrl();
     
     // Prevent text selection and copy on the entire page
     const preventSelection = (e) => {
@@ -1632,6 +1655,52 @@ const Interview = () => {
                 <p className="text-sm text-gray-600 italic">
                   💡 <strong>Tip:</strong> Find a quiet, well-lit space and ensure your camera and microphone are working properly before starting.
                 </p>
+              </div>
+            </div>
+
+            {/* Video Tutorial */}
+            <div className="glass-card bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-blue-200/50 rounded-2xl p-6 sm:p-8 mb-8">
+              <h3 className="font-bold text-gray-900 mb-4 sm:mb-6 text-lg sm:text-xl flex items-center gap-2">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Video Tutorial
+              </h3>
+              <p className="text-gray-700 text-sm sm:text-base mb-4">
+                Watch this tutorial to learn how to complete the interview process:
+              </p>
+              <div className="w-full rounded-lg overflow-hidden bg-gray-900">
+                {tutorialVideoError ? (
+                  <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-800 text-gray-300 p-4">
+                    <svg className="w-12 h-12 text-yellow-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="text-sm text-center">{tutorialVideoError}</p>
+                    <p className="text-xs text-gray-400 mt-2 text-center">
+                      URL: {tutorialVideoUrl || 'Not available'}
+                    </p>
+                  </div>
+                ) : tutorialVideoUrl ? (
+                  <video
+                    controls
+                    className="w-full h-auto"
+                    style={{ maxHeight: '500px' }}
+                    src={tutorialVideoUrl}
+                    onError={() => {
+                      setTutorialVideoError('Failed to load tutorial video. Please check that the file exists and has public-read permissions in S3.');
+                    }}
+                    onCanPlay={() => {
+                      setTutorialVideoError(null);
+                    }}
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                ) : (
+                  <div className="w-full h-64 flex items-center justify-center bg-gray-800 text-gray-400">
+                    Loading tutorial video...
+                  </div>
+                )}
               </div>
             </div>
 
