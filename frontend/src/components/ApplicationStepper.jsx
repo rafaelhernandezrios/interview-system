@@ -22,9 +22,15 @@ const ApplicationStepper = ({ applicationStatus }) => {
       id: 3,
       title: 'Schedule Screening',
       description: 'Schedule your screening interview',
-      route: '#',
+      route: '/schedule-screening',
       completed: applicationStatus?.step3Completed || false,
-      available: applicationStatus?.step2Completed || false, // Available after step 2
+      // In development: allow after step 1, in production: require step 2
+      // Check if we're in development mode or if the env var is explicitly set to true
+      // In Vite, use import.meta.env instead of process.env
+      // import.meta.env.MODE is 'development' in dev mode, 'production' in production
+      available: (import.meta.env.MODE === 'development' || import.meta.env.VITE_ENABLE_SCHEDULE_WITHOUT_INTERVIEW === 'true'
+        ? (applicationStatus?.step1Completed || false) 
+        : (applicationStatus?.step2Completed || false)),
     },
     {
       id: 4,

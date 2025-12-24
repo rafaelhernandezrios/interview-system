@@ -11,6 +11,7 @@ import Interview from './pages/Interview';
 import Results from './pages/Results';
 import AdminPanel from './pages/AdminPanel';
 import ApplicationForm from './pages/ApplicationForm';
+import ScheduleScreening from './pages/ScheduleScreening';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
 import './App.css';
@@ -38,6 +39,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ApplicationForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/schedule-screening"
+            element={
+              <PrivateRoute>
+                <ScheduleScreening />
               </PrivateRoute>
             }
           />

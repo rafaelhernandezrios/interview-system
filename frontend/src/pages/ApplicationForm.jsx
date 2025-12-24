@@ -5,62 +5,73 @@ import api from '../utils/axios';
 import { AuthContext } from '../contexts/AuthContext';
 
 // InputField component moved outside to prevent recreation on each render
-const InputField = ({ label, name, type = 'text', required = false, options = null, colSpan = 1, formData, handleChange, ...props }) => (
-  <div className={`mb-6 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
-    <label className="block text-sm font-semibold text-gray-700 mb-1">
-      {label} {required && <span className="text-red-500">*</span>}
-    </label>
-    {type === 'select' ? (
-      <select
-        name={name}
-        value={formData[name] || ''}
-        onChange={handleChange}
-        required={required}
-        className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-        {...props}
-      >
-        <option value="">Select...</option>
-        {options?.map(opt => (
-          <option key={opt.value || opt} value={opt.value || opt}>
-            {opt.label || opt}
-          </option>
-        ))}
-      </select>
-    ) : type === 'textarea' ? (
-      <textarea
-        name={name}
-        value={formData[name] || ''}
-        onChange={handleChange}
-        required={required}
-        rows={4}
-        className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all"
-        {...props}
-      />
-    ) : type === 'checkbox' ? (
-      <div className="flex items-start gap-3">
-        <input
-          type="checkbox"
+const InputField = ({ label, name, type = 'text', required = false, options = null, colSpan = 1, formData, handleChange, ...props }) => {
+  // Extract label from props if it exists (for checkboxes) and remove it to avoid duplicate attribute
+  const checkboxLabel = type === 'checkbox' ? (props.label || label) : null;
+  // Remove label from props to prevent it from being passed to DOM elements
+  const { label: _labelFromProps, ...restProps } = props;
+  
+  return (
+    <div className={`mb-6 ${colSpan === 2 ? 'md:col-span-2' : ''}`}>
+      {type !== 'checkbox' && (
+        <label className="block text-sm font-semibold text-gray-700 mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      )}
+      {type === 'select' ? (
+        <select
           name={name}
-          checked={formData[name] || false}
+          value={formData[name] || ''}
           onChange={handleChange}
-          className="w-5 h-5 mt-0.5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 border-gray-300"
+          required={required}
+          className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
+          {...restProps}
+        >
+          <option value="">Select...</option>
+          {options?.map(opt => (
+            <option key={opt.value || opt} value={opt.value || opt}>
+              {opt.label || opt}
+            </option>
+          ))}
+        </select>
+      ) : type === 'textarea' ? (
+        <textarea
+          name={name}
+          value={formData[name] || ''}
+          onChange={handleChange}
+          required={required}
+          rows={4}
+          className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 resize-none transition-all"
+          {...restProps}
         />
-        <span className="text-gray-700 text-sm">{props.label || ''}</span>
-      </div>
-    ) : (
-      <input
-        type={type}
-        name={name}
-        value={formData[name] || ''}
-        onChange={handleChange}
-        required={required}
-        disabled={props.disabled}
-        className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
-        {...props}
-      />
-    )}
-  </div>
-);
+      ) : type === 'checkbox' ? (
+        <div className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            name={name}
+            checked={formData[name] || false}
+            onChange={handleChange}
+            required={required}
+            className="w-5 h-5 mt-0.5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 border-gray-300"
+            {...restProps}
+          />
+          <span className="text-gray-700 text-sm">{checkboxLabel || ''}</span>
+        </div>
+      ) : (
+        <input
+          type={type}
+          name={name}
+          value={formData[name] || ''}
+          onChange={handleChange}
+          required={required}
+          disabled={restProps.disabled}
+          className="bg-white/50 backdrop-blur-sm border border-gray-200 rounded-xl w-full py-3 px-4 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+          {...restProps}
+        />
+      )}
+    </div>
+  );
+};
 
 const ApplicationForm = () => {
   const { user } = useContext(AuthContext);
@@ -114,18 +125,27 @@ const ApplicationForm = () => {
   });
 
   useEffect(() => {
+    // Always set email from user when available
     if (user?.email) {
       setFormData(prev => ({ ...prev, email: user.email }));
     }
     fetchApplicationData();
   }, [user]);
 
+  // Separate effect to ensure email is set after fetchApplicationData completes
+  useEffect(() => {
+    if (user?.email && !formData.email) {
+      setFormData(prev => ({ ...prev, email: user.email }));
+    }
+  }, [user?.email, formData.email]);
+
   const fetchApplicationData = async () => {
     try {
       const response = await api.get('/application/');
       if (response.data) {
-        setFormData({
-          email: response.data.email || user?.email || '',
+        setFormData(prev => ({
+          ...prev,
+          email: user?.email || response.data.email || prev.email, // Always prioritize user email from auth
           promotionalCode: response.data.promotionalCode || '',
           firstName: response.data.firstName || '',
           lastName: response.data.lastName || '',
@@ -153,10 +173,21 @@ const ApplicationForm = () => {
           paymentSource: response.data.paymentSource || '',
           plagiarismCheckConfirmed: response.data.plagiarismCheckConfirmed || false,
           signature: response.data.signature || '',
-        });
+        }));
+      } else {
+        // If no data exists, ensure email is set from user
+        setFormData(prev => ({
+          ...prev,
+          email: user?.email || prev.email,
+        }));
       }
     } catch (error) {
       console.error('Error fetching application:', error);
+      // Even on error, ensure email is set from user
+      setFormData(prev => ({
+        ...prev,
+        email: user?.email || prev.email,
+      }));
     }
   };
 
@@ -519,7 +550,6 @@ const ApplicationForm = () => {
                 </div>
                 <div className="mt-6">
                   <InputField
-                    label="Do you have any medical condition or disability?"
                     name="hasMedicalCondition"
                     type="checkbox"
                     label="Yes, I have a medical condition or disability"
@@ -622,7 +652,6 @@ const ApplicationForm = () => {
                 </div>
                 <div className="mt-6">
                   <InputField
-                    label="Do you have academic publications?"
                     name="hasAcademicPublications"
                     type="checkbox"
                     label="Yes, I have academic publications"
@@ -657,7 +686,6 @@ const ApplicationForm = () => {
                 </div>
                 <div className="mt-6">
                   <InputField
-                    label="Do you have an English certification?"
                     name="hasEnglishCertification"
                     type="checkbox"
                     label="Yes, I have an English certification"
@@ -692,7 +720,6 @@ const ApplicationForm = () => {
                 </div>
                 <div className="mt-6">
                   <InputField
-                    label="Have you applied before?"
                     name="appliedBefore"
                     type="checkbox"
                     label="Yes, I have applied before"
@@ -717,7 +744,6 @@ const ApplicationForm = () => {
                 <div className="grid grid-cols-1 gap-6">
                   <div className="bg-blue-50/50 border border-blue-200 rounded-xl p-4">
                     <InputField
-                      label="I confirm that all information provided is accurate and original. I understand that plagiarism will result in immediate disqualification."
                       name="plagiarismCheckConfirmed"
                       type="checkbox"
                       required

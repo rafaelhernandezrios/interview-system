@@ -65,6 +65,24 @@ const applicationSchema = new mongoose.Schema(
     // Draft status
     isDraft: { type: Boolean, default: true },
     lastSavedAt: { type: Date, default: Date.now },
+    
+    // Scheduled Meeting (Step 3)
+    scheduledMeeting: {
+      dateTime: { type: Date },
+      timezone: { type: String },
+      additionalNotes: { type: String },
+      zoomMeeting: {
+        meetingId: { type: String },
+        joinUrl: { type: String },
+        password: { type: String },
+        startUrl: { type: String }, // For host
+      },
+      googleCalendarEvent: {
+        eventId: { type: String },
+        htmlLink: { type: String },
+        iCalUID: { type: String },
+      },
+    },
   },
   { timestamps: true }
 );
