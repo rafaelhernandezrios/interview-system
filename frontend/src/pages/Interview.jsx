@@ -45,6 +45,7 @@ const Interview = () => {
   const countdownIntervalRef = useRef(null);
   const [tutorialVideoUrl, setTutorialVideoUrl] = useState(null); // URL del video tutorial
   const [tutorialVideoError, setTutorialVideoError] = useState(null); // Error al cargar el video tutorial
+  const [retakeUsed, setRetakeUsed] = useState({}); // Track if retake has been used for each question index
 
   // ============================================================================
   // STATE MACHINE: TTS/STT Voice Interaction Control
@@ -1065,7 +1066,7 @@ const Interview = () => {
           }
         } else {
           // No hay video guardado: leer pregunta con TTS, luego contador de 5s, luego grabar
-          const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills.";
+          const videoQuestion = "Please introduce yourself in 1 minute, tell us about your background, projects and skills.";
           setIsReviewMode(false); // Asegurar que no esté en modo review
           
           // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
@@ -1342,6 +1343,17 @@ const Interview = () => {
   };
 
   const retakeRecording = () => {
+    // Check if retake has already been used for this question
+    if (retakeUsed[currentQuestionIndex]) {
+      return; // Already used retake for this question
+    }
+    
+    // Mark retake as used for current question
+    setRetakeUsed(prev => ({
+      ...prev,
+      [currentQuestionIndex]: true
+    }));
+    
     // Cancel any ongoing transcription
     setIsTranscribing(false);
     setAnswerSaved(false); // Reset answer saved flag
@@ -1511,7 +1523,7 @@ const Interview = () => {
   const isVideoQuestion = currentQuestionIndex === 0; // Video question is FIRST (index 0)
   const isLastTextQuestion = currentQuestionIndex === allQuestions.length; // Last text question is at index allQuestions.length
   const currentQuestion = isVideoQuestion 
-    ? "Please introduce yourself in 1 minute, speaking directly about your projects and skills."
+    ? "Please introduce yourself in 1 minute, tell us about your background, projects and skills."
     : allQuestions[currentQuestionIndex - 1]; // Text questions start at index 1, so subtract 1 to get the question
 
   // Show completed message if interview is already completed
@@ -2209,9 +2221,14 @@ const Interview = () => {
                     <button
                       type="button"
                       onClick={retakeRecording}
-                      className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                      disabled={retakeUsed[currentQuestionIndex]}
+                      className={`glass-card border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all text-sm sm:text-base ${
+                        retakeUsed[currentQuestionIndex]
+                          ? 'bg-gray-100/40 cursor-not-allowed opacity-50'
+                          : 'bg-white/40 hover:bg-white/60 hover:scale-105'
+                      }`}
                     >
-                      Retake Recording
+                      {retakeUsed[currentQuestionIndex] ? 'Retake Used' : 'Retake Recording'}
                     </button>
                     <button
                       type="button"
@@ -2269,9 +2286,14 @@ const Interview = () => {
                     <button
                       type="button"
                       onClick={retakeRecording}
-                      className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                      disabled={retakeUsed[currentQuestionIndex]}
+                      className={`glass-card border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all text-sm sm:text-base ${
+                        retakeUsed[currentQuestionIndex]
+                          ? 'bg-gray-100/40 cursor-not-allowed opacity-50'
+                          : 'bg-white/40 hover:bg-white/60 hover:scale-105'
+                      }`}
                     >
-                      Retake Recording
+                      {retakeUsed[currentQuestionIndex] ? 'Retake Used' : 'Retake Recording'}
                     </button>
                     <button
                       type="button"
