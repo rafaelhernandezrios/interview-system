@@ -348,7 +348,7 @@ const Interview = () => {
         }
       } else {
         // No hay video guardado: leer pregunta con TTS, luego contador de 10s, luego grabar
-        const videoQuestion = "Please introduce yourself in 1 minute, speaking directly about your projects and skills.";
+        const videoQuestion = "Please introduce yourself in 1 minute, tell us about your background, projects and skills.";
         setIsReviewMode(false);
         
         // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
@@ -426,7 +426,7 @@ const Interview = () => {
     alert('Pasting text is not allowed in this interview.');
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     // REQUERIMIENTO 2.1: Cancelar cualquier TTS activo (Estado de Transición)
     cancelTTS();
     
@@ -438,6 +438,35 @@ const Interview = () => {
     // Limpiar estado de transcripción
     setIsTranscribing(false);
     setVoiceState('IDLE'); // Reset estado antes de cambiar pregunta
+    
+    // Si estamos en la pregunta de video y hay transcripción editada, guardarla
+    if (currentQuestionIndex === 0 && videoPresentationTranscription) {
+      try {
+        // Obtener la URL del video (puede ser string desde videoAnswers o desde recordedVideo)
+        let videoUrl = null;
+        if (videoAnswers[0] && typeof videoAnswers[0] === 'string') {
+          videoUrl = videoAnswers[0];
+        } else if (recordedVideo && typeof recordedVideo === 'string' && recordedVideo.startsWith('http')) {
+          videoUrl = recordedVideo;
+        }
+        
+        // Guardar la transcripción editada del video
+        if (videoUrl) {
+          const textAnswersOnly = answers.slice(1, allQuestions.length + 1);
+          while (textAnswersOnly.length < allQuestions.length) {
+            textAnswersOnly.push('');
+          }
+          await api.post('/users/save-interview-progress', {
+            answers: textAnswersOnly,
+            currentQuestionIndex: currentQuestionIndex,
+            s3VideoUrl: videoUrl,
+            videoTranscription: videoPresentationTranscription
+          });
+        }
+      } catch (saveError) {
+        console.error('[SAVE PROGRESS] Error guardando transcripción editada del video:', saveError);
+      }
+    }
     
     // Guardar progreso
     saveAnswersAuto(answers);
@@ -1241,11 +1270,9 @@ const Interview = () => {
         // REQUERIMIENTO 3: Transición a REVIEW_MODE (TTS sigue silenciado)
         setIsReviewMode(true);
         setVoiceState('REVIEW_MODE');
-      // Correction timer: 1 minute to edit after transcription (only for text questions)
-      if (currentQuestionIndex > 0) {
+        // Correction timer: 1 minute to edit after transcription (for all questions including video)
         setTimeRemaining(60);
         setTimerActive(true);
-      }
       } else {
         // Pregunta cambió durante transcripción, cancelar
         setIsTranscribing(false);
@@ -1607,7 +1634,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    <strong>Video Introduction (1 minute):</strong> Start by introducing yourself, your background, key projects, and relevant skills. This helps our selection committee get to know you better.
+                    <strong>Self Introduction (1 minute):</strong> Start by introducing yourself, your background, key projects, and relevant skills. This helps our selection committee get to know you better.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1617,7 +1644,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    <strong>Personalized Questions:</strong> Based on your CV, you'll receive customized questions. Each question will be read aloud automatically, and video recording will start immediately after.
+                    <strong>Personalized Questions:</strong>Based on your CV, you'll receive customized questions. Each question will be read aloud automatically. You  have 10 seconds to think your answer, and video recording will start  immediately after.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -1637,7 +1664,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    <strong>Review & Edit (1 minute):</strong> After your video response, you'll have 1 minute to review and edit the transcribed text to ensure accuracy before proceeding to the next question.
+                    <strong>Review & Edit (1 minute):</strong> After your response has been transcribed, you'll have 1 minute to review and edit the text to ensure accuracy before proceeding to the next question.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -2148,12 +2175,33 @@ const Interview = () => {
                 <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6 mb-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-2 sm:mb-3">
                     <label className="block text-xs sm:text-sm font-semibold text-gray-700">
-                      Video Presentation Transcription:
+                      Review and edit your video presentation transcription:
                     </label>
+                    {/* Correction Timer Badge - visible during review (after transcription) */}
+                    <div className={`flex-shrink-0 flex items-center gap-2 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 font-bold text-sm sm:text-base md:text-lg ${
+                      timeRemaining < 60 
+                        ? 'bg-red-100/80 text-red-700 border border-red-300' 
+                        : 'bg-blue-100/80 text-blue-700 border border-blue-300'
+                    }`}>
+                      <span>⏱️</span>
+                      <span>{formatTime(timeRemaining)}</span>
+                    </div>
                   </div>
-                  <div className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed">
-                    {videoPresentationTranscription}
-                  </div>
+                  <textarea
+                    value={videoPresentationTranscription}
+                    onChange={(e) => setVideoPresentationTranscription(e.target.value)}
+                    onPaste={handlePaste}
+                    className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    style={{ 
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                    rows="5"
+                    required
+                    placeholder="Your transcribed answer will appear here. You can edit any typos or mistakes..."
+                  />
                 </div>
                 {/* Botones Retake y Next Question - Aparecen después del cuadro de transcripción para video presentation */}
                 <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl mb-6">

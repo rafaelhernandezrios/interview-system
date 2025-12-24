@@ -42,6 +42,12 @@ const CVUpload = () => {
   };
 
   const handleFileChange = (e) => {
+    // Block if interview is completed
+    if (profile?.interviewCompleted) {
+      setError('Interview is completed. You cannot modify your CV.');
+      return;
+    }
+    
     if (e.target.files[0]) {
       if (e.target.files[0].type !== 'application/pdf') {
         setError('Only PDF files are allowed');
@@ -69,6 +75,13 @@ const CVUpload = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
+    
+    // Block if interview is completed
+    if (profile?.interviewCompleted) {
+      setError('Interview is completed. You cannot modify your CV.');
+      return;
+    }
+    
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       if (droppedFile.type !== 'application/pdf') {
@@ -85,6 +98,12 @@ const CVUpload = () => {
   };
 
   const handleDeleteCV = async () => {
+    // Block if interview is completed
+    if (profile?.interviewCompleted) {
+      setError('Interview is completed. You cannot modify your CV.');
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete your current CV? This will also reset your analysis and interview data.')) {
       return;
     }
@@ -106,6 +125,12 @@ const CVUpload = () => {
   };
 
   const handleUpload = async () => {
+    // Block if interview is completed
+    if (profile?.interviewCompleted) {
+      setError('Interview is completed. You cannot modify your CV.');
+      return;
+    }
+    
     if (!file) {
       setError('Please select a file');
       return;
@@ -141,6 +166,12 @@ const CVUpload = () => {
   };
 
   const handleAnalyze = async () => {
+    // Block if interview is completed
+    if (profile?.interviewCompleted) {
+      setError('Interview is completed. You cannot modify your CV.');
+      return;
+    }
+    
     setAnalyzing(true);
     setError('');
     setMessage('');
@@ -263,6 +294,23 @@ const CVUpload = () => {
           </div>
         </div>
 
+        {/* Interview Completed Warning */}
+        {profile?.interviewCompleted && (
+          <div className="glass-card bg-yellow-50/80 border-yellow-300 p-4 sm:p-6 mb-6">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-yellow-800 mb-1">Interview Completed</h3>
+                <p className="text-yellow-700 text-sm sm:text-base">
+                  Your interview has been completed. You cannot upload, delete, or re-analyze your CV at this time. All modifications are locked to maintain the integrity of your application.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error and Success Messages */}
         {error && (
           <div className="glass-card bg-red-50/80 border-red-200 p-4 mb-6">
@@ -299,16 +347,18 @@ const CVUpload = () => {
 
             {/* Drag and Drop Zone */}
             <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-center cursor-pointer transition-all ${
-                isDragging
-                  ? 'border-blue-500 bg-blue-50/50 scale-[1.02]'
+              onDragOver={profile?.interviewCompleted ? undefined : handleDragOver}
+              onDragLeave={profile?.interviewCompleted ? undefined : handleDragLeave}
+              onDrop={profile?.interviewCompleted ? undefined : handleDrop}
+              onClick={profile?.interviewCompleted ? undefined : () => fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 text-center transition-all ${
+                profile?.interviewCompleted
+                  ? 'border-gray-300 bg-gray-100/50 cursor-not-allowed opacity-60'
+                  : isDragging
+                  ? 'border-blue-500 bg-blue-50/50 scale-[1.02] cursor-pointer'
                   : profile?.cvPath
-                  ? 'border-green-300 bg-green-50/30'
-                  : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/20'
+                  ? 'border-green-300 bg-green-50/30 cursor-pointer'
+                  : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50/20 cursor-pointer'
               }`}
             >
               {/* Icono 3D Flotante */}
@@ -341,8 +391,8 @@ const CVUpload = () => {
                       </div>
                       <button
                         onClick={handleDeleteCV}
-                        disabled={deleting}
-                        className="inline-flex items-center gap-2 border border-red-400 bg-transparent hover:bg-red-50 text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-50"
+                        disabled={deleting || profile?.interviewCompleted}
+                        className="inline-flex items-center gap-2 border border-red-400 bg-transparent hover:bg-red-50 text-red-500 hover:text-red-600 px-3 py-1.5 rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {deleting ? (
                           <>
@@ -363,14 +413,6 @@ const CVUpload = () => {
                       </button>
                     </div>
                   </div>
-
-                  <button
-                    onClick={handleAnalyze}
-                    disabled={uploading || analyzing}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition shadow-md hover:shadow-lg disabled:opacity-50"
-                  >
-                    {analyzing ? 'Analyzing...' : 'Re-analyze CV'}
-                  </button>
                 </div>
               ) : file ? (
                 <div>
@@ -381,8 +423,8 @@ const CVUpload = () => {
                       e.stopPropagation();
                       handleUpload();
                     }}
-                    disabled={uploading}
-                    className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50"
+                    disabled={uploading || profile?.interviewCompleted}
+                    className="bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {uploading ? (
                       <span className="flex items-center gap-2">
@@ -412,6 +454,7 @@ const CVUpload = () => {
                 type="file"
                 accept="application/pdf"
                 onChange={handleFileChange}
+                disabled={profile?.interviewCompleted}
                 className="hidden"
               />
             </div>
@@ -436,7 +479,7 @@ const CVUpload = () => {
                 </div>
                 <button
                   onClick={handleAnalyze}
-                  disabled={analyzing || profile?.cvAnalyzed}
+                  disabled={analyzing || profile?.cvAnalyzed || profile?.interviewCompleted}
                   className="w-full bg-gradient-to-r from-blue-600 via-blue-700 to-purple-600 hover:from-blue-700 hover:via-blue-800 hover:to-purple-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {analyzing ? (

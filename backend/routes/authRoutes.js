@@ -44,14 +44,27 @@ router.post("/register", async (req, res) => {
     const { name, email, password, dob, gender, academic_level, program } = req.body;
 
     if (!name || !email || !password || !dob || !gender || !academic_level || !program) {
-      return res.status(400).json({ message: "Faltan campos requeridos." });
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
+    // Validate age requirement (must be older than 20 years)
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    if (age <= 20) {
+      return res.status(400).json({ message: "You must be older than 20 years to register." });
     }
 
     const normalizedEmail = String(email).toLowerCase().trim();
 
     const exists = await User.findOne({ email: normalizedEmail });
     if (exists) {
-      return res.status(409).json({ message: "El correo ya está registrado." });
+      return res.status(409).json({ message: "Email is already registered." });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -91,17 +104,17 @@ router.post("/register", async (req, res) => {
     const user = await User.create(userData);
 
     return res.status(201).json({ 
-      message: "Usuario registrado con éxito", 
+      message: "User registered successfully", 
       userId: user._id 
     });
   } catch (error) {
     if (error?.name === "ValidationError") {
       return res.status(400).json({ 
-        message: "Datos inválidos", 
+        message: "Invalid data", 
         details: error.errors 
       });
     }
-    return res.status(500).json({ message: "Error en el servidor" });
+    return res.status(500).json({ message: "Server error" });
   }
 });
 
