@@ -1648,7 +1648,7 @@ const Interview = () => {
                     </svg>
                   </div>
                   <span className="text-gray-700 text-sm sm:text-base">
-                    <strong>Self Introduction (1 minute):</strong> Start by introducing yourself, your background, key projects, and relevant skills. This helps our selection committee get to know you better.
+                    <strong>Self Introduction (1 minute):</strong> Start by introducing yourself, your background, key projects, and relevant skills. This helps our selection committee to get to know you better.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
