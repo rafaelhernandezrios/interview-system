@@ -269,6 +269,7 @@ const AdminPanel = () => {
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Email</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Role</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Score</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
@@ -318,6 +319,38 @@ const AdminPanel = () => {
                         }`}></span>
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <div className="flex flex-col gap-1">
+                        {user.score !== undefined && user.score !== null ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-600">CV:</span>
+                            <span className={`font-bold text-sm ${
+                              user.score >= 80 ? 'text-green-600' :
+                              user.score >= 60 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {user.score}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">CV: N/A</span>
+                        )}
+                        {user.interviewScore !== undefined && user.interviewScore !== null ? (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-600">Int:</span>
+                            <span className={`font-bold text-sm ${
+                              user.interviewScore >= 80 ? 'text-green-600' :
+                              user.interviewScore >= 60 ? 'text-yellow-600' :
+                              'text-red-600'
+                            }`}>
+                              {user.interviewScore}%
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">Int: N/A</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div className="flex items-center gap-1 sm:gap-2">
