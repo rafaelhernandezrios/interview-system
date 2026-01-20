@@ -731,13 +731,19 @@ router.post("/save-interview-progress", authMiddleware, async (req, res) => {
     // Save answers temporarily (don't mark as completed)
     user.interviewResponses = answers || [];
     
-    // Save video if provided (for presentation video)
-    if (s3VideoUrl) {
+    // Handle video (for presentation video)
+    // If s3VideoUrl is explicitly null, clear the video (retake scenario)
+    if (s3VideoUrl === null && currentQuestionIndex === 0) {
+      user.interviewVideo = undefined;
+      user.interviewVideoTranscription = undefined;
+    } else if (s3VideoUrl) {
+      // Save video if provided
       user.interviewVideo = s3VideoUrl;
-      if (videoTranscription) {
+      if (videoTranscription !== undefined) {
         user.interviewVideoTranscription = videoTranscription;
       }
     }
+    // If s3VideoUrl is not provided and not null, keep existing video (don't modify)
     
     await user.save();
 

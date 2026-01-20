@@ -1342,7 +1342,7 @@ const Interview = () => {
     }
   };
 
-  const retakeRecording = () => {
+  const retakeRecording = async () => {
     // Check if retake has already been used for this question (strict check)
     if (retakeUsed[currentQuestionIndex] === true) {
       setError('You have already used your retake for this question. You can only retake once.');
@@ -1356,19 +1356,43 @@ const Interview = () => {
     };
     setRetakeUsed(updatedRetakeUsed);
     
+    // Cancel any ongoing TTS
+    cancelTTS();
+    
+    // Stop any active recording
+    if (isRecording) {
+      stopUnifiedRecording();
+    }
+    
     // Cancel any ongoing transcription
     setIsTranscribing(false);
     setAnswerSaved(false); // Reset answer saved flag
+    
+    // Reset timer states - CRITICAL FIX
+    setTimerActive(false);
+    setTimeRemaining(60);
+    setRecordingTime(0);
+    
+    // Clear countdown before record - CRITICAL FIX
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownBeforeRecord(0);
     
     // Clear all recording states
     setRecordedVideo(null);
     setVideoBlob(null);
     setVideoBlobType(null); // Reset MIME type
-    setRecordingTime(0);
     setTranscribedText('');
     setIsReviewMode(false);
     setError('');
     setMessage('');
+    
+    // Clear transcript for video question - CRITICAL FIX
+    if (currentQuestionIndex === 0) {
+      setVideoPresentationTranscription('');
+    }
     
     // Clear video answers for current question
     const newVideoAnswers = [...videoAnswers];
@@ -1383,16 +1407,123 @@ const Interview = () => {
     
     // Clear media recorder
     if (mediaRecorderRef.current) {
+      if (mediaRecorderRef.current.state === 'recording') {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {
+          // Ignore errors when stopping
+        }
+      }
       mediaRecorderRef.current = null;
     }
     
     // Clear video element
     if (videoRef.current) {
       videoRef.current.srcObject = null;
+      // Revoke object URL if it exists
+      if (recordedVideo && recordedVideo.startsWith('blob:')) {
+        URL.revokeObjectURL(recordedVideo);
+      }
     }
     
-    // Clear answer for current question
-    handleAnswerChange('');
+    // Clear answer for current question - CRITICAL FIX
+    // For video question (index 0), answers[0] is not used for text
+    // For text questions (index 1+), answers[index] corresponds to allQuestions[index - 1]
+    const newAnswers = [...answers];
+    if (currentQuestionIndex === 0) {
+      // Video question: clear video and transcription in backend
+      try {
+        const textAnswersOnly = newAnswers.slice(1, allQuestions.length + 1);
+        while (textAnswersOnly.length < allQuestions.length) {
+          textAnswersOnly.push('');
+        }
+        // Send null for video to clear it in backend
+        await api.post('/users/save-interview-progress', {
+          answers: textAnswersOnly,
+          currentQuestionIndex: currentQuestionIndex,
+          s3VideoUrl: null, // Explicitly clear video
+          videoTranscription: null // Explicitly clear transcription
+        });
+      } catch (error) {
+        console.error('[RETAKE] Error clearing video:', error);
+      }
+    } else {
+      // Text question: clear the corresponding answer
+      // answers[1] = allQuestions[0], answers[2] = allQuestions[1], etc.
+      const answerIndex = currentQuestionIndex; // answers[currentQuestionIndex] corresponds to allQuestions[currentQuestionIndex - 1]
+      if (answerIndex < newAnswers.length) {
+        newAnswers[answerIndex] = '';
+        setAnswers(newAnswers);
+        // Save empty answer to backend immediately
+        try {
+          const textAnswersOnly = newAnswers.slice(1, allQuestions.length + 1);
+          while (textAnswersOnly.length < allQuestions.length) {
+            textAnswersOnly.push('');
+          }
+          await api.post('/users/save-interview-progress', {
+            answers: textAnswersOnly,
+            currentQuestionIndex: currentQuestionIndex
+          });
+        } catch (error) {
+          console.error('[RETAKE] Error saving empty answer:', error);
+        }
+      }
+    }
+    
+    // Reset voice state
+    setVoiceState('IDLE');
+    
+    // Reset currentQuestionIndexRef to allow re-reading the question
+    currentQuestionIndexRef.current = null;
+    
+    // Restart the question flow after a short delay to ensure state is cleared
+    setTimeout(() => {
+      // For video question, restart with TTS and countdown
+      if (currentQuestionIndex === 0) {
+        const videoQuestion = "Please introduce yourself in 1 minute, tell us about your background, projects and skills.";
+        readQuestionAloud(videoQuestion).then(() => {
+          setCountdownBeforeRecord(10);
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+          }
+          countdownIntervalRef.current = setInterval(() => {
+            setCountdownBeforeRecord(prev => {
+              if (prev <= 1) {
+                clearInterval(countdownIntervalRef.current);
+                countdownIntervalRef.current = null;
+                setCountdownBeforeRecord(0);
+                startUnifiedRecording();
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        });
+      } else if (currentQuestionIndex > 0 && currentQuestionIndex <= allQuestions.length) {
+        // For text questions, restart with TTS and countdown
+        const currentQuestion = allQuestions[currentQuestionIndex - 1];
+        if (currentQuestion) {
+          readQuestionAloud(currentQuestion).then(() => {
+            setCountdownBeforeRecord(10);
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+            }
+            countdownIntervalRef.current = setInterval(() => {
+              setCountdownBeforeRecord(prev => {
+                if (prev <= 1) {
+                  clearInterval(countdownIntervalRef.current);
+                  countdownIntervalRef.current = null;
+                  setCountdownBeforeRecord(0);
+                  startUnifiedRecording();
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }, 1000);
+          });
+        }
+      }
+    }, 100);
   };
 
   const handleSubmit = async (e) => {
