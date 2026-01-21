@@ -65,6 +65,9 @@ const Results = () => {
   const [profile, setProfile] = useState(null);
   const [interviewData, setInterviewData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState('');
   const { user } = useContext(AuthContext);
   const isAdmin = user?.role === 'admin';
 
@@ -89,6 +92,26 @@ const Results = () => {
       setInterviewData(response.data);
     } catch (error) {
       // Interview not completed yet, that's okay
+    }
+  };
+
+  const handleResetAll = async () => {
+    setResetting(true);
+    setResetError('');
+    
+    try {
+      // Reset only interview data, keep CV
+      await api.post('/users/reset-interview-only');
+      // Refresh profile data
+      await fetchProfile();
+      await fetchInterviewData();
+      setShowResetConfirm(false);
+      // Redirect to interview page automatically
+      window.location.href = '/interview';
+    } catch (error) {
+      setResetError(error.response?.data?.message || 'Error resetting interview data. Please try again.');
+    } finally {
+      setResetting(false);
     }
   };
 
@@ -435,28 +458,43 @@ const Results = () => {
                       </p>
                     </div>
                   )}
-                  <div className="flex gap-3">
-                    <Link
-                      to="/dashboard"
-                      className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-all duration-300"
-                    >
-                      Back to Dashboard
-                    </Link>
-                    {!profile?.cvAnalyzed && (
+                  <div className="space-y-3">
+                    <div className="flex gap-3">
                       <Link
-                        to="/cv-upload"
-                        className="flex-1 text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                        to="/dashboard"
+                        className="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-lg transition-all duration-300"
                       >
-                        Upload CV
+                        Back to Dashboard
                       </Link>
-                    )}
-                    {profile?.cvAnalyzed && !profile?.interviewCompleted && (
-                      <Link
-                        to="/interview"
-                        className="flex-1 text-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                      {!profile?.cvAnalyzed && (
+                        <Link
+                          to="/cv-upload"
+                          className="flex-1 text-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                        >
+                          Upload CV
+                        </Link>
+                      )}
+                      {profile?.cvAnalyzed && !profile?.interviewCompleted && (
+                        <Link
+                          to="/interview"
+                          className="flex-1 text-center bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl"
+                        >
+                          Start Interview
+                        </Link>
+                      )}
+                    </div>
+                    
+                    {/* Retake Interview Button - Show only if both CV and Interview are completed */}
+                    {profile?.cvAnalyzed && profile?.interviewCompleted && (
+                      <button
+                        onClick={() => setShowResetConfirm(true)}
+                        className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
                       >
-                        Start Interview
-                      </Link>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Retake Interview
+                      </button>
                     )}
                   </div>
                 </div>
@@ -465,6 +503,54 @@ const Results = () => {
           )}
         </div>
       </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card bg-white/90 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Retake Interview</h2>
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to retake the interview? This will reset:
+            </p>
+            <ul className="list-disc list-inside text-gray-600 mb-6 space-y-2">
+              <li>All interview responses</li>
+              <li>Interview video and transcription</li>
+              <li>Interview scores and analysis</li>
+            </ul>
+            
+            <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded">
+              <p className="text-blue-800 text-sm font-semibold">ℹ️ Note</p>
+              <p className="text-blue-700 text-sm">Your CV and CV analysis will be kept. You will be redirected to start the interview again.</p>
+            </div>
+
+            {resetError && (
+              <div className="bg-red-50 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {resetError}
+              </div>
+            )}
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowResetConfirm(false);
+                  setResetError('');
+                }}
+                disabled={resetting}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleResetAll}
+                disabled={resetting}
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl px-6 py-3 font-bold shadow-xl hover:shadow-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resetting ? 'Resetting...' : 'Confirm Reset'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

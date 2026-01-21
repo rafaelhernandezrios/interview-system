@@ -793,6 +793,86 @@ router.post("/retake-interview", authMiddleware, async (req, res) => {
   }
 });
 
+// Reset all data (CV + Interview) - Complete reset for retaking everything
+router.post("/reset-all", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Delete CV file if exists (local storage)
+    if (user.cvPath && STORAGE_TYPE === 'local') {
+      try {
+        const fileName = path.basename(user.cvPath);
+        const filePath = path.join(__dirname, '../uploads/cvs', fileName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (fileError) {
+        console.error('Error deleting CV file:', fileError);
+        // Continue even if file deletion fails
+      }
+    }
+
+    // Reset all CV data
+    user.cvPath = undefined;
+    user.cvText = undefined;
+    user.analysis = undefined;
+    user.skills = [];
+    user.questions = [];
+    user.score = undefined;
+    user.cvAnalyzed = false;
+
+    // Reset all interview data
+    user.interviewResponses = [];
+    user.interviewVideo = undefined;
+    user.interviewVideoTranscription = undefined;
+    user.interviewScore = undefined;
+    user.interviewAnalysis = [];
+    user.interviewCompleted = false;
+
+    // Clear retake reason (optional, can keep it for tracking)
+    // user.retakeReason = undefined;
+
+    await user.save();
+
+    return res.json({ 
+      message: "All data reset successfully. You can now start fresh with CV upload and interview."
+    });
+  } catch (error) {
+    console.error('Error in reset-all:', error);
+    return res.status(500).json({ message: "Error resetting data" });
+  }
+});
+
+// Reset only interview data (keep CV) - For retaking interview from Results page
+router.post("/reset-interview-only", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Only reset interview data, keep CV intact
+    user.interviewResponses = [];
+    user.interviewVideo = undefined;
+    user.interviewVideoTranscription = undefined;
+    user.interviewScore = undefined;
+    user.interviewAnalysis = [];
+    user.interviewCompleted = false;
+
+    await user.save();
+
+    return res.json({ 
+      message: "Interview data reset successfully. You can now retake the interview."
+    });
+  } catch (error) {
+    console.error('Error in reset-interview-only:', error);
+    return res.status(500).json({ message: "Error resetting interview data" });
+  }
+});
+
 // Satisfaction survey - Save feedback after interview submission
 router.post("/satisfaction-survey", authMiddleware, async (req, res) => {
   try {
