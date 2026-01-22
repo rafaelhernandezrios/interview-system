@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
@@ -13,6 +14,16 @@ router.use(adminMiddleware);
 // Listar usuarios
 router.get("/users", async (req, res) => {
   try {
+    console.log('GET /admin/users - Iniciando consulta de usuarios');
+    
+    // Verificar conexión a la base de datos
+    if (mongoose.connection.readyState !== 1) {
+      console.error('MongoDB no está conectado. Estado:', mongoose.connection.readyState);
+      return res.status(500).json({ 
+        message: "Error de conexión a la base de datos. Por favor, verifica la configuración de MongoDB." 
+      });
+    }
+
     const { page = 1, limit, search = "", role = "", isActive = "" } = req.query;
     
     const query = {};
@@ -25,7 +36,10 @@ router.get("/users", async (req, res) => {
     if (role) query.role = role;
     if (isActive !== "") query.isActive = isActive === "true";
 
+    console.log('Query de búsqueda:', JSON.stringify(query));
+
     const total = await User.countDocuments(query);
+    console.log(`Total de usuarios encontrados: ${total}`);
 
     // Si no se especifica límite, devolver todos los usuarios
     let users;
@@ -42,6 +56,8 @@ router.get("/users", async (req, res) => {
         .sort({ createdAt: -1 });
     }
 
+    console.log(`Usuarios obtenidos: ${users.length}`);
+
     res.json({
       users,
       totalPages: limit ? Math.ceil(total / limit) : 1,
@@ -49,7 +65,11 @@ router.get("/users", async (req, res) => {
       total
     });
   } catch (error) {
-    res.status(500).json({ message: "Error interno del servidor" });
+    console.error('Error en GET /admin/users:', error);
+    res.status(500).json({ 
+      message: "Error interno del servidor",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

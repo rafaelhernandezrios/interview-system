@@ -156,11 +156,19 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
+      setLoading(true);
       // Solicitar todos los usuarios sin límite de paginación
       const response = await api.get('/admin/users');
-      setUsers(response.data.users);
+      if (response.data && response.data.users) {
+        setUsers(response.data.users);
+      } else {
+        console.error('Unexpected response format:', response.data);
+        alert('Error: Formato de respuesta inesperado. Por favor, revisa la consola.');
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Error desconocido al obtener usuarios';
+      alert(`Error al cargar usuarios: ${errorMessage}\n\nPor favor, verifica:\n1. Que estés autenticado como admin\n2. Que la base de datos esté conectada\n3. Revisa la consola para más detalles`);
     } finally {
       setLoading(false);
     }
@@ -506,7 +514,34 @@ const AdminPanel = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => {
+                {filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {users.length === 0 ? 'No hay usuarios en la base de datos' : 'No se encontraron usuarios'}
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          {users.length === 0 
+                            ? 'Parece que no hay usuarios registrados o hay un problema con la conexión a la base de datos.'
+                            : 'Intenta ajustar los filtros de búsqueda.'}
+                        </p>
+                        {users.length === 0 && (
+                          <button
+                            onClick={fetchUsers}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+                          >
+                            Reintentar
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredUsers.map((user) => {
                   const hasReports = user.reports && user.reports.length > 0;
                   const reportsCount = user.reports ? user.reports.length : 0;
                   
@@ -665,7 +700,8 @@ const AdminPanel = () => {
                     </td>
                   </tr>
                   );
-                })}
+                  })
+                )}
               </tbody>
             </table>
           </div>
