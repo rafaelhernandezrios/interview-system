@@ -371,14 +371,26 @@ const AdminPanel = () => {
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Role</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Score</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Reports</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
-                  <tr key={user._id} className="border-b border-white/10 hover:bg-white/20 transition">
+                {filteredUsers.map((user) => {
+                  const hasReports = user.reports && user.reports.length > 0;
+                  const reportsCount = user.reports ? user.reports.length : 0;
+                  
+                  return (
+                  <tr 
+                    key={user._id} 
+                    className={`border-b transition ${
+                      hasReports 
+                        ? 'border-l-4 border-l-orange-500 bg-orange-50/30 hover:bg-orange-50/50' 
+                        : 'border-white/10 hover:bg-white/20'
+                    }`}
+                  >
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center relative">
                         {user.profilePhoto ? (
                           <img 
                             src={user.profilePhoto} 
@@ -390,10 +402,26 @@ const AdminPanel = () => {
                             {user.name?.charAt(0)?.toUpperCase() || 'U'}
                           </span>
                         )}
+                        {hasReports && (
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center">
+                            <span className="text-white text-xs font-bold">{reportsCount}</span>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
-                      <p className="font-semibold text-gray-900 text-sm sm:text-base">{user.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className={`font-semibold text-sm sm:text-base ${
+                          hasReports ? 'text-orange-700' : 'text-gray-900'
+                        }`}>
+                          {user.name}
+                        </p>
+                        {hasReports && (
+                          <svg className="w-4 h-4 text-orange-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                        )}
+                      </div>
                       <p className="text-gray-500 text-xs md:hidden">{user.email}</p>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">
@@ -454,6 +482,20 @@ const AdminPanel = () => {
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      {hasReports ? (
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center gap-1.5 bg-orange-100/70 text-orange-700 border border-orange-300 rounded-full px-2.5 py-1 text-xs font-bold shadow-sm">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            {reportsCount}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">No reports</span>
+                      )}
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div className="flex items-center gap-1 sm:gap-2">
                         <button
                           onClick={() => fetchUserDetails(user._id)}
@@ -492,7 +534,8 @@ const AdminPanel = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
