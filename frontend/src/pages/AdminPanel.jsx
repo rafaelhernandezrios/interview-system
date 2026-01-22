@@ -2,6 +2,136 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 
+// Component for individual report item with response functionality
+const ReportItem = ({ report, reportIndex, userId, userName, onResponseSent }) => {
+  const [responseMessage, setResponseMessage] = useState('');
+  const [sendingResponse, setSendingResponse] = useState(false);
+  const [showResponseForm, setShowResponseForm] = useState(false);
+
+  const handleRespond = async () => {
+    if (!responseMessage.trim()) {
+      alert('Please enter a message');
+      return;
+    }
+
+    setSendingResponse(true);
+    try {
+      await api.post(`/admin/users/${userId}/reports/${reportIndex}/respond`, {
+        message: responseMessage
+      });
+      setResponseMessage('');
+      setShowResponseForm(false);
+      await onResponseSent(userId);
+      alert('Response sent successfully! The user will be notified by email.');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error sending response');
+    } finally {
+      setSendingResponse(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="bg-white/40 border border-white/40 p-4 rounded-xl space-y-4">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            report.type === 'problem' ? 'bg-red-100 text-red-700' :
+            report.type === 'survey' ? 'bg-blue-100 text-blue-700' :
+            'bg-green-100 text-green-700'
+          }`}>
+            {report.type === 'problem' ? 'Problem' : report.type === 'survey' ? 'Survey' : 'Feedback'}
+          </span>
+          {report.subject && (
+            <span className="font-semibold text-gray-900 text-sm">{report.subject}</span>
+          )}
+        </div>
+        <span className="text-xs text-gray-500">
+          {formatDate(report.submittedAt)}
+        </span>
+      </div>
+      <p className="text-sm text-gray-700 whitespace-pre-wrap">{report.message}</p>
+
+      {/* Messages Thread */}
+      {report.messages && report.messages.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">Conversation:</h4>
+          {report.messages.map((msg, msgIdx) => (
+            <div
+              key={msgIdx}
+              className={`p-3 rounded-lg ${
+                msg.sender === 'admin'
+                  ? 'bg-blue-50 border-l-4 border-blue-500'
+                  : 'bg-gray-50 border-l-4 border-gray-400'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-gray-700">
+                  {msg.sender === 'admin' ? (msg.senderName || 'Admin') : userName}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {formatDate(msg.sentAt)}
+                </span>
+              </div>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap">{msg.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Response Form */}
+      {showResponseForm ? (
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <textarea
+            value={responseMessage}
+            onChange={(e) => setResponseMessage(e.target.value)}
+            placeholder="Type your response to the user..."
+            rows={4}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none mb-3"
+            disabled={sendingResponse}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setShowResponseForm(false);
+                setResponseMessage('');
+              }}
+              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-all"
+              disabled={sendingResponse}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleRespond}
+              disabled={sendingResponse || !responseMessage.trim()}
+              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sendingResponse ? 'Sending...' : 'Send Response'}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowResponseForm(true)}
+          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all"
+        >
+          Respond to Report
+        </button>
+      )}
+    </div>
+  );
+};
+
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
@@ -881,26 +1011,14 @@ const AdminPanel = () => {
                       </h3>
                       <div className="space-y-4">
                         {userDetails.reports.map((report, idx) => (
-                          <div key={idx} className="bg-white/40 border border-white/40 p-4 rounded-xl">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                  report.type === 'problem' ? 'bg-red-100 text-red-700' :
-                                  report.type === 'survey' ? 'bg-blue-100 text-blue-700' :
-                                  'bg-green-100 text-green-700'
-                                }`}>
-                                  {report.type === 'problem' ? 'Problem' : report.type === 'survey' ? 'Survey' : 'Feedback'}
-                                </span>
-                                {report.subject && (
-                                  <span className="font-semibold text-gray-900 text-sm">{report.subject}</span>
-                                )}
-                              </div>
-                              <span className="text-xs text-gray-500">
-                                {new Date(report.submittedAt).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-700 whitespace-pre-wrap">{report.message}</p>
-                          </div>
+                          <ReportItem
+                            key={idx}
+                            report={report}
+                            reportIndex={idx}
+                            userId={selectedUser}
+                            userName={userDetails.name}
+                            onResponseSent={fetchUserDetails}
+                          />
                         ))}
                       </div>
                     </div>

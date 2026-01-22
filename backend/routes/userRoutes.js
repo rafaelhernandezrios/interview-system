@@ -896,12 +896,17 @@ router.post("/report", authMiddleware, async (req, res) => {
       user.reports = [];
     }
 
-    // Add new report
+    // Add new report with initial message
     user.reports.push({
       type: type,
       subject: subject || '',
       message: message.trim(),
-      submittedAt: new Date()
+      submittedAt: new Date(),
+      messages: [{
+        sender: 'user',
+        message: message.trim(),
+        sentAt: new Date()
+      }]
     });
 
     await user.save();

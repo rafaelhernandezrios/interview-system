@@ -2,7 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
-import { sendBulkEmailToActiveUsers } from "../config/email.js";
+import { sendBulkEmailToActiveUsers, sendReportResponseNotification } from "../config/email.js";
 
 const router = express.Router();
 

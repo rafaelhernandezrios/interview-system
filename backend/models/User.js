@@ -45,7 +45,13 @@ const userSchema = new mongoose.Schema(
       type: { type: String, enum: ['problem', 'survey', 'feedback'], required: true }, // Type of report
       subject: { type: String }, // Subject/title of the report
       message: { type: String, required: true }, // Report message
-      submittedAt: { type: Date, default: Date.now } // When the report was submitted
+      submittedAt: { type: Date, default: Date.now }, // When the report was submitted
+      messages: [{ // Thread of messages between user and admin
+        sender: { type: String, enum: ['user', 'admin'], required: true }, // Who sent the message
+        senderName: { type: String }, // Name of the sender (for admin responses)
+        message: { type: String, required: true }, // Message content
+        sentAt: { type: Date, default: Date.now } // When the message was sent
+      }]
     }],
     
     // Cuestionarios
