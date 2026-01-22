@@ -2,6 +2,7 @@ import express from "express";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import { adminMiddleware } from "../middleware/adminMiddleware.js";
+import { sendBulkEmailToActiveUsers } from "../config/email.js";
 
 const router = express.Router();
 
@@ -218,6 +219,119 @@ router.delete("/users/:userId/interview", async (req, res) => {
 
     res.json({ message: "Entrevista eliminada exitosamente" });
   } catch (error) {
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// Send bulk email to all active users
+router.post("/send-bulk-email", async (req, res) => {
+  try {
+    const { subject, message } = req.body;
+
+    if (!subject || !message) {
+      return res.status(400).json({ message: "Subject and message are required" });
+    }
+
+    // Get all active users
+    const activeUsers = await User.find({ isActive: true }).select("email name");
+    
+    if (activeUsers.length === 0) {
+      return res.status(404).json({ message: "No active users found" });
+    }
+
+    const userEmails = activeUsers.map(user => user.email);
+
+    // Create HTML version of the email
+    const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 20px 0; text-align: center; background-color: #ffffff;">
+        <table role="presentation" style="width: 600px; margin: 0 auto; border-collapse: collapse; background-color: #ffffff;">
+          <tr>
+            <td style="padding: 40px 30px; text-align: center; border-bottom: 3px solid #2563eb;">
+              <h1 style="margin: 0; color: #1e40af; font-size: 24px; font-weight: bold;">
+                Mirai Innovation Research Institute
+              </h1>
+              <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                Evaluation and Selection System
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px 0; color: #1e293b; font-size: 22px; font-weight: 600;">
+                ${subject}
+              </h2>
+              <div style="color: #475569; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">
+                ${message.replace(/\n/g, '<br>')}
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px;">
+                <strong>Mirai Innovation Research Institute</strong>
+              </p>
+              <p style="margin: 0; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+                Edge Honmachi Bldg 3F<br>
+                2-3-12 Minamihonmachi, Chuo-ku, Osaka, Japan 541-0054<br>
+                <a href="mailto:contact@mirai-innovation-lab.com" style="color: #2563eb; text-decoration: none;">contact@mirai-innovation-lab.com</a>
+              </p>
+              <p style="margin: 15px 0 0 0; color: #cbd5e1; font-size: 11px;">
+                This is an automated email, please do not reply to this message.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    // Create plain text version
+    const textContent = `Mirai Innovation Research Institute - Evaluation and Selection System
+
+${subject}
+
+${message}
+
+---
+Mirai Innovation Research Institute
+Edge Honmachi Bldg 3F
+2-3-12 Minamihonmachi, Chuo-ku, Osaka, Japan 541-0054
+contact@mirai-innovation-lab.com
+
+This is an automated email, please do not reply to this message.`;
+
+    // Send bulk email
+    const result = await sendBulkEmailToActiveUsers(userEmails, subject, htmlContent, textContent);
+
+    if (result.success) {
+      res.json({
+        message: `Email sent successfully to ${result.totalSent} users`,
+        totalSent: result.totalSent,
+        totalFailed: result.totalFailed,
+        totalUsers: activeUsers.length
+      });
+    } else {
+      res.status(500).json({
+        message: "Error sending emails",
+        error: result.error,
+        totalSent: result.totalSent || 0,
+        totalFailed: result.totalFailed || 0
+      });
+    }
+  } catch (error) {
+    console.error('Error in send-bulk-email:', error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });

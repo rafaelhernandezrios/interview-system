@@ -13,6 +13,11 @@ const AdminPanel = () => {
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [sortBy, setSortBy] = useState(''); // Sort by: 'both', 'cv-only', 'none'
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailResult, setEmailResult] = useState(null);
 
   useEffect(() => {
     fetchUsers();
@@ -46,6 +51,42 @@ const AdminPanel = () => {
       await fetchStats();
     } catch (error) {
       alert('Error changing user status');
+    }
+  };
+
+  const handleSendBulkEmail = async () => {
+    if (!emailSubject.trim() || !emailMessage.trim()) {
+      alert('Please fill in both subject and message');
+      return;
+    }
+
+    setSendingEmail(true);
+    setEmailResult(null);
+    try {
+      const response = await api.post('/admin/send-bulk-email', {
+        subject: emailSubject,
+        message: emailMessage
+      });
+      setEmailResult({
+        success: true,
+        message: response.data.message,
+        totalSent: response.data.totalSent,
+        totalFailed: response.data.totalFailed,
+        totalUsers: response.data.totalUsers
+      });
+      setEmailSubject('');
+      setEmailMessage('');
+      setTimeout(() => {
+        setShowEmailModal(false);
+        setEmailResult(null);
+      }, 3000);
+    } catch (error) {
+      setEmailResult({
+        success: false,
+        message: error.response?.data?.message || 'Error sending emails'
+      });
+    } finally {
+      setSendingEmail(false);
     }
   };
 
@@ -255,6 +296,25 @@ const AdminPanel = () => {
             </div>
           </div>
         )}
+
+        {/* Send Bulk Email Section */}
+        <div className="glass-card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">Send Email to All Active Users</h2>
+              <p className="text-sm text-gray-600">Send a general email notification to all active users</p>
+            </div>
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl flex items-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              Send Email
+            </button>
+          </div>
+        </div>
 
         {/* Tabla de Usuarios - Contenedor de Cristal */}
         <div className="glass-card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
@@ -808,6 +868,114 @@ const AdminPanel = () => {
                   Could not load details
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Email Modal */}
+        {showEmailModal && (
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={() => !sendingEmail && setShowEmailModal(false)}
+          >
+            <div 
+              className="glass-card max-w-2xl w-full rounded-3xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 glass-card bg-white/70 backdrop-blur-xl border-b border-white/40 p-6 flex items-center justify-between z-10">
+                <h2 className="text-2xl font-bold text-gray-900">Send Email to All Active Users</h2>
+                <button
+                  onClick={() => !sendingEmail && setShowEmailModal(false)}
+                  disabled={sendingEmail}
+                  className="w-10 h-10 rounded-lg bg-gray-100/50 hover:bg-gray-200/70 text-gray-600 flex items-center justify-center transition hover:scale-110 disabled:opacity-50"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="p-6">
+                {emailResult && (
+                  <div className={`mb-4 p-4 rounded-lg ${
+                    emailResult.success 
+                      ? 'bg-green-50 border border-green-400 text-green-700' 
+                      : 'bg-red-50 border border-red-400 text-red-700'
+                  }`}>
+                    <p className="font-semibold">{emailResult.message}</p>
+                    {emailResult.success && emailResult.totalSent !== undefined && (
+                      <p className="text-sm mt-2">
+                        Sent to {emailResult.totalSent} out of {emailResult.totalUsers} active users.
+                        {emailResult.totalFailed > 0 && ` ${emailResult.totalFailed} failed.`}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Subject *
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      placeholder="Email subject..."
+                      disabled={sendingEmail}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-700 font-semibold mb-2">
+                      Message *
+                    </label>
+                    <textarea
+                      value={emailMessage}
+                      onChange={(e) => setEmailMessage(e.target.value)}
+                      placeholder="Write your message here..."
+                      rows={10}
+                      disabled={sendingEmail}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white resize-none disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      onClick={() => {
+                        setShowEmailModal(false);
+                        setEmailResult(null);
+                        setEmailSubject('');
+                        setEmailMessage('');
+                      }}
+                      disabled={sendingEmail}
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-all disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendBulkEmail}
+                      disabled={sendingEmail || !emailSubject.trim() || !emailMessage.trim()}
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {sendingEmail ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                          Send Email
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

@@ -269,6 +269,65 @@ Evaluation and Selection System`;
   }
 };
 
+// Send bulk email to all active users
+export const sendBulkEmailToActiveUsers = async (userEmails, subject, htmlContent, textContent) => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+    
+    // Send emails in batches to avoid overwhelming the email service
+    const batchSize = 10;
+    const results = {
+      success: [],
+      failed: []
+    };
+
+    for (let i = 0; i < userEmails.length; i += batchSize) {
+      const batch = userEmails.slice(i, i + batchSize);
+      
+      // Send to multiple recipients at once using BCC
+      const mailOptions = {
+        from: `"Mirai Innovation Research Institute" <${process.env.EMAIL_USER}>`,
+        bcc: batch, // Use BCC to send to multiple users without exposing their emails
+        replyTo: process.env.EMAIL_USER,
+        subject: subject,
+        text: textContent,
+        html: htmlContent,
+        headers: {
+          'X-Priority': '1',
+          'X-MSMail-Priority': 'High',
+          'Importance': 'high',
+        }
+      };
+
+      try {
+        const result = await transporter.sendMail(mailOptions);
+        batch.forEach(email => {
+          results.success.push({ email, messageId: result.messageId });
+        });
+        
+        // Small delay between batches to avoid rate limiting
+        if (i + batchSize < userEmails.length) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (error) {
+        batch.forEach(email => {
+          results.failed.push({ email, error: error.message });
+        });
+      }
+    }
+
+    return {
+      success: true,
+      totalSent: results.success.length,
+      totalFailed: results.failed.length,
+      results: results
+    };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 export const sendCompletionNotificationToAdmins = async (adminEmail, userName, userEmail, digitalId, program) => {
   try {
     const transporter = createTransporter();
