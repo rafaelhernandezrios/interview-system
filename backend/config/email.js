@@ -470,3 +470,125 @@ Evaluation and Selection System`;
   }
 };
 
+export const sendReportResponseNotification = async (userEmail, userName, reportSubject, adminMessage, adminName) => {
+  try {
+    const transporter = createTransporter();
+    await transporter.verify();
+    
+    const reportUrl = `${process.env.FRONTEND_URL}/report`;
+    
+    // Plain text version
+    const textVersion = `Mirai Innovation Research Institute - Response to Your Report
+
+Hello ${userName},
+
+You have received a response to your report: "${reportSubject || 'Your Report'}"
+
+Admin Response:
+${adminMessage}
+
+To view the full conversation and respond, please visit:
+${reportUrl}
+
+Best regards,
+Mirai Innovation Research Institute Team
+Evaluation and Selection System`;
+
+    // Enhanced HTML version
+    const htmlVersion = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Response to Your Report</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 20px 0; text-align: center; background-color: #ffffff;">
+        <table role="presentation" style="width: 600px; margin: 0 auto; border-collapse: collapse; background-color: #ffffff;">
+          <tr>
+            <td style="padding: 40px 30px; text-align: center; border-bottom: 3px solid #2563eb;">
+              <h1 style="margin: 0; color: #1e40af; font-size: 24px; font-weight: bold;">
+                Mirai Innovation Research Institute
+              </h1>
+              <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">
+                Evaluation and Selection System
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="margin: 0 0 20px 0; color: #1e293b; font-size: 22px; font-weight: 600;">
+                Response to Your Report
+              </h2>
+              <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                Hello <strong>${userName}</strong>,
+              </p>
+              <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                You have received a response to your report: <strong>"${reportSubject || 'Your Report'}"</strong>
+              </p>
+              
+              <div style="background-color: #f0f9ff; border-left: 4px solid #2563eb; padding: 20px; margin: 30px 0; border-radius: 4px;">
+                <p style="margin: 0 0 10px 0; color: #1e40af; font-size: 14px; font-weight: 600;">
+                  Response from ${adminName}:
+                </p>
+                <p style="margin: 0; color: #475569; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">
+${adminMessage}
+                </p>
+              </div>
+              
+              <p style="margin: 30px 0 0 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                To view the full conversation and respond, please visit the report page:
+              </p>
+              
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${reportUrl}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);">
+                  View Report & Respond
+                </a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px;">
+                <strong>Mirai Innovation Research Institute</strong>
+              </p>
+              <p style="margin: 0; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+                Edge Honmachi Bldg 3F<br>
+                2-3-12 Minamihonmachi, Chuo-ku, Osaka, Japan 541-0054<br>
+                <a href="mailto:contact@mirai-innovation-lab.com" style="color: #2563eb; text-decoration: none;">contact@mirai-innovation-lab.com</a>
+              </p>
+              <p style="margin: 15px 0 0 0; color: #cbd5e1; font-size: 11px;">
+                This is an automated email, please do not reply to this message.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+    
+    const mailOptions = {
+      from: `"Mirai Innovation Research Institute" <${process.env.EMAIL_USER}>`,
+      to: userEmail,
+      replyTo: process.env.EMAIL_USER,
+      subject: `Response to Your Report: ${reportSubject || 'Your Report'}`,
+      text: textVersion,
+      html: htmlVersion,
+      headers: {
+        'X-Priority': '1',
+        'X-MSMail-Priority': 'High',
+        'Importance': 'high',
+      }
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
