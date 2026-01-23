@@ -19,6 +19,23 @@ const createTransporter = () => {
   });
 };
 
+// Helper function to escape HTML characters
+const escapeHtml = (text) => {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+// Helper function to convert newlines to <br> tags (for pre-formatted text)
+const nl2br = (text) => {
+  if (!text) return '';
+  return String(text).replace(/\n/g, '<br>');
+};
+
 export const sendPasswordResetEmail = async (email, resetToken) => {
   try {
     const transporter = createTransporter();
@@ -480,6 +497,13 @@ export const sendReportResponseNotification = async (userEmail, userName, report
       return { success: false, error: 'Email credentials not configured' };
     }
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(userEmail)) {
+      console.error(`[sendReportResponseNotification] Invalid email format: ${userEmail}`);
+      return { success: false, error: 'Invalid email format' };
+    }
+    
     if (!process.env.FRONTEND_URL) {
       console.warn('[sendReportResponseNotification] FRONTEND_URL not set, using placeholder');
     }
@@ -491,15 +515,22 @@ export const sendReportResponseNotification = async (userEmail, userName, report
     
     const reportUrl = `${process.env.FRONTEND_URL || 'https://interview-system-c1q9.vercel.app'}/report`;
     
+    // Escape HTML for safe insertion
+    const safeUserName = escapeHtml(userName || 'User');
+    const safeReportSubject = escapeHtml(reportSubject || 'Your Report');
+    const safeAdminName = escapeHtml(adminName || 'Admin');
+    // For adminMessage, we want to preserve line breaks, so escape HTML first, then convert newlines
+    const safeAdminMessage = nl2br(escapeHtml(adminMessage || ''));
+    
     // Plain text version
     const textVersion = `Mirai Innovation Research Institute - Response to Your Report
 
-Hello ${userName},
+Hello ${userName || 'User'},
 
 You have received a response to your report: "${reportSubject || 'Your Report'}"
 
 Admin Response:
-${adminMessage}
+${adminMessage || ''}
 
 To view the full conversation and respond, please visit:
 ${reportUrl}
@@ -508,7 +539,7 @@ Best regards,
 Mirai Innovation Research Institute Team
 Evaluation and Selection System`;
 
-    // Enhanced HTML version
+    // Enhanced HTML version with properly escaped content
     const htmlVersion = `
 <!DOCTYPE html>
 <html lang="en">
@@ -538,18 +569,18 @@ Evaluation and Selection System`;
                 Response to Your Report
               </h2>
               <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
-                Hello <strong>${userName}</strong>,
+                Hello <strong>${safeUserName}</strong>,
               </p>
               <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
-                You have received a response to your report: <strong>"${reportSubject || 'Your Report'}"</strong>
+                You have received a response to your report: <strong>"${safeReportSubject}"</strong>
               </p>
               
               <div style="background-color: #f0f9ff; border-left: 4px solid #2563eb; padding: 20px; margin: 30px 0; border-radius: 4px;">
                 <p style="margin: 0 0 10px 0; color: #1e40af; font-size: 14px; font-weight: 600;">
-                  Response from ${adminName}:
+                  Response from ${safeAdminName}:
                 </p>
-                <p style="margin: 0; color: #475569; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">
-${adminMessage}
+                <p style="margin: 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                  ${safeAdminMessage}
                 </p>
               </div>
               
@@ -588,7 +619,7 @@ ${adminMessage}
     
     const mailOptions = {
       from: `"Mirai Innovation Research Institute" <${process.env.EMAIL_USER}>`,
-      to: userEmail,
+      to: userEmail.trim(), // Trim whitespace
       replyTo: process.env.EMAIL_USER,
       subject: `Response to Your Report: ${reportSubject || 'Your Report'}`,
       text: textVersion,
@@ -601,14 +632,32 @@ ${adminMessage}
     };
 
     console.log(`[sendReportResponseNotification] Sending email to ${userEmail}...`);
+    console.log(`[sendReportResponseNotification] Email details:`, {
+      to: userEmail,
+      subject: mailOptions.subject,
+      userName: userName,
+      adminName: adminName
+    });
+    
     const result = await transporter.sendMail(mailOptions);
     console.log(`[sendReportResponseNotification] Email sent successfully. Message ID: ${result.messageId}`);
     console.log(`[sendReportResponseNotification] Email response:`, {
       messageId: result.messageId,
       accepted: result.accepted,
       rejected: result.rejected,
-      response: result.response
+      response: result.response,
+      pending: result.pending
     });
+    
+    // Check if email was actually accepted
+    if (result.accepted && result.accepted.length > 0) {
+      console.log(`[sendReportResponseNotification] Email accepted by server for: ${result.accepted.join(', ')}`);
+    }
+    if (result.rejected && result.rejected.length > 0) {
+      console.error(`[sendReportResponseNotification] Email rejected by server for: ${result.rejected.join(', ')}`);
+      return { success: false, error: 'Email was rejected by server', rejected: result.rejected };
+    }
+    
     return { success: true, messageId: result.messageId };
   } catch (error) {
     console.error(`[sendReportResponseNotification] Error sending email:`, {
