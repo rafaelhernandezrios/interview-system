@@ -6,6 +6,109 @@ import { AuthContext } from '../contexts/AuthContext';
 import cvIcon from '../assets/cv.png';
 import interviewIcon from '../assets/interview.png';
 
+// Función para formatear markdown básico a HTML
+const formatMarkdown = (text) => {
+  if (!text) return '';
+  
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+  let listItems = [];
+  let currentParagraph = [];
+  
+  const closeList = () => {
+    if (inList && listItems.length > 0) {
+      html += '<ul class="list-disc list-inside space-y-1 my-3 ml-4">';
+      listItems.forEach(item => {
+        html += `<li class="mb-1">${item}</li>`;
+      });
+      html += '</ul>';
+      listItems = [];
+      inList = false;
+    }
+  };
+  
+  const closeParagraph = () => {
+    if (currentParagraph.length > 0) {
+      let content = currentParagraph.join(' ').trim();
+      // Procesar negritas
+      content = content.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+      if (content) {
+        html += `<p class="mb-3">${content}</p>`;
+      }
+      currentParagraph = [];
+    }
+  };
+  
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+    
+    // Línea vacía - cerrar lista y párrafo
+    if (!trimmed) {
+      closeList();
+      closeParagraph();
+      return;
+    }
+    
+    // Encabezados ###
+    if (trimmed.startsWith('### ')) {
+      closeList();
+      closeParagraph();
+      const content = trimmed.substring(4).trim();
+      html += `<h3 class="text-lg font-bold text-gray-900 mt-4 mb-2">${content}</h3>`;
+      return;
+    }
+    
+    // Encabezados ####
+    if (trimmed.startsWith('#### ')) {
+      closeList();
+      closeParagraph();
+      const content = trimmed.substring(5).trim();
+      html += `<h4 class="text-base font-semibold text-gray-800 mt-3 mb-2">${content}</h4>`;
+      return;
+    }
+    
+    // Lista con -
+    if (trimmed.startsWith('- ')) {
+      closeParagraph();
+      if (!inList) {
+        closeList();
+        inList = true;
+      }
+      let content = trimmed.substring(2).trim();
+      // Procesar negritas dentro de la lista
+      content = content.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+      listItems.push(content);
+      return;
+    }
+    
+    // Lista numerada 1. 2. etc.
+    const numberedMatch = trimmed.match(/^\d+\. (.+)$/);
+    if (numberedMatch) {
+      closeParagraph();
+      if (!inList) {
+        closeList();
+        inList = true;
+      }
+      let content = numberedMatch[1].trim();
+      // Procesar negritas dentro de la lista
+      content = content.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-gray-900">$1</strong>');
+      listItems.push(content);
+      return;
+    }
+    
+    // Párrafo normal - acumular líneas
+    closeList();
+    currentParagraph.push(trimmed);
+  });
+  
+  // Cerrar lista y párrafo si quedan abiertos al final
+  closeList();
+  closeParagraph();
+  
+  return html;
+};
+
 // Componente de gráfico circular de progreso
 const CircularProgress = ({ percentage, size = 150, color = 'blue' }) => {
   const radius = (size - 20) / 2;
@@ -307,11 +410,12 @@ const Results = () => {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Performance Analysis & Recommendations</h3>
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-l-4 border-purple-500">
-                      <div className="prose prose-sm max-w-none">
-                        <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
-                          {interviewData?.recommendations || profile?.interviewRecommendations}
-                        </div>
-                      </div>
+                      <div 
+                        className="text-sm text-gray-700 leading-relaxed"
+                        dangerouslySetInnerHTML={{ 
+                          __html: formatMarkdown(interviewData?.recommendations || profile?.interviewRecommendations) 
+                        }}
+                      />
                     </div>
                   </div>
                 )}
