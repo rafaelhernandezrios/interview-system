@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema(
       score: { type: Number },
       explanation: { type: String }
     }],
+    interviewRecommendations: { type: String }, // Analysis and recommendations for improvement
     interviewCompleted: { type: Boolean, default: false },
     retakeReason: { type: String }, // Reason for retaking the interview
     satisfactionSurvey: {

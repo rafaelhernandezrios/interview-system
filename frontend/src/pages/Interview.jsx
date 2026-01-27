@@ -207,9 +207,11 @@ const Interview = () => {
     try {
       const response = await api.get('/users/profile');
       
-      // Check if interview is already completed
+      // Check if interview is already completed - redirect to results if completed
       if (response.data.interviewCompleted) {
         setInterviewCompleted(true);
+        // Redirect to results page if interview is already completed
+        navigate('/results');
         return;
       }
       

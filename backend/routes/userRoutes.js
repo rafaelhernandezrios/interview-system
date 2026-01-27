@@ -610,6 +610,11 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Block if interview is already completed
+    if (user.interviewCompleted) {
+      return res.status(403).json({ message: "Interview has already been completed. You cannot submit again." });
+    }
+
     const { answers } = req.body;
 
     // Parse answers if it's a string (from FormData)
@@ -650,7 +655,7 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
     }
 
     // Evaluate text answers only (not the video)
-    const { total_score, evaluations } = await calculateScoreBasedOnAnswers(allQuestions, textAnswers);
+    const { total_score, evaluations, recommendations } = await calculateScoreBasedOnAnswers(allQuestions, textAnswers);
 
     user.interviewResponses = textAnswers;
     
@@ -676,6 +681,7 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
     }
     user.interviewScore = total_score;
     user.interviewAnalysis = evaluations;
+    user.interviewRecommendations = recommendations || "";
     user.interviewCompleted = true;
 
     await user.save();
@@ -724,9 +730,9 @@ router.post("/save-interview-progress", authMiddleware, async (req, res) => {
 
     const { answers, currentQuestionIndex, s3VideoUrl, videoTranscription } = req.body;
 
-    // Don't save if interview is already completed
+    // Don't save if interview is already completed - block access
     if (user.interviewCompleted) {
-      return res.json({ message: "Interview already completed" });
+      return res.status(403).json({ message: "Interview has already been completed. You cannot make changes." });
     }
 
     // Save answers temporarily (don't mark as completed)
@@ -780,6 +786,7 @@ router.post("/retake-interview", authMiddleware, async (req, res) => {
     user.interviewVideoTranscription = undefined;
     user.interviewScore = undefined;
     user.interviewAnalysis = [];
+    user.interviewRecommendations = undefined;
     user.interviewCompleted = false;
 
     await user.save();
@@ -831,6 +838,7 @@ router.post("/reset-all", authMiddleware, async (req, res) => {
     user.interviewVideoTranscription = undefined;
     user.interviewScore = undefined;
     user.interviewAnalysis = [];
+    user.interviewRecommendations = undefined;
     user.interviewCompleted = false;
 
     // Clear retake reason (optional, can keep it for tracking)
@@ -861,6 +869,7 @@ router.post("/reset-interview-only", authMiddleware, async (req, res) => {
     user.interviewVideoTranscription = undefined;
     user.interviewScore = undefined;
     user.interviewAnalysis = [];
+    user.interviewRecommendations = undefined;
     user.interviewCompleted = false;
 
     await user.save();
@@ -1156,7 +1165,8 @@ router.get("/interview-responses", authMiddleware, async (req, res) => {
       responses: user.interviewResponses || [],
       video: user.interviewVideo || null,
       videoTranscription: user.interviewVideoTranscription || null,
-      analysis: user.interviewAnalysis || []
+      analysis: user.interviewAnalysis || [],
+      recommendations: user.interviewRecommendations || null
     };
 
     // Solo incluir el score si el usuario es admin

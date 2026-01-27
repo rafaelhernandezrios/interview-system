@@ -249,7 +249,8 @@ export async function calculateScoreBasedOnAnswers(questions, answers) {
       throw new Error("Number of questions and answers do not match.");
     }
 
-    const prompt = `
+    // First call: Evaluate individual answers
+    const evaluationPrompt = `
 You are an expert evaluator of technical interviews and soft skills. 
 Evaluate the following answers on a scale from 0 to 100 based on their quality, clarity, and relevance to the question. 
 
@@ -270,37 +271,68 @@ Respond ONLY in the following JSON format with an object containing an "evaluati
 }
     `;
 
-    const response = await openai.chat.completions.create({
+    const evaluationResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: evaluationPrompt }],
       max_tokens: 1000,
       temperature: 0.7,
       response_format: { type: "json_object" }
     });
 
-    let content = response.choices[0].message.content.trim();
+    let evaluationContent = evaluationResponse.choices[0].message.content.trim();
     // Limpiar el contenido si tiene markdown
-    if (content.startsWith('```json')) {
-      content = content.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    } else if (content.startsWith('```')) {
-      content = content.replace(/```\n?/g, '');
+    if (evaluationContent.startsWith('```json')) {
+      evaluationContent = evaluationContent.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (evaluationContent.startsWith('```')) {
+      evaluationContent = evaluationContent.replace(/```\n?/g, '');
     }
 
-    const parsed = JSON.parse(content);
-    const evaluation = parsed.evaluations || [];
+    const evaluationParsed = JSON.parse(evaluationContent);
+    const evaluation = evaluationParsed.evaluations || [];
 
     const total_score = evaluation.length > 0
       ? evaluation.reduce((acc, item) => acc + item.score, 0) / evaluation.length
       : 0;
 
+    // Second call: Generate comprehensive analysis and recommendations
+    const analysisPrompt = `
+You are an expert career counselor and interview coach. Based on the following interview questions and answers, provide a comprehensive analysis of the candidate's performance and specific, actionable recommendations for improvement.
+
+Questions and Answers:
+${questions.map((q, i) => `Question ${i + 1}: ${q}\nAnswer ${i + 1}: ${answers[i]}\n`).join("\n")}
+
+Provide a detailed analysis that includes:
+1. Overall performance assessment
+2. Strengths identified in the answers
+3. Areas that need improvement
+4. Specific, actionable recommendations for each area of improvement
+5. Tips for future interviews
+
+Write the analysis in a clear, professional, and encouraging tone. Focus on constructive feedback that will help the candidate improve their interview skills.
+
+Respond with a well-structured text analysis (not JSON). Use paragraphs and bullet points for clarity.
+    `;
+
+    const analysisResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [{ role: "user", content: analysisPrompt }],
+      max_tokens: 2000,
+      temperature: 0.7,
+    });
+
+    const recommendations = analysisResponse.choices[0].message.content.trim();
+
     return {
       total_score: Math.round(total_score),
       evaluations: evaluation,
+      recommendations: recommendations,
     };
   } catch (error) {
+    console.error('Error in calculateScoreBasedOnAnswers:', error);
     return {
       total_score: 0,
       evaluations: [],
+      recommendations: "Unable to generate analysis at this time. Please try again later.",
       error: "Error evaluating answers",
     };
   }

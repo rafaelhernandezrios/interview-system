@@ -302,66 +302,16 @@ const Results = () => {
                   </div>
                 )}
 
-                {/* Questions and Answers */}
-                {interviewData && interviewData.questions && interviewData.responses && (
+                {/* Interview Analysis and Recommendations */}
+                {(interviewData?.recommendations || profile?.interviewRecommendations) && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Questions and Answers</h3>
-                    <div className="space-y-4">
-                      {interviewData.questions.map((question, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
-                          <p className="font-semibold text-gray-900 mb-2">
-                            {question}
-                          </p>
-                          <p className="text-sm text-gray-700 mb-3">
-                            {interviewData.responses[index] || <span className="text-gray-400">No answer</span>}
-                          </p>
-                          {interviewData.analysis && interviewData.analysis[index] && (
-                            <div className="mt-3 pt-3 border-t border-gray-200">
-                              {typeof interviewData.analysis[index] === 'string' ? (
-                                <p className="text-xs text-gray-600">{interviewData.analysis[index]}</p>
-                              ) : (
-                                <div className="space-y-1">
-                                  {interviewData.analysis[index].explanation && (
-                                    <p className="text-xs text-gray-600">{interviewData.analysis[index].explanation}</p>
-                                  )}
-                                  {isAdmin && interviewData.analysis[index].score !== undefined && (
-                                    <p className="text-xs text-gray-500 font-medium">
-                                      Score: {interviewData.analysis[index].score}%
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Performance Analysis & Recommendations</h3>
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-l-4 border-purple-500">
+                      <div className="prose prose-sm max-w-none">
+                        <div className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">
+                          {interviewData?.recommendations || profile?.interviewRecommendations}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Interview Analysis */}
-                {interviewAnalysis.length > 0 && !interviewData && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Detailed Analysis</h3>
-                    <div className="space-y-3">
-                      {interviewAnalysis.map((analysis, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg border-l-4 border-purple-500">
-                          {typeof analysis === 'string' ? (
-                            <p className="text-sm text-gray-700">{analysis}</p>
-                          ) : (
-                            <div className="space-y-2">
-                              {analysis.explanation && (
-                                <p className="text-sm text-gray-700">{analysis.explanation}</p>
-                              )}
-                              {isAdmin && analysis.score !== undefined && (
-                                <p className="text-xs text-gray-500 font-medium">
-                                  Score: {analysis.score}%
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                      </div>
                     </div>
                   </div>
                 )}
