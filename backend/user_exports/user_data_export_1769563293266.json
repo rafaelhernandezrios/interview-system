@@ -1,0 +1,982 @@
+[
+  {
+    "name": "Soham Kothari",
+    "email": "sohamkothariprof79@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-4",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "2004-01-23",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Python, Sql, Tensorflow, Adaptability, Communication, Curiosity, Empathy, Langchain, Matplotlib, Numpy, Pandas, Perseverance, Problemsolving, Pytorch, Scikitlearn, Teamwork",
+    "cvAnalysis": "Python, Sql, Tensorflow, Adaptability, Communication, Curiosity, Empathy, Langchain, Matplotlib, Numpy, Pandas, Perseverance, Problemsolving, Pytorch, Scikitlearn, Teamwork",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrated a solid understanding of technical concepts and relevant experience throughout their responses. They provided examples from previous projects, showcasing their skills in Python and TensorFlow, while also addressing soft skills like adaptability and communication. However, the overall delivery was inconsistent, with room for improvement in clarity, structure, and confidence in their responses.\n\n### Strengths Identified in the Answers\n\n1. **Technical Knowledge**: The candidate showcased a strong background in Python and TensorFlow, specifically mentioning relevant projects and applications, which indicates a solid grasp of machine learning concepts.\n  \n2. **Real-World Application**: There was a clear focus on applying technology to solve real-world problems, particularly in their motivation for joining the Mirai Innovation Research Institute. This aligns well with the institute's mission.\n\n3. **Adaptability and Teamwork**: The candidate articulated their adaptability in different team environments and their approach to resolving differing opinions, demonstrating strong interpersonal skills.\n\n4. **Research Experience**: The mention of familiarity with the research process and previous publications adds credibility to their application for the scholarship.\n\n### Areas That Need Improvement\n\n1. **Clarity and Conciseness**: Some answers were overly verbose and lacked clarity, leading to potential confusion about key points.\n\n2. **Confidence in Delivery**: The candidate appeared hesitant at times, which may undermine their perceived competence.\n\n3. **Structure of Responses**: Responses could benefit from a more structured approach, following a clear framework to present information logically.\n\n4. **Specificity in Examples**: While examples were provided, they sometimes lacked depth. More specific details about the challenges faced and the outcomes achieved would enhance credibility.\n\n### Specific, Actionable Recommendations for Each Area of Improvement\n\n1. **Clarity and Conciseness**:\n   - **Practice summarizing**: Before the interview, practice summarizing project experiences in two to three sentences, focusing on key achievements and challenges.\n   - **Use the STAR method**: Frame answers using the Situation, Task, Action, Result structure to maintain clarity and focus on outcomes.\n\n2. **Confidence in Delivery**:\n   - **Mock interviews**: Engage in mock interviews with friends or mentors to practice articulating thoughts more confidently.\n   - **Positive affirmations**: Use positive affirmations or visualization techniques before the interview to boost self-confidence.\n\n3. **Structure of Responses**:\n   - **Prepare outlines**: For potential questions, prepare outlines that highlight the main points to cover. This can help in organizing thoughts during the interview.\n   - **Practice using frameworks**: Familiarize yourself with frameworks like CAR (Challenge, Action, Result) to ensure responses are well-structured.\n\n4. **Specificity in Examples**:\n   - **Deep dive into experiences**: Reflect on past projects and prepare to discuss specific challenges, actions taken, and measurable outcomes to provide more depth.\n   - **Quantify achievements**: Whenever possible, use numbers or specific metrics (e.g., \"improved accuracy by 20%\") to substantiate claims.\n\n### Tips for Future Interviews\n\n- **Research the Organization**: Continue to research the organization thoroughly, but also be prepared to discuss how your experience and skills directly relate to their needs.\n  \n- **Engage the Interviewers**: Ask questions regarding the organization or the role during the interview to show engagement and interest.\n\n- **Practice Active Listening**: Ensure to listen carefully to the interviewers' questions and clarify if necessary before answering, which can lead to more relevant and focused responses.\n\n- **Follow-Up**: After the interview, consider sending a follow-up thank-you note expressing gratitude for the opportunity and reiterating your interest in the position or program.\n\nBy focusing on these areas for improvement and implementing the recommended strategies, the candidate can enhance their interview performance and increase their chances of success in future opportunities.",
+    "questions": [
+      "How have you utilized Python in your previous projects, and can you provide an example of a challenge you faced while using it?",
+      "Can you explain how you have applied TensorFlow in a machine learning project, and what were the outcomes?",
+      "Can you describe a situation where your adaptability was tested, and how you managed to overcome it?",
+      "How do you approach communication within a team, especially when there are differing opinions on a project?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "Yeah, yes, I have used Python in my previous project. Actually, most of my previous projects are Python-based. Let's take an example of the AI email automation agent where I used Python to connect to Telegram and my LLM to send or draft an email to another person. Yeah, one of the most common challenges I've faced in Python is that it's quite a rapidly evolving language. So, whenever I build something new or follow a new project, most of the documentation and stuff has been deprecated. Another challenge of using Python is that it's quite slow comparing to C++",
+      "I have used TensorFlow in multiple projects actually regarding machine learning. So for example, in my previous internship, I used TensorFlow to fine-tune an already existing model that was MobileNet V2, which is used for embedded technologies to detect for facial recognition purposes. So our use case was quite small, so I used TensorFlow to fine-tune that MobileNet V2 to work more efficiently and accurately with our system. It was used in a facial recognition software that also worked in partially occluded scenarios. And for the model of detecting those partially occluded spaces, I also developed a model using TensorFlow. So it was quite a TensorFlow-heavy approach on that project",
+      "The best way I can describe of my adaptability being tested is to describe my situations in different environments. So I have worked with multiple teams, both in my college and in my internship. And one thing I can say is that both had different, very different environments. So college one was very laid back and the internship was very fast-paced and everyone reacts differently to the rules and tasks provided to them. So I just, rather than judging everyone on the same level, I would rather observe them and figure out their way of thinking. This way, it would be easier for me to communicate with them and together we could achieve the same goal. It also makes me grow as a person and helps me better than understand my colleagues instead of just disagreeing and fighting with them constantly. Thank you",
+      "Well, as stated in a previous answer, I'll take an example from both the scenarios. There comes a point where I have to determine how a single person reacts about doing a specific kind of thing. So, let's say person X is not supporting that decision and person Y is fully supporting it. So, I just hear both sides and project a solution or kind of a middle ground where all of us can work together to achieve the same goal. So, in college teams, it was quite an easy task as we all knew each other. But during my internship, I had to adapt to the situation to better understand my colleagues. So, I would rather hear everyone in the start than wasting time down the line",
+      "Well, I've done quite some research on your website, and I'm really all into about solving real-world problems. So, not just picking up a project, random project, to produce some dummy results resulting from dummy data. I actually want to make an impact in the real world. I want to change some certain aspects of how things are working currently. And you guys are actually doing that. Apart from this, the technology compared to other research institutes, you guys have phenomenal technology at Mirai Institute. So yeah, I would like to pursue my research career at Mirai Institute. This was a result of me doing a lot of research, differing from multiple research institutes all over the world, and Mirai was at another level",
+      "Well, not only I have experience in a lot of projects such as computer vision, generative AI and many other projects like reinforcement learning, I have also experience in publications. I know the research process. I know the research process. I know what it takes. I have the knowledge to write research papers. I know how to read them, what to extract from all of that information. I can also do research correctly and I can guarantee you that if you provide or if you award me with a scholarship, I can guarantee results at the end of my internship. I have also great adaptability. I have good communication with other teams. I have good perseverance. I have proved this in my previous internship also"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 75,
+        "explanation": "The answer provides a basic overview of Python usage and mentions a relevant project, but lacks depth in explaining the challenges faced and how they were overcome.",
+        "_id": "69747ad4095e48a01fb94a5f"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer describes a specific project with TensorFlow and its application, but could improve by detailing the outcomes and impacts of the project more explicitly.",
+        "_id": "69747ad4095e48a01fb94a60"
+      },
+      {
+        "score": 85,
+        "explanation": "The response demonstrates self-awareness and adaptability by discussing experiences in different environments, showing a thoughtful approach to communication.",
+        "_id": "69747ad4095e48a01fb94a61"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer outlines a collaborative approach to communication within teams and provides a solid strategy, but could benefit from more specific examples.",
+        "_id": "69747ad4095e48a01fb94a62"
+      },
+      {
+        "score": 90,
+        "explanation": "The candidate articulates a strong motivation for applying, backed by research and a clear alignment with the institute's mission, making it a compelling answer.",
+        "_id": "69747ad4095e48a01fb94a63"
+      },
+      {
+        "score": 85,
+        "explanation": "The response effectively highlights relevant experience and skills, showcasing a balance between confidence and capability, though it could be more concise.",
+        "_id": "69747ad4095e48a01fb94a64"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769240489478_6963ba27df873e423cb0c0ac.webm",
+    "interviewVideoTranscription": "Hello, my name is Soham Kothari and I am a student pursuing Integrated MTech in Information Technology. I work in Machine Learning, Computer Vision, and LLM-based application development using Python. I have built real-time systems including agent classification pipeline using OpenCV, YOLOv5, and MobileNet V2 that performs well in crowded and partially occluded areas. I have also developed LLM-powered application using lang chain and local models using an AI email automation agent and a real-time webcam narration system combining vision language models, multithreading, and text-to-speech. I have also experience with reinforcement learning using NEET algorithm. In addition, I have published research in international conferences on numerical integration, gradient descent optimization, and multiprocessing performance analysis. Thank you",
+    "createdAt": "2026-01-11T14:56:39.240Z",
+    "updatedAt": "2026-01-27T03:19:25.172Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Brittany Nsongo",
+    "email": "brittanynsongo@hotmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-17",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Female",
+    "dob": "2004-02-28",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "C++, Data Analysis, Digital Collaboration, Javascript, Machine Learning, Python, Structural Design, Ux/ui Design, 3d Printing, Agile Workflows, Analytical Thinking, Automation, Collaboration, Communication, Computational Modelling, Creative Coding, Excel, Humancomputer Interaction, Leadership, Matlab, Open Rocket, Organization, Problem Solving, Project Management, Prototyping, Scientific Communication, Systems Integration, Teamwork, Time Management, Unreal Engine",
+    "cvAnalysis": "C++, Data Analysis, Digital Collaboration, Javascript, Machine Learning, Python, Structural Design, Ux/ui Design, 3d Printing, Agile Workflows, Analytical Thinking, Automation, Collaboration, Communication, Computational Modelling, Creative Coding, Excel, Humancomputer Interaction, Leadership, Matlab, Open Rocket, Organization, Problem Solving, Project Management, Prototyping, Scientific Communication, Systems Integration, Teamwork, Time Management, Unreal Engine",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Candidate Performance Analysis\n\n**Overall Performance Assessment:**\nThe candidate demonstrates a solid foundation in technical skills and a passion for immersive technologies. However, their responses tend to be overly verbose and sometimes repetitive, which can detract from the clarity and impact of their points. While they articulate their motivations and experiences well, the interview would benefit from more concise and focused answers that directly address the questions posed.\n\n---\n\n**Strengths Identified in the Answers:**\n\n- **Technical Knowledge:** The candidate has a strong grasp of C++ and its application in Unreal Engine, showcasing a blend of technical prowess and practical experience.\n- **Team Collaboration:** The candidate emphasizes the importance of trust, communication, and adaptability in teamwork, which are key attributes for any collaborative work environment.\n- **Leadership Experience:** They provide a relevant example of leading a team through a challenging situation, illustrating problem-solving skills and initiative.\n- **Motivational Drive:** The candidate articulates a clear passion for technology and its potential societal impact, aligning well with the values of the Mirai Innovation Research Institute.\n- **Interdisciplinary Approach:** Their ability to combine technical skills with creative expression is a notable strength, particularly for a role in immersive technologies.\n\n---\n\n**Areas That Need Improvement:**\n\n1. **Conciseness and Clarity:**\n   - The candidate's responses often contain repetitive elements and lengthy explanations that may lose the interviewer's attention.\n\n2. **Specificity in Technical Examples:**\n   - While the candidate mentions C++ and Unreal Engine, they do not provide concrete examples of projects or outcomes that would demonstrate their skills more effectively.\n\n3. **Structured Responses:**\n   - Answers could be better structured to follow a clear format (e.g., Situation, Task, Action, Result - STAR method) which would enhance clarity and impact.\n\n4. **Confidence in Communication:**\n   - Some responses lack assertiveness, which can affect the perceived confidence of the candidate.\n\n---\n\n**Specific, Actionable Recommendations:**\n\n1. **Practice Brevity:**\n   - **Recommendation:** Conduct mock interviews with a focus on delivering concise responses. Aim for a two-minute limit per question, ensuring the core message is communicated effectively without unnecessary elaboration.\n\n2. **Provide Concrete Examples:**\n   - **Recommendation:** Prepare specific case studies or projects that highlight their work with C++ and Unreal Engine. Using quantifiable metrics or outcomes would also strengthen their responses (e.g., “This feature reduced processing time by 20%”).\n\n3. **Utilize the STAR Method:**\n   - **Recommendation:** For behavioral questions, structure answers using the STAR method. This will help in clearly outlining the context and actions taken, leading to a more impactful conclusion.\n\n4. **Practice Assertive Communication:**\n   - **Recommendation:** Engage in role-play exercises where the candidate can practice speaking confidently about their experiences and qualifications. Recording these practice sessions could provide valuable feedback on tone and delivery.\n\n---\n\n**Tips for Future Interviews:**\n\n- **Research the Organization:** Understand the mission and projects of Mirai Innovation Research Institute to tailor responses that align with their goals.\n  \n- **Engage with Follow-Up Questions:** When asked a question, consider inviting follow-up questions or clarifications to demonstrate openness to dialogue and collaboration.\n\n- **Use Body Language Effectively:** Maintain good eye contact, an upright posture, and positive facial expressions to convey confidence and enthusiasm.\n\n- **Prepare Questions for Interviewers:** Having thoughtful questions ready about the institution and its projects can demonstrate interest and initiative.\n\n- **Reflect on Feedback:** After each interview, take time to reflect on what went well and what could be improved. Continuous self-assessment can lead to significant growth over time.\n\n---\n\nIn conclusion, the candidate possesses a strong foundation of skills and experiences that are well-aligned with their ambitions. By focusing on the areas for improvement and implementing the recommendations provided, they can enhance their interview performance and better articulate their value to potential employers or scholarship committees.",
+    "questions": [
+      "What is your experience with C++ and how have you used it in your previous projects?",
+      "Can you describe a complex data analysis project you worked on and the tools you used?",
+      "How do you approach collaboration in a team setting, especially when working on a challenging project?",
+      "Can you provide an example of a time when you had to lead a team through a difficult situation and how you managed it?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "In my Unreal world, in my Unreal Engine world, I primarily use Blueprints for rapid prototyping and interactive worldbuilding, while developing an understanding on how the systems sit on top of the Unreal Engine's C++ architecture, and I focused on C++ concepts, such as classes, components, inheritance, and performance considerations, to inform Blueprint designs, which would help me make the structure cleaner and more modular on a scalable system, because there were times where we would connect it to a program called DaVinci, and things had to be quite precise in the scripting, the visualizing, and just the architectural awareness when projecting on virtual production",
+      "In my Unreal world, in my Unreal Engine world, I primarily use Blueprints for rapid prototyping and interactive worldbuilding, while developing an understanding on how the systems sit on top of the Unreal Engine's C++ architecture, and I focused on C++ concepts, such as classes, components, inheritance, and performance considerations, to inform Blueprint designs, which would help me make the structure cleaner and more modular on a scalable system, because there were times where we would connect it to a program called DaVinci, and things had to be quite precise in the scripting, the visualizing, and just the architectural awareness when projecting on virtual production",
+      "For me, a good team is built on trust, clear communication and shared goals, and also respect for each other's personal strengths, while good individuals are being held accountable. And I think openness and adaptability is something that's really big. So to collaborate well, especially during difficult times, it helps to listen actively, stay calm, and to just communicate honestly and focus on solutions rather than shifting blame. And by being willing to ask for help or give constructive feedback, we can all benefit and be able to collaborate and make a bigger product or solution",
+      "Funny enough, this actually happened very recently on my rocket team. So I am the lead design, structural design engineer and we faced a sort of a problem where efficiency had to also counterbalance with budget because we had a task to shoot a model rocket 200, 2000 feet but the material we wanted to use was too expensive and we did not have that in our resource or budget. So I as the lead engineer had to go and do research on suitable substitutes but also ways in which we kept within the budget. It took a lot of research and outside asking around but we were able to find a solution and now have a rocket which we're very glad about and i'm glad i got to commincate with my team.",
+      "So for me, immersive tech is multifunctional and can be used to explore, communicate, and simulate real-world problems. And what drives me is curiosity and desire to create systems that have a positive practical impact on humanity. And I just feel like Mirai provides that resource, not only with the institution as a whole, but also with the mentorship that is offered. And so in facilities, and it being so internationally and so big, it just allows there to also be a cultural connection, also to learn from different perspectives. And having a passion, I understand how valuable knowledge and experience is, and to inspire those who reach tasks head-on. And that's why I'm motivated by Mirai, because they provide things in my interest, like AI, IoT, and robotics",
+      "I deserve this scholarship because I combine scientific curiosity, computational skill and creative expression to approach programmes in an innovative and globally relevant way. My work spans computational modelling, data analysis of satellite data sets and AI projects with immersive technologies, whilst also drawing an artistic perspective through interactive experiences, virtual productions and visual storytelling. I'm particularly motivated by how emerging technologies can address actual global challenges across science, accessibility, sustainability. And through my leadership roles as President of the Space Society, Vice President and Lead Structural Engineer of the UK Sea Rocket Team, I've built inclusive communities, mental peers and collaborated across disciplines and cultures. This scholarship allows me to broaden my international perspective, strengthen my technical skills and to blend art and science and technology to contribute to a meaningful, interdisciplinary projects with global impact"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 75,
+        "explanation": "The answer demonstrates a foundational understanding of C++ in the context of Unreal Engine, but lacks conciseness and clarity. The connection to DaVinci and specific projects is vague.",
+        "_id": "6970d2fcd22ae23bf239a49e"
+      },
+      {
+        "score": 75,
+        "explanation": "This is a repeat of the previous answer; hence, the evaluation remains the same. It lacks clarity and detail regarding the specific data analysis project.",
+        "_id": "6970d2fcd22ae23bf239a49f"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer articulates a thoughtful approach to teamwork, emphasizing key values like trust and communication. It provides a clear framework for collaboration, making it relevant and actionable.",
+        "_id": "6970d2fcd22ae23bf239a4a0"
+      },
+      {
+        "score": 80,
+        "explanation": "The response gives a concrete example of problem-solving in a leadership role, though it could be more structured. The details about research and communication are valuable but could be clearer.",
+        "_id": "6970d2fcd22ae23bf239a4a1"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer effectively conveys motivation and alignment with the program's values. It touches on personal interests and broader impacts, although some sentences could be more succinct.",
+        "_id": "6970d2fcd22ae23bf239a4a2"
+      },
+      {
+        "score": 90,
+        "explanation": "This response is comprehensive and clearly outlines qualifications for the scholarship. It connects personal achievements with broader societal impacts, showcasing a strong interdisciplinary approach.",
+        "_id": "6970d2fcd22ae23bf239a4a3"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1768909637304_696995f6dfd4cec71d99fce7.webm",
+    "interviewVideoTranscription": "Hi, I'm Brittany Songo and I'm currently an astrophysics, astronomy and space science student with a background in computer science and a strong interest in computational and engineering-driven problem solving. I enjoy working at the intersection of science, technology and creativity, using code, modelling and experimentation to turn abstract ideas into practical systems. Alongside my studies, I lead technical and academic initiatives, including serving as the president of the Space Society and vice president and lead structural design engineer of my university's rockets team. Outside my academics, I also have relevant experience in creative technology, working in media companies. I'm particularly interested in computational methods, electromagnetics and immersive technology, such as IoT, AR,",
+    "createdAt": "2026-01-16T01:35:50.149Z",
+    "updatedAt": "2026-01-27T03:24:13.789Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Manuela Gomez Correa",
+    "email": "manuelagomezcorrea@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-18",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Female",
+    "dob": "1999-06-04",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Bioengineering, Data Analysis, Digital Communication, Robotics, System Design, Electromyography, Leadership, Mechatronics, Problem Solving, Project Management, Research, Signal Processing, Teaching, Team Collaboration, Technical Writing",
+    "cvAnalysis": "Bioengineering, Data Analysis, Digital Communication, Robotics, System Design, Electromyography, Leadership, Mechatronics, Problem Solving, Project Management, Research, Signal Processing, Teaching, Team Collaboration, Technical Writing",
+    "interviewCompleted": true,
+    "interviewScore": 85,
+    "interviewRecommendations": "### Comprehensive Analysis of Candidate Performance\n\n#### Overall Performance Assessment\nThe candidate demonstrates a solid foundation in bioengineering and robotics, showcasing both technical expertise and leadership qualities. Their answers reflect a thoughtful approach to problem-solving and a commitment to user-centered design. However, there are areas where the candidate can enhance their communication and presentation skills to make a stronger impact during interviews. Overall, with targeted improvements, the candidate has the potential to excel in their future interviews.\n\n#### Strengths Identified in the Answers\n1. **Technical Knowledge**: The candidate displays a strong grasp of bioengineering concepts, particularly in data analysis and system design.\n2. **User-Centric Focus**: They emphasize the importance of user safety and needs in system design, indicating a strong understanding of the practical implications of their work.\n3. **Leadership Skills**: The candidate effectively articulates their approach to conflict resolution and team collaboration, demonstrating emotional intelligence and the ability to facilitate communication among diverse teams.\n4. **Motivation and Passion**: Their enthusiasm for joining the Mirai Innovation Research Institute (MIRAI) and commitment to social impact are evident, which can resonate well with interviewers seeking candidates who align with their organizational values.\n\n#### Areas That Need Improvement\n1. **Clarity and Conciseness**: Some responses, particularly regarding the explanation of technical projects, could be more concise. This would enhance clarity and keep the interviewer’s attention.\n2. **Specific Examples**: While the candidate provided good insights, the answers could benefit from more specific examples and quantifiable outcomes to illustrate their impact and achievements.\n3. **Confidence in Delivery**: The candidate's responses often included \"thank you\" at the end, which could come across as tentative. A more assertive conclusion would strengthen their statements.\n4. **Alignment with Program Goals**: While the candidate expressed motivation for the MIRAI program, they could more explicitly connect their skills and experiences to the specific goals and values of the institute.\n\n#### Specific, Actionable Recommendations for Each Area of Improvement\n1. **Clarity and Conciseness**:\n   - **Practice summarizing answers**: Use the \"STAR\" (Situation, Task, Action, Result) method to frame responses succinctly.\n   - **Rehearse with a timer**: Aim for responses to be no longer than 2-3 minutes for more technical questions.\n\n2. **Specific Examples**:\n   - **Quantify achievements**: For every project mentioned, include specific metrics such as percentage improvements, time saved, or user satisfaction rates.\n   - **Prepare a portfolio**: Bring visual aids or documentation that showcases projects and results to reinforce verbal explanations.\n\n3. **Confidence in Delivery**:\n   - **Eliminate filler phrases**: Practice delivering answers without phrases like “thank you” at the end. Instead, conclude with a strong statement that reinforces their competence.\n   - **Engage in mock interviews**: Simulate interview scenarios with peers or mentors to build confidence in verbal delivery.\n\n4. **Alignment with Program Goals**:\n   - **Research the program thoroughly**: Understand MIRAI's current projects, values, and goals to tailor responses that align with their mission.\n   - **Craft a personal narrative**: Develop a succinct story that connects past experiences with future aspirations in the context of the MIRAI program.\n\n#### Tips for Future Interviews\n- **Engage with the Interviewer**: Ask insightful questions about the program or organization to show genuine interest and engagement.\n- **Use Body Language**: Maintain eye contact, and use gestures to emphasize points, which conveys confidence and enthusiasm.\n- **Follow-Up**: After the interview, consider sending a thank-you note that reiterates interest in the position and summarizes key points made during the discussion.\n\nBy focusing on these areas of improvement and implementing the actionable recommendations provided, the candidate will be well-equipped to enhance their interview performance and make a lasting impression on future interviewers.",
+    "questions": [
+      "Can you describe a project where you utilized data analysis techniques in bioengineering?",
+      "How do you approach system design when working on a robotics project?",
+      "Can you provide an example of a time when your leadership skills helped resolve a conflict within a team?",
+      "How do you ensure effective team collaboration while managing a project?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "One of the projects in which I have been able to use data analysis in bioengineering is in the analysis of kinetic, kinematic and bio-signals data for the analysis of motor capacity in interest groups, in this case in young adults and older adults. From the extraction of characteristics both in the domain of time and frequency and in addition to statistical analysis, what we can do is establish metrics or quantitative parameters that allow us to measure what is muscle degeneration or loss of motor capacity over time. From this, then, we can establish strategies that are focused on therapies that fit the conditions and properties of each of the subjects and how to approach rehabilitation therapies taking into account the needs of the patient and how the motor capacities change with the age. Thank you",
+      "Considering that I have a focus on rehabilitation, the design of robotic systems is always centered on the user. The first thing we do is establish what are the design criteria that we must meet, as well as the functionality that the robotic system will have. This from the fact that we must always ensure that the user and the system will be safe and will not cause any damage. Once all the design criteria are established, we proceed with the creation of subsystems such as the mechanical, electronic, software and control and we do the manufacturing and validation of each of the systems individually. Then we do the conjunction of all the systems and we do a final test that validates the functionality of our system. This always taking into account security criteria and re-engineering process to evaluate the robustness of the system. Thank you",
+      "One of the problems that I have been able to solve is in multidisciplinary teams where I have a medical team and an engineering team. What happens here is that both have a point of view focused on different parts, the doctors towards the user and those of engineering towards the robotic system. In this case, to be able to solve the problem as to what are the criteria that our system has to have, is to meet individually with each team to understand and listen what are their problems and points of view, and once this is established, we do a general meeting to be able to expose the ideas, establish what are the general goals that we have as a team and what is the best solution taking into account both parts. This generates a balanced communication throughout the team and a feeling of trust both among the members and the leader of the work.",
+      "To be able to generate effective collaboration in the work team, what we do is establish clear goals, what are the roles of each participant, and what are the communication channels. As for the clear goals, what we do is a list of what are the individual goals that each one must meet in order to reach the global goal as a team. Among the communication channels, what I do is establish a trust environment where both the participating members and the leader can communicate openly and respectfully to generate a good work environment and greater communication. And finally, establish metrics or periodic meetings that allow us to review what the progress is and if there is any problem, to be able to address it as a team to find the best solution. Thank you.",
+      "My biggest motivation to be able to participate in this program is to be able to learn from new methodologies and working groups, especially in MIRAI, which has been characterized by being one of the leaders and the precursors in the creation of new technology. My participation in the program would allow me to help consolidate my professional career, especially in research, from participating in different working groups and getting to know people around the world, which allows me to address problems from different perspectives. This will then be able to increase my capacity, both in my qualities as a leader and in my technical skills for the development of new technological developments, especially in the biomedical sector, in order to create new engineering or new technology with social impact. Thank you.",
+      "I deserve this scholarship because I have tried to base my training as a professional on excellence and social impact. My participation with different working groups around the world in the area of biomedical engineering has allowed me to have a more global idea of how to address different problems, both in the technical, academic and social sectors. Additionally, I count skills such as punctuality, teamwork, innovation, creativity, which allows me to have skills that can contribute to the members or groups where I can participate in the MIRAI program. I believe that my participation in this program will also give me different tools that will allow me to consolidate as a researcher and generate a greater impact on the new technologies and developments that I am generating in my PhD. Thank you"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "Clear and well-founded answer with examples of data analysis techniques and their application in bioengineering.",
+        "_id": "6971953991de3250a1c6825d"
+      },
+      {
+        "score": 80,
+        "explanation": "Well-structured response focusing on user-centered design, but could elaborate more on specific design criteria.",
+        "_id": "6971953991de3250a1c6825e"
+      },
+      {
+        "score": 90,
+        "explanation": "Demonstrates effective leadership and conflict resolution skills with a clear process outlined for collaboration.",
+        "_id": "6971953991de3250a1c6825f"
+      },
+      {
+        "score": 85,
+        "explanation": "Strong emphasis on clear goals and communication, with a systematic approach to ensure team collaboration.",
+        "_id": "6971953991de3250a1c68260"
+      },
+      {
+        "score": 88,
+        "explanation": "Articulates motivation effectively, showing a clear understanding of the program's impact on personal and professional growth.",
+        "_id": "6971953991de3250a1c68261"
+      },
+      {
+        "score": 82,
+        "explanation": "Compelling reasons for deserving the scholarship, though could benefit from more specific examples of past contributions or achievements.",
+        "_id": "6971953991de3250a1c68262"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769049709715_6969a3c5767273ec64679b98.webm",
+    "interviewVideoTranscription": "Hello, my name is Manuela Gomez Correa and I am a doctoral researcher in the area of biomedical engineering. As part of my academic training, I am a bioengineer at the University of Antioquia in Colombia, and additionally, thanks to my interest in research, I continued with a master's degree in computer technology at the Instituto Politécnico Nacional in Mexico, where I am currently doing my doctorate in robotic and mechatronic systems. Thanks to my interest in research and innovation, I have been able to participate in different universities, such as the ETH in Switzerland, the University of Heidelberg in Germany, and the University of Rice in the United States. Some of the projects in which I have been able to participate are in the development of exoskeletons for rehabilitation and in the design of systems for the acquisition of biosignals. Among my main skills are teamwork, the creation of new ideas, innovation, and punctuality. Thank you",
+    "createdAt": "2026-01-16T02:34:45.668Z",
+    "updatedAt": "2026-01-27T03:24:35.538Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Sum Po Ava Chan",
+    "email": "ava.chan@keble.ox.ac.uk",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-34",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Female",
+    "dob": "1994-04-14",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Aiaccelerated Development, Crossdisciplinary Team Management, Python, Ux/ui Design, Aiaugmented Workflows, Biochemistry, Bioinformatics, Cantonese, Distributed Team Management, English, Hpc, Leadership, Mandarin, Molecular Biology, Rapid Prototyping, Regeneration Biology, Shell Scripting, Synthetic Biology, Venture Pitching",
+    "cvAnalysis": "Aiaccelerated Development, Crossdisciplinary Team Management, Python, Ux/ui Design, Aiaugmented Workflows, Biochemistry, Bioinformatics, Cantonese, Distributed Team Management, English, Hpc, Leadership, Mandarin, Molecular Biology, Rapid Prototyping, Regeneration Biology, Shell Scripting, Synthetic Biology, Venture Pitching",
+    "interviewCompleted": true,
+    "interviewScore": 85,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrates a solid foundation in technical expertise and project management, particularly in AI, software development, and bioinformatics. They articulate their experiences well, showcasing their ability to lead cross-disciplinary teams and navigate complex projects. However, the responses occasionally lack depth and clarity, which could detract from the overall impact. The candidate's motivation for applying to the program is compelling, yet there are areas where they could enhance their presentation and engagement during the interview.\n\n### Strengths Identified in the Answers\n\n1. **Technical Proficiency**: The candidate showcases a strong command of Python, machine learning frameworks, and shell scripting. Their specific examples demonstrate practical application and understanding of these technologies.\n   \n2. **Project Management Skills**: The ability to manage cross-disciplinary teams effectively is a notable strength. The candidate provides concrete examples of tools and methods used to facilitate collaboration among diverse team members.\n   \n3. **Motivation and Self-Awareness**: The candidate clearly articulates their motivation for applying to the Mirai Innovation Research Institute and identifies a knowledge gap they wish to address, indicating a proactive approach to personal and professional growth.\n\n4. **Value Proposition**: In discussing their potential contributions to the program, the candidate emphasizes their extensive experience and unique perspectives, demonstrating confidence and a focus on mutual benefit.\n\n### Areas That Need Improvement\n\n1. **Depth of Responses**: While the candidate provides relevant examples, some answers could benefit from more detailed explanations of their specific contributions and the outcomes of their projects.\n\n2. **Clarity and Structure**: Some responses are lengthy and could be more concise. This may cause the interviewer to lose track of key points or the overall narrative.\n\n3. **Engagement and Enthusiasm**: The candidate's tone could be more energetic and passionate, particularly when discussing their motivations and experiences, to better convey enthusiasm for the role and the program.\n\n4. **Handling of Behavioral Questions**: In responses to questions about teamwork and management, there is an opportunity to emphasize personal contributions more explicitly, showcasing leadership qualities and decision-making processes.\n\n### Specific, Actionable Recommendations\n\n1. **Enhance Depth of Responses**:\n   - For each project mentioned, outline the specific role played, challenges faced, and measurable outcomes achieved. Consider using the STAR (Situation, Task, Action, Result) format to structure responses effectively.\n\n2. **Improve Clarity and Structure**:\n   - Practice summarizing each experience in a 2-3 sentence format, focusing on the main point. This will help keep responses focused and impactful. Consider preparing a few bullet points for each experience before the interview to stay on track.\n\n3. **Increase Engagement and Enthusiasm**:\n   - Practice conveying enthusiasm through voice modulation and body language. Consider using positive language and expressions when discussing experiences and motivations. Engaging in mock interviews with friends or mentors can help build confidence in delivery.\n\n4. **Strengthen Behavioral Responses**:\n   - Focus on articulating specific leadership actions taken during team projects. Prepare examples that highlight conflict resolution, initiative, and collaboration. Practicing with behavioral question prompts can help refine this skill.\n\n### Tips for Future Interviews\n\n- **Research the Program**: Understand the specific attributes of the Mirai Innovation Research Institute and align responses to show how your skills and aspirations match their goals and values.\n  \n- **Practice Active Listening**: Listen carefully to each question and clarify if needed before answering. This demonstrates engagement and ensures that responses are relevant to the interviewer’s queries.\n  \n- **Follow-Up Questions**: Prepare thoughtful questions to ask the interviewer about the program or organization. This shows genuine interest and can create a more engaging dialogue.\n\n- **Mock Interviews**: Participate in mock interviews to simulate the experience and receive feedback. This practice can help reduce anxiety and improve performance under pressure.\n\nBy focusing on these areas for improvement and implementing the actionable recommendations, the candidate can enhance their performance in future interviews and present themselves as a compelling candidate for the Mirai Innovation Research Institute.",
+    "questions": [
+      "How have you utilized Python in your AI-accelerated development projects?",
+      "Can you describe your experience with shell scripting and how it has contributed to your work in bioinformatics?",
+      "Can you provide an example of a time when you successfully managed a cross-disciplinary team?",
+      "How do you approach communication and collaboration within a distributed team setting?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "I've utilised Python mainly in two things. One is the back-end development and then the other is for machine learning. So, for example, from one of my recent projects, which is Oxford EDI Initiative, what I did with my team is we have a team of six and we are working on a project to tackle unconscious bias in interviews. And what we did is we utilised generative AI, for example, like frameworks like StyleGAN3 and also InterfaceGen, that is to pretty much generate a face and then modify the facial attributes for it to generate a gender-neutral face. And that will be applied to all applicants in the same interview so that the interviewers will not be able to discriminate interviewees based on their skin colour, gender, accent and etc. And that's how I use Python in AI accelerated development.",
+      "Shell scripting is mainly used for generating a semi-automated pipeline for me to pretty much put all different progress of the same data analysis pipeline together. So, for example, in one of my experiments analysis is what I need to do is generate a new transcriptome for a non-model organism. So that includes preprocessing the data, for example, quality check, trimming the data, and then assemble the transcriptome, followed by another quality check psot-transcriptome assembly, and also about annotating the transcriptome. And shell scripting is used for generating different scripts for each progress step so that after running through that progress, you'll be able to check the output. And then whenever there's other colleagues want to run the same pipeline, they can just basically utilize the script I've generated to do the same thing",
+      "Yeah, so one of my projects, which is miia, Medical Intelligence Applied, what I did is I am managing a team of up to 15 members across different disciplines, and that includes UX/UI design, software development, machine learning, business and medicine. And all team members are pretty much scattered across the world in different time zones and also different countries. So in order to manage a cross-functional and also cross-countries team, what I did is basically setting up project management tools that help facilitate mainly asynchronous updates, followed with one single source of truth, which is Google Drive, and also having Kanban boards in GitHub to monitor the progress of different tasks across different functional teams. And I, as the integrator, will be basically help translating concepts across different team members and helping them to work together, and that's how I manage.",
+      "I'll give another example in another project, which is Envirovex, and we're a team of five members from different countries. One from Spain, two from the States, one from India, and I'm basically based in the UK. And that involves different time zones, and we are in different countries. And what we did is we set up a Discord channel with different communication channels for different things. For example, there is a channel for basically discussing project updates, and there's another channel about like competitions, and on the channel about stakeholders management. And that is mainly through communicating through asynchronous updates, and we also have Google Drives for shared documents, and also Notion for Kanban boards on different tasks, and etc. And we also set up a routine in having this kind of infrequent meetings every month to ensure everyone is updated.",
+      "In the past few years, I've been innovating mainly in the intersection between software and also biology. And I believe I'm capable in managing software projects and also in designing engineering biology projects and also architecture. But I've hit like a knowledge ceiling. And what I cannot do or understand is how the hardware layer works. And that hardware is critical in terms of scaling up, for example, bio-reactors and that kind of solutions. And with that in place, I want to apply for the Mirai Innovation Institute program in order to learn how engineers think, how they approach problems, and also leave with the engineering intuition. And I can basically understand how hardware works. And I'll be able to upskill in terms of the hardware and also robotics.",
+      "I guess I can reframe this question as, how can I add value to this program and how can we mutually benefit? From my past experience, I have over 10 years of research experience in biology, including engineering biology and synthetic biology, and also I have been leading different projects by joining over 200 competitions and also winning over 45 of them. I'm really quick at pattern recognition and also creativity in coming up novel solutions to problems. And with that, I believe I can mainly benefit the program by bringing new perspectives and also having a fresh pair of eyes towards engineering programs and also enabling interdisciplinary research and projects."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 90,
+        "explanation": "The answer provides a clear and relevant example of utilizing Python in AI projects, detailing the project and its implications on reducing bias.",
+        "_id": "6973eb41dd3beaac0434454b"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer clearly describes the use of shell scripting in a bioinformatics context and includes specific steps, but could benefit from more examples of the impact.",
+        "_id": "6973eb41dd3beaac0434454c"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer effectively demonstrates experience managing a cross-disciplinary team, with clear strategies for communication and organization.",
+        "_id": "6973eb41dd3beaac0434454d"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer outlines a structured approach to communication in a distributed team, but could include more on specific challenges faced.",
+        "_id": "6973eb41dd3beaac0434454e"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer articulates a clear motivation for joining the program, linking past experiences with future goals effectively.",
+        "_id": "6973eb41dd3beaac0434454f"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer effectively reframes the question to highlight mutual benefits, showcasing extensive experience and unique contributions.",
+        "_id": "6973eb41dd3beaac04344550"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769203232397_696e63606c8868abab11c5b3.webm",
+    "interviewVideoTranscription": "Hi, I'm Ava. I'm a DPhil candidate at University of Oxford studying regeneration mechanisms. I have over 10 years of research experience in deep biology, including engineering biology, synthetic biology, bioinformatics, biochemistry, etc. In the past few years, I've been innovating in the intersection between biology and software and have led projects led to over $13,000 in independent funding and also led teams up to 15 members across different functions, including software, AI, medicine and business. I'm interested in this program because I would like to understand how hardware and also how engineers think and also how they approach problems. So I believe this is a perfect opportunity for me to gain that skill",
+    "createdAt": "2026-01-19T17:01:20.043Z",
+    "updatedAt": "2026-01-27T03:30:57.188Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Antony Ramírez Montero",
+    "email": "ramirezmonteroantony501@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-49",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "1999-06-01",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Aerospace Manufacturing, Cad, Electrical Harness Design, Mission Design, Pcb Design, Avionics Systems, Communication, Innovation, Leadership, Microcontrollers, Plc, Project Management, Raspberry Pi, Systems Integration, Teamwork, Technical Mentoring",
+    "cvAnalysis": "Aerospace Manufacturing, Cad, Electrical Harness Design, Mission Design, Pcb Design, Avionics Systems, Communication, Innovation, Leadership, Microcontrollers, Plc, Project Management, Raspberry Pi, Systems Integration, Teamwork, Technical Mentoring",
+    "interviewCompleted": true,
+    "interviewScore": 82,
+    "interviewRecommendations": "### Overall Performance Assessment\nThe candidate demonstrated a solid foundation of technical expertise and relevant experience in aerospace engineering and electronics. Their responses highlighted a clear understanding of critical processes, teamwork, and personal motivation towards innovation and global collaboration. However, the delivery of answers occasionally lacked clarity and conciseness, which may hinder effective communication in a professional setting. Overall, the candidate shows promise but would benefit from refining their communication skills to enhance their interview performance.\n\n### Strengths Identified in the Answers\n- **Technical Knowledge**: The candidate exhibited a strong grasp of technical concepts related to electrical harness design, PCB design, and the importance of reliability in aerospace systems.\n- **Leadership Experience**: They provided a compelling example of leading a team, emphasizing effective communication and conflict resolution, which are crucial skills for any leadership role.\n- **Passion and Motivation**: Their enthusiasm for the Mirai Innovation Research Institute and alignment with its values suggest a genuine interest in contributing to the field and a commitment to personal and professional growth.\n- **Cultural Awareness**: The candidate's appreciation for Japan's innovation culture and their background in a developing region add a unique perspective that can be valuable in a global collaboration context.\n\n### Areas That Need Improvement\n1. **Clarity and Conciseness**: Some responses were lengthy and could be streamlined for better clarity. The candidate occasionally repeated points, which may dilute the impact of their message.\n2. **Structure of Answers**: A more structured approach to answering questions (using a clear beginning, middle, and end) would enhance the effectiveness of their responses.\n3. **Specific Examples**: While the candidate provided examples from their experience, some responses could benefit from more specific details or metrics to illustrate their impact and achievements.\n4. **Confidence in Delivery**: There were moments when the candidate's delivery seemed uncertain, particularly when discussing personal motivations and qualifications.\n\n### Specific, Actionable Recommendations for Each Area of Improvement\n1. **Clarity and Conciseness**:\n   - **Practice summarizing answers**: Before the interview, identify key points for each question and practice delivering them in 1-2 sentences.\n   - **Use the STAR method (Situation, Task, Action, Result)**: This can help keep answers focused and structured while ensuring all critical elements are addressed.\n\n2. **Structure of Answers**:\n   - **Outline responses**: Create a mental or written outline for each common interview question to provide a clear framework for responses.\n   - **Practice mock interviews**: Engage in mock interviews with friends or mentors, focusing on delivering structured answers.\n\n3. **Specific Examples**:\n   - **Quantify achievements**: Whenever possible, include specific metrics or outcomes from previous projects (e.g., “Led a team that completed a project 20% under budget”).\n   - **Reflect on experiences**: Spend time reflecting on past roles to identify key accomplishments that can be expressed clearly and succinctly.\n\n4. **Confidence in Delivery**:\n   - **Rehearse responses aloud**: Practicing answers in front of a mirror or recording them can help improve delivery and build confidence.\n   - **Positive affirmations**: Use affirmations to boost self-confidence before the interview, focusing on their strengths and past successes.\n\n### Tips for Future Interviews\n- **Prepare for Common Questions**: Familiarize yourself with common interview questions in your field and prepare thoughtful responses in advance.\n- **Active Listening**: Ensure you understand the questions being asked. If necessary, take a moment to think before responding or ask for clarification.\n- **Engage with the Interviewer**: Make eye contact, smile, and use body language that conveys confidence and enthusiasm.\n- **Follow-Up Questions**: Prepare to ask insightful questions about the role, team dynamics, or the organization, demonstrating your interest and engagement.\n- **Reflect Post-Interview**: After each interview, take time to reflect on what went well and what could be improved, using this insight to prepare for future opportunities.\n\nBy focusing on these areas for improvement and following the recommendations provided, the candidate can enhance their interview skills and present themselves more effectively in future opportunities.",
+    "questions": [
+      "How do you approach the design and integration of electrical harnesses in aerospace manufacturing?",
+      "Can you explain your experience with PCB design and how you ensure its reliability in avionics systems?",
+      "Can you describe a situation where you had to lead a team through a challenging project and how you motivated them?",
+      "How do you handle conflicts within a team to ensure effective communication and collaboration?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "I approach the electrical harness design with a strong focus on reliability, safety and maintainability. All of those processes require a lot of standards, so I had to work with different standards internationally. Since I worked in Germany in a rocketry company, I was in charge of making all the things related with the connections between sensors and actuators inside of the rocket, taking measurements of different values inside of the rocket, so it was critical to have a big process and structure. I had to be really organized because there were a lot of different parameters that could change, so I had to emphasize in the trustability and the testing because aerospace is delicate, so I had to be really careful. So yeah, it's critical for the mission, the safety and the standards and all the integration behind all of these kind of systems",
+      "Yes, 10 years ago when I started working in the electronics sector, I started learning different tools in the CAD side, designing all the layouts and all the things that need to be taken into account in a lot of these projects and systems. And regarding the aerospace sector, I had to take, same as the last one, the reliability and all the integrity, the grounding, the fault tolerance as well, since you have to design and then check, testing, verification, it has to be like that a lot of times, you have to make a lot of redundancy, and the testing again and again. So for me, testing and all of this retaking of details, it's crucial. So yeah, I validated a lot of designs and I had to take, well, to use my knowledge in different tools. It was essential. I validated designs and that's how I did with Avionics and related PCB design",
+      "Yes, I remember when I presented my project in Paris. It was in the International Astronautical Congress in 2022. I was the leader of this project. We presented a scientific paper. So at the time, I remember that my team were really nervous, so I had to basically take the role of the leader. They were like so exhausted and nervous, and then they started having different issues, and they wanted to fight each other. So I had to take the point of views, recognizing the individual strengths and the points that could be taken into the discussion. So I think it's important to break those point of views and then taking into the consensus so you can solve the problem and to make feel everyone heard, communication is key. I think that's crucial. It's a milestone, and it's crucial for the leadership in the teamwork. So that's how I deal with this kind of issues, to be heard",
+      "Okay, yeah, I can say that I handle conflicts by addressing them thoroughly and objectively, listening to everybody. Like I said in the last question, it's crucial to have communication, to be heard. I think it's vital for this kind of issues. So, the conflict resolution that I usually take as a leader, it's you tell me what do you think about this and you about this. If you have two sides, you have to be like really impartial and then you have to try to solve the situation. And then if you take the tension into opportunity to improve, I think that's the best thing you can do. And it improves the environment and the stronger collaboration inside of the team. So, I think it's also part of the leadership to be able to have this ability to take the point of view and being heard. I think the communication is vital, like I said before, it's crucial for te",
+      "Since I have already passed through the process of application to the MIRI program, I realized that Mirai Innovation Research Institute has the same values as I have as a person. It takes innovation, research, and global collaboration, and I think it makes a real world impact. So that's why I really want to be part of this program. I think Mirai allows me to learn from Japan innovation culture, and in the meanwhile, actively participate in the future or interior research. And all of this technology development, I think it's crucial for the future inspiration for different new generations, of course for the developing countries as I am. So I think it represents like a platform for me to jump into the future of new big projects. So I take this like an investment for the future and take more experience for experts around the world. This environment is exactly where I can grow and contribute meaningfully.",
+      "I come from a region with limited access to dense aerospace education and new technologies, so I think this scholarship is not only an opportunity for me, it's an investment for the future global collaboration. I can bring knowledge and I could contribute with these advancements, so I think I deserve and I'm the best fit and best candidate for this opportunity because I have leadership, I've been working in different projects and I have consistently working through the several years, past years, working in these new technologies and well, I personally love Japan as well, so I think these two things, building and mixing aerospace technologies and my favorite culture, which is Japan and Asia, I think I'm the best fit. I'm actively studying and trying to be really consistent with what I want and so I think I'm the best candidate for this. This scholarship will enable long term impact, not just individual benefit."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "The answer is clear and well-structured, demonstrating a good understanding of the complexities involved in electrical harness design and integration in aerospace manufacturing.",
+        "_id": "69752d4325a92d65efe0f727"
+      },
+      {
+        "score": 75,
+        "explanation": "The answer shows relevant experience and emphasizes reliability, but could benefit from more specific examples and clarity in the explanation of design processes.",
+        "_id": "69752d4325a92d65efe0f728"
+      },
+      {
+        "score": 80,
+        "explanation": "The response provides a relevant experience and showcases leadership qualities, but could be improved with more detail on specific actions taken to motivate the team.",
+        "_id": "69752d4325a92d65efe0f729"
+      },
+      {
+        "score": 78,
+        "explanation": "The answer articulates a clear method for conflict resolution, emphasizing communication, but could be more concise and focused on specific outcomes.",
+        "_id": "69752d4325a92d65efe0f72a"
+      },
+      {
+        "score": 90,
+        "explanation": "The response effectively communicates the candidate's motivation and alignment with the program's values, with a strong emphasis on personal growth and global impact.",
+        "_id": "69752d4325a92d65efe0f72b"
+      },
+      {
+        "score": 82,
+        "explanation": "The answer highlights the candidate's background and aspirations well, but it could be more concise and focused on specific contributions they can make.",
+        "_id": "69752d4325a92d65efe0f72c"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769285703487_696f0f20dcd0208d10eddbd4.webm",
+    "interviewVideoTranscription": "Greetings. My name is Antonio Ramirez and I'm an electronics engineer from Costa Rica. I also have experience in avionics, robotics, and automation technology. I studied in the U. I also have a data degree in technical support in IT. I've been working in the space sector for several years. I have experience in different organizations and also my profile is a combination between the technical execution of leadership and multidisciplinary teams because I also served as the founder and the CEO of NERDSTAGE startup, which became one of the biggest here in Costa Rica, which is called BayamecaXtech, in which we were planning to build the first analog customer training center here in Central America. So I've been in charge of all of those kind of projects. I also was the director of a mission idea in a context in Japan as well, related with CubeSats. And well, Japan represents a dream for me and I'm really happy to apply for this program. I'm so excited",
+    "createdAt": "2026-01-20T05:14:08.607Z",
+    "updatedAt": "2026-01-27T03:36:08.145Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Jatniel Azai Maldonado Cevallos",
+    "email": "maldonadojatniel.02@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-57",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Female",
+    "dob": "2002-11-22",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Academic Writing, Crosscultural Teamwork, Data Analysis, Genetic Engineering, Adaptability, Animal Handling, Behavioral Experiments, Bioinformatics, Cut&run Technique, Directional Mutagenesis, Electrophysiological Validation, English, Italian, Japanese, Laboratory Management, Matlab, Molecular Cloning, Protein Expression, Receptor Functionality, Scientific Communication, Sitedirected Mutagenesis, Spanish, Statistical Analysis",
+    "cvAnalysis": "Academic Writing, Crosscultural Teamwork, Data Analysis, Genetic Engineering, Adaptability, Animal Handling, Behavioral Experiments, Bioinformatics, Cut&run Technique, Directional Mutagenesis, Electrophysiological Validation, English, Italian, Japanese, Laboratory Management, Matlab, Molecular Cloning, Protein Expression, Receptor Functionality, Scientific Communication, Sitedirected Mutagenesis, Spanish, Statistical Analysis",
+    "interviewCompleted": true,
+    "interviewScore": 87,
+    "interviewRecommendations": "**Overall Performance Assessment**\n\nThe candidate demonstrated a solid understanding of their technical skills and relevant experience in data analysis and neuroscience. They articulated their background effectively, showcasing both their academic achievements and practical applications of their knowledge. However, certain responses could benefit from enhanced clarity, structure, and confidence. The candidate also illustrated their adaptability and teamwork skills well, but there were opportunities to provide more specific examples and outcomes to strengthen their responses.\n\n**Strengths Identified in the Answers**\n\n- **Technical Proficiency:** The candidate effectively detailed their experience with R and MATLAB, highlighting specific projects that showcase their ability to handle complex datasets and apply statistical methods.\n- **Adaptability and Resilience:** They communicated their transition to a new environment and the challenges faced, successfully framing these experiences as opportunities for growth.\n- **Teamwork and Conflict Resolution:** The candidate demonstrated a positive approach to handling team conflicts by emphasizing active listening and collaboration, which is crucial in diverse work environments.\n- **Motivation and Vision:** Their motivation for applying to the program was articulated well, showcasing a desire to bridge the gap between neuroscience and technology, as well as a commitment to contributing to their home country.\n\n**Areas That Need Improvement**\n\n1. **Clarity and Structure:** Some answers lacked a clear structure, making it difficult for the interviewer to follow the candidate's thought process.\n2. **Specificity in Examples:** While the candidate provided examples, they could enhance their impact by being more specific about the outcomes or results of their actions.\n3. **Confidence in Delivery:** The candidate's responses occasionally came across as tentative. A more assertive delivery could enhance their presence during the interview.\n4. **Connection of Experience to Program Goals:** Although the candidate expressed motivation for the program, they could strengthen their case by explicitly connecting their experiences and skills to the specific goals and values of the organization.\n\n**Specific, Actionable Recommendations for Each Area of Improvement**\n\n1. **Clarity and Structure:**\n   - **Recommendation:** Practice the STAR (Situation, Task, Action, Result) method when formulating answers. This will help in organizing thoughts and providing a coherent narrative.\n   - **Action:** Before the interview, outline potential responses using this method to ensure clarity and fluidity.\n\n2. **Specificity in Examples:**\n   - **Recommendation:** When discussing past projects, include quantifiable results or impacts where possible, such as improvements in efficiency, accuracy, or contributions to team success.\n   - **Action:** Prepare a few key projects in advance that highlight specific results, such as “improved data processing speed by 20%” or “led a team that resulted in a published paper.”\n\n3. **Confidence in Delivery:**\n   - **Recommendation:** Engage in mock interviews or practice sessions to build confidence in verbal delivery. Focus on maintaining eye contact, using appropriate body language, and speaking clearly.\n   - **Action:** Record practice responses and review them to identify areas for improvement in tone and confidence.\n\n4. **Connection of Experience to Program Goals:**\n   - **Recommendation:** Research the Mirai Innovation Research Institute’s specific goals and values, then tailor responses to link personal experiences and skills directly to those goals.\n   - **Action:** Prepare a few key phrases that explicitly connect their background in neuroscience and technology to the institute’s mission.\n\n**Tips for Future Interviews**\n\n- **Research the Organization:** Prior to the interview, familiarize yourself with the organization’s recent projects, values, and culture. This knowledge can enhance your responses and demonstrate genuine interest.\n- **Practice Active Listening:** During the interview, ensure to listen carefully to the questions being asked. This will allow for more relevant and targeted responses.\n- **Stay Positive and Engaged:** Maintain a positive demeanor throughout the interview. Engage with your interviewer by asking questions about their experiences or insights related to the role or organization.\n- **Follow-Up:** After the interview, send a thank-you email expressing gratitude for the opportunity and reaffirming your interest in the program. This leaves a positive impression and reinforces your enthusiasm.\n\nIn conclusion, the candidate has a strong foundation of skills and experiences that can be effectively communicated in interviews. By focusing on clarity, specificity, confidence, and alignment with organizational goals, they can significantly enhance their performance in future interviews.",
+    "questions": [
+      "Can you describe your experience with data analysis and how you have applied it in your previous research projects?",
+      "How proficient are you in using Matlab for your experiments, and can you provide an example of a project where it was particularly beneficial?",
+      "How do you handle conflicts in a crosscultural team environment, and can you provide an example of a situation where you successfully navigated such a conflict?",
+      "Can you share an experience where your adaptability was tested in a laboratory setting, and how you managed to overcome the challenges?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "Of course, I have integrated both tools of R and MATLAB that I have received in my education at UNAM throughout my research experience to handle different types of complex data. In R specifically, during my internship at the University of Montreal, I developed scripts to process large-scale epigenetic datasets from cut-around experiments. I use R for statistical normalization and generating heatmaps and profile plots to visualize chromatin accessibility during neurodevelopment. I have used it also for many other small projects during my bachelor's degree.",
+      "Yes, I have used MATLAB. I have received MATLAB education or guidance during my neuroscience degree at UNAM, and I have used it during my time at the Laboratory of Behavioral and Plasticity. I utilized it to analyze datasets from rat models. I focused on automating the tracking of sexual reward behavior, which allowed for a more objective quantification of the kiss and expression effects. This project that I used it in, they taught me how to move beyond basic computation and use programming as a tool to extract meaningful biological insights from maybe noisy experimental data that we can have sometimes.",
+      "I handle multicultural conflicts by prioritising active listening and establishing a common technical language, centred on the project's goals. Nothing ever needs to be personal. I believe that in a diverse team, disagreements are often just different perspectives. And even if they are different, I can see how everything can be applied to the same thing. For example, during my research in Canada, I worked in a bilingual environment with researchers from various academic backgrounds, and we once had a disagreement regarding the statistical normalization of cut-and-run analysis, and instead of arguing, we talked about it, saw the different perspectives, and together we decided what was the best decision to make based on our goal for this project.",
+      "My adaptability was most tested during my transition at St. Justin Research Center in Canada. I arrived as a neuroscience student and with a background in behavioral studies from Mexico, but I had to immediately integrate into high-level epigenetic analysis and teamworking with the cut-and-run technique. So not only was I adapted to a new country and a new language, I was in a professional environment and I also had to bridge a significant technical gap that I have in bioinformatics, but I had to develop the skills and I put in the work, put in the hours, and I handled this by leveraging the resilience I gained during my exchange programs and by putting well putting in the extra hours for it to work.",
+      "My motivation for this program stems from a desire to transform fundamental neuroscience into tangible technological solutions. Until recently, I have focused mostly on molecular biology, but I really do think it is important to bridge the gap between neuroscience and innovation. And throughout my academic journey, from studying behavior to epigenetics, I have gained a deep understanding of the biological mechanisms of the brain. However, I realize that to truly help patients, to truly help people with neurodevelopmental disorders, we must bridge this gap between the wet lab and innovation. I am specifically drawn to MIRA Innovation because of its interdisciplinary approach. I am very excited about that, and I want to move beyond traditional research and learn how to integrate everything that I have learned and learn also this new perspective. ",
+      "I believe I deserve a place in this program because I offer a unique combination of rigorous scientific training and I have a proven global mindset. Through my research in Mexico and in Canada, I have mastered complex techniques and I have proved that I have the technical discipline required for high-level innovation. I have faced a lot of challenges and every time I always come up on top because I put in the work and I put in the hours and my academic journey across these countries has built a level of resilience and adaptability that I think is rare. And on the more grand scales, I want to not only bring my own perspective to this program, but I also want to bring back what I learned to Mexico to bridge this gap between neuroscience and technology also in my home country and hopefully give a different perspective in Japan. Thank you."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "Clear and well-founded answer with examples demonstrating practical application of data analysis tools.",
+        "_id": "696fe6646458687bc417f780"
+      },
+      {
+        "score": 80,
+        "explanation": "Good proficiency shown, but could benefit from more specific outcomes or results from the project.",
+        "_id": "696fe6646458687bc417f781"
+      },
+      {
+        "score": 90,
+        "explanation": "Strong response illustrating conflict resolution skills and effective collaboration in a diverse team.",
+        "_id": "696fe6646458687bc417f782"
+      },
+      {
+        "score": 80,
+        "explanation": "Describes adaptability well, but could provide more specific examples of skills gained and their application.",
+        "_id": "696fe6646458687bc417f783"
+      },
+      {
+        "score": 95,
+        "explanation": "Highly motivated and articulate, connecting personal experiences to the program's goals effectively.",
+        "_id": "696fe6646458687bc417f784"
+      },
+      {
+        "score": 90,
+        "explanation": "Compelling case for scholarship with personal achievements and a clear vision for future contributions.",
+        "_id": "696fe6646458687bc417f785"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1768940013004_696fd8ce770fb54cb07e28b8.webm",
+    "interviewVideoTranscription": "Hello, I am Yadniel Maldonado, a neuroscience student at UNAM, with a strong focus on molecular biology, but I want to make the jump into neurotechnology. I have a global academic background, having conducted research in Canada at St. Justin Research Hospital, and I completed an exchange semester in the Netherlands. This has made me highly adaptable to multicultural, high-tech environments. Currently, I am working on the genetic engineering of the oligodendrocyte Gamma-A receptor. I have mastered techniques like cotton rod and site-directed mutagenesis, which I combine with data analysis in R. I am passionate about bridging the gap between neuroscience and innovation to contribute to the understanding and help people with neurodevelopmental and neurocognitive disorders, which is why I am eager to join Mirai Innovation",
+    "createdAt": "2026-01-20T19:34:38.888Z",
+    "updatedAt": "2026-01-27T03:38:42.674Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Alexander Züst",
+    "email": "a.zuest@outlook.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-58",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Male",
+    "dob": "1998-03-18",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Biomedical Engineering, Neuroengineering, Prototype Development, System Design, Biomedical Signal Processing, Communication, Deep Learning, First Aid, Image Registration, Imaging Physics, Laser Sciences, Leadership, Project Management, Research, System Validation, Teamwork, Training",
+    "cvAnalysis": "Biomedical Engineering, Neuroengineering, Prototype Development, System Design, Biomedical Signal Processing, Communication, Deep Learning, First Aid, Image Registration, Imaging Physics, Laser Sciences, Leadership, Project Management, Research, System Validation, Teamwork, Training",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Comprehensive Analysis of Candidate’s Performance\n\n#### Overall Performance Assessment\nThe candidate demonstrates a solid understanding of their field and relevant experiences. They articulate their technical skills well, providing specific examples that showcase their qualifications. However, some answers could benefit from clearer structure and a more concise delivery. Overall, the candidate presents themselves as knowledgeable and passionate about their work, but slight adjustments in communication style would enhance their effectiveness.\n\n#### Strengths Identified in the Answers\n1. **Relevant Experience**: The candidate effectively highlights their hands-on experience in prototype development and deep learning applications in biomedical engineering, showcasing a strong technical background.\n2. **Leadership Skills**: They provide a compelling example of leadership while managing international projects, indicating strong organizational and interpersonal skills.\n3. **Cultural Awareness**: Their understanding of cultural dynamics in team settings is an asset, especially in international collaborations.\n4. **Motivation and Passion**: The candidate expresses a genuine enthusiasm for the program and its objectives, which is crucial for research-focused roles.\n5. **Academic and Entrepreneurial Achievements**: They successfully communicate their academic accomplishments and entrepreneurial experience, reinforcing their qualifications.\n\n#### Areas That Need Improvement\n1. **Clarity and Conciseness**: Some responses were lengthy and could benefit from a more concise delivery. This would help maintain the interviewer’s engagement and ensure key points are emphasized.\n2. **Specific Examples**: While the candidate provides examples, some responses could be further enhanced by including quantifiable outcomes or specific metrics that demonstrate success.\n3. **Structured Responses**: Answers could follow a more structured approach (e.g., Situation, Task, Action, Result - STAR method) to improve clarity and impact.\n4. **Confidence in Self-Promotion**: While the candidate lists achievements, they could convey their value with more confidence and assertiveness, particularly when discussing why they deserve the scholarship.\n\n#### Specific, Actionable Recommendations\n1. **Enhance Clarity and Conciseness**:\n   - Practice summarizing responses in a few key points before elaborating. Aim for a maximum of three main ideas per answer.\n   - Use bullet points in preparation to organize thoughts and ensure clarity during responses.\n\n2. **Incorporate Quantifiable Outcomes**:\n   - In future interviews, prepare to discuss specific metrics, such as the percentage increase in efficiency or revenue from projects, to provide concrete evidence of successes.\n   - Reflect on past experiences and identify key performance indicators that can be highlighted.\n\n3. **Adopt a Structured Response Format**:\n   - Familiarize yourself with the STAR method to structure answers effectively. Briefly describe the Situation, the Task at hand, the Action taken, and the Result achieved.\n   - Prepare a few scenarios in advance using this framework to ensure clarity during the interview.\n\n4. **Boost Confidence in Self-Promotion**:\n   - Practice discussing achievements and contributions in a confident tone, avoiding overly modest language. Frame accomplishments in terms of the value they bring to the prospective program.\n   - Engage in mock interviews with peers or mentors to build confidence in self-presentation.\n\n#### Tips for Future Interviews\n- **Research the Organization**: Tailor your responses to align with the mission and values of the organization. Knowing specific projects or values of MIRAI Innovation Research Institute can help connect your experiences more closely.\n- **Practice Active Listening**: During the interview, listen carefully to the questions and ensure that responses are directly addressing what was asked.\n- **Follow Up**: After the interview, consider sending a thank-you email that reiterates your enthusiasm for the position and reflects on key points discussed. This reinforces your interest and professionalism.\n- **Engage with Questions**: Prepare thoughtful questions to ask the interviewer, demonstrating your interest in the program and your proactive mindset.\n\nBy focusing on these areas for improvement and applying the recommendations mentioned, the candidate can significantly enhance their interview performance and present themselves more effectively in future opportunities.",
+    "questions": [
+      "Can you describe your experience with prototype development in biomedical engineering and how you approach the design process?",
+      "How do you apply deep learning techniques in your work related to biomedical signal processing?",
+      "Can you provide an example of a time when you demonstrated leadership in a project, and what the outcome was?",
+      "How do you handle conflicts within a team, and what strategies do you use to maintain effective communication?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "I worked in prototype development in various projects, both during my time as a research assistant at university, during my studies, as well during my time at my startup, where I developed robotic grippers and actuation systems. I normally have quite a hands-on approach, starting with digital and physical prototyping relatively early in the progress and nonetheless doing a detailed analysis of the requirements which a product needs to fulfil and looking at a wide variety of potential solutions, including some out-of-the-box thinking approaches to really reach novel innovative solutions. Thank you",
+      "So I'm currently working on a project still with my professor at the University of Birmingham as a continuation of my master project where we apply deep learning to on MEG signals from our Imagined Speech experiment, with the aim of translating those brain signals signals into brain representations of speech in generative audio models and as such generate or translate brain representations into machine-readable representations of speech. So we designed an entire experiment, created our own data set and now we're trying to solve this decoding and modeling problem with a wide range of different deep learning algorithms and architectures",
+      "One of my main responsibilities at the start-up is the design research and organisation of projects for grant applications to acquire new research funds. There I regularly design research projects, organize and  bigger and international research consortiums. I have one example where we coordinated three Swiss partners with a French partner currently working with partners in Germany, including both Eurostars, Eureka and  Horizon Europe projects. In this consortium it's really important to be aware of the interests of all members and really play on the strengths of each of them to get the best results",
+      "I think culturally, Swiss people are very focused on finding a common ground and I think that's also my approach when it comes to conflicts. It's important to really get an hollistic overview of the situation, to see and recognise the viewpoints of all involved parties and in their circumstances. With this, it's mostly really easy to find a conclusion where the team can continue to be effective and work together towards a common goal. It's just a matter of clear communication and alignment on these common goals. ",
+      "As you can certainly see from my CV, I really also did see myself reflected in the advert for the MIRAI Innovation Programme, I bringing a fascination for virtual reality, robotics, a background in computational neuroscience, the processing of neuroimaging data. And also now actively pursuing a research career together with a deep cultural interest in Japan has led me to decide to apply to this programme and I'd be honoured to collaborate with the researchers at Mirai for a better future of Japan and the world. ",
+      "I think I excelled both academically as well as with my entrepreneurial background, having both graduated with a distinction in computational neuroscience from the University of Birmingham last year, as well as having co-founded a robotics startup which now has successfully launched its first product on the market, has won various awards along the way, as someone who has already published scientific papers as part of his work as a research assistant at Zurich University of Applied Science. I also fit the research focus of the lab, with AI, neuroscience, robotics and VR experiance. And also I think I really share the same motivation of the MIRAI Innovation Lab founder, wanting to work towards a better future for people around the globe by the main driving force of innovation and research."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 80,
+        "explanation": "The answer provides a solid overview of experience in prototype development with relevant examples, but could benefit from clearer structure and more specific details.",
+        "_id": "696ff881c88dd30fdd839abe"
+      },
+      {
+        "score": 90,
+        "explanation": "The response is detailed and technical, showcasing a clear understanding of deep learning in biomedical signal processing with a specific project example.",
+        "_id": "696ff881c88dd30fdd839abf"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer illustrates leadership experience through a concrete example of project coordination and collaboration, although it could provide more details on the outcomes.",
+        "_id": "696ff881c88dd30fdd839ac0"
+      },
+      {
+        "score": 80,
+        "explanation": "The approach to conflict resolution is culturally informed and practical, but could include a specific example to enhance clarity.",
+        "_id": "696ff881c88dd30fdd839ac1"
+      },
+      {
+        "score": 75,
+        "explanation": "The motivation is articulated well, but the answer could be more concise and focused on specific aspects of the program.",
+        "_id": "696ff881c88dd30fdd839ac2"
+      },
+      {
+        "score": 90,
+        "explanation": "The response effectively highlights academic and entrepreneurial achievements, aligning personal motivations with the scholarship's goals, backed by concrete examples.",
+        "_id": "696ff881c88dd30fdd839ac3"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1768944032600_696fda3c6458687bc417f53e.webm",
+    "interviewVideoTranscription": "Hi, my name is Alex Anderson. I'm a roboticist and computational neuroscientist by training. I have a bachelor's degree in mechatronics in Switzerland, as well as a master's degree with a distinction from the University of Birmingham in England. Between my degrees, I also co-founded a robotics startup which uses soft robotics technology to make buildings more intelligent and and enable them to adjust in real time based on artificial intelligence algorithm on both user needs and energy requirements. I'm currently looking for a PhD position in at the intersection of artificial intelligence, bio, computing, neuroscience, and that's when I found your program. And I have a deep cultural interest in Japan and would love to also contribute to research at your lab. Thank you",
+    "createdAt": "2026-01-20T19:40:44.776Z",
+    "updatedAt": "2026-01-27T03:39:04.072Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Barret Smith Feusi",
+    "email": "bsfeusi@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-60",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Male",
+    "dob": "1993-07-08",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "C++, Linux, Machine Learning, Python, Robotics, Smart Prosthetics, 3d Printing, Arduino, Bash, Communication, Eeg, Emg, Japanese, Mandarin, Mechatronics, Problem Solving, Project Management, Teamwork",
+    "cvAnalysis": "C++, Linux, Machine Learning, Python, Robotics, Smart Prosthetics, 3d Printing, Arduino, Bash, Communication, Eeg, Emg, Japanese, Mandarin, Mechatronics, Problem Solving, Project Management, Teamwork",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrated a solid foundation in technical skills related to C++, Python, and team-based problem-solving in the context of robotics and smart prosthetics. While the responses showcased relevant experiences and knowledge, there were areas where clarity, specificity, and communication style could be improved. Overall, the candidate shows promise but would benefit from refining their interview technique to present their qualifications more effectively.\n\n### Strengths Identified in the Answers\n\n- **Technical Knowledge:** The candidate has a strong background in machine learning, robotics, and programming languages relevant to the field. Their experience with C++ and Python, particularly in developing AI models and smart prosthetics, is commendable.\n  \n- **Team Collaboration:** The candidate provided a clear example of working in a team setting, showcasing their ability to communicate in multiple languages and their commitment to understanding differing perspectives.\n\n- **Cultural Awareness:** The candidate’s motivation for applying to the program reflects a genuine interest in cultural immersion and professional growth in a global context, which is appealing to many organizations.\n\n### Areas That Need Improvement\n\n1. **Clarity and Specificity of Responses:**\n   - Some answers were vague or lacked specific examples that would allow the interviewer to fully grasp the candidate's contributions and impacts.\n\n2. **Communication Style:**\n   - The candidate's responses occasionally came off as disorganized or rambling, which can dilute the impact of their message.\n\n3. **Confidence in Self-Presentation:**\n   - While the candidate expressed their academic achievements, the explanation was somewhat generic. More specific examples of accomplishments would enhance their credibility.\n\n4. **Motivation Expression:**\n   - The motivation for applying to the program could be articulated more compellingly. The candidate should connect their goals more directly to the mission and values of the program.\n\n### Specific, Actionable Recommendations\n\n1. **Enhance Clarity and Specificity:**\n   - **Action:** Before the interview, practice structuring responses using the STAR method (Situation, Task, Action, Result) to provide clear and complete answers.\n   - **Example:** When discussing the smart prosthetic project, detail a specific challenge encountered, the actions taken, and the measurable result achieved.\n\n2. **Refine Communication Style:**\n   - **Action:** Work on concise communication by practicing responses with a friend or mentor. Record practice sessions to identify areas where the candidate tends to ramble or go off-topic.\n   - **Example:** Use bullet points in preparation to outline the key messages for each answer, ensuring that they remain focused and relevant.\n\n3. **Build Confidence in Self-Presentation:**\n   - **Action:** Prepare a portfolio of achievements and experiences, including concrete examples and metrics that illustrate the impact made in previous roles.\n   - **Example:** Instead of stating pride in academic achievements generally, mention specific honors, projects, or research papers that received recognition.\n\n4. **Strengthen Motivation Expression:**\n   - **Action:** Research the Mirai Innovation Research Institute and incorporate specific aspects of the program that resonate with personal goals.\n   - **Example:** Instead of broadly stating a desire to work in Japan, mention specific projects or innovations at the institute that align with the candidate's aspirations in smart prosthetics.\n\n### Tips for Future Interviews\n\n- **Practice Active Listening:** Ensure that responses are directly addressing the questions asked. If unsure, it’s acceptable to ask for clarification.\n  \n- **Engage with the Interviewer:** Show enthusiasm for the program and ask insightful questions. This demonstrates genuine interest and engagement.\n\n- **Follow-Up with Thank You Notes:** After the interview, send a thank-you email expressing appreciation for the opportunity and reiterating interest in the program. This leaves a positive impression.\n\n- **Stay Calm and Collected:** Use breathing techniques or visualization before the interview to manage anxiety and enhance focus.\n\nBy concentrating on these areas for improvement and implementing the recommendations provided, the candidate can enhance their performance in future interviews, making them a more compelling choice for potential employers or scholarship committees.",
+    "questions": [
+      "Can you describe a project where you used C++ and Linux to develop a machine learning application?",
+      "How have you utilized Python in your work with robotics or smart prosthetics?",
+      "Can you provide an example of a challenging team project you worked on and how you contributed to effective communication?",
+      "How do you approach problem-solving in a team setting when faced with differing opinions?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "Yes, I can. So my team and I at the BEAR Lab for UC Davis worked at developing C++, primarily, for the control flow of a smart prosthetic that was picking up the motor intentions of a patient that was looking to move a robotic hand. There wasn't as much Linux involved. In fact, actually, the operating system of choice was Windows. But at other times, I have used Linux for my own development of embedded systems, which were for projects that were outside the scope of what I was researching at UC Davis.",
+      "The key ways I have used Python in my work with robotics or smart prosthetics at UC Davis was through two major ways. One is the development of AI models, particularly with PyTorch, for training off of processed biosignals and determining either motor intentions of the individual, as in the case for a smart prosthetic hand, or for the emotional state of an individual with some research I helped my team conduct off of fMRI data. Aside from that, I have also helped the team at Bear Lab with the smart prosthetic hand, and I've also done my own work with Python for automation.",
+      "One of the most challenging projects I believe I've worked on in this field was actually not at my time at UC Davis, but was instead at a robotics company in Shanghai, China, DF Robot. At that time, I was working very hard to help one of my teams develop the automated control set GUI for a 6-axis robotic arm. My contributions came primarily through learning as much of inverse kinematics as I could for the sake of the project, and then helping my team to develop the automation commands for the rest of the project. The communication that I helped with was through using their native tongue, Mandarin, and through organizing some of the key aspects of the project. Thank you.",
+      "When a team has members who have differing opinions and start to struggle with which they're going to adopt, I usually try to lengthen the conversation. Usually there is a difference in perspective on the matter and that needs to be understood as best as possible. And it's usually, I find that if you help people to really relay their perspective in the best way possible, really make it known to all members of the team, conclusions tend to just sort of naturally form. People then are armed with the understanding to know which way to move forward. Most times it's just that simple",
+      "Ah, okay. I want to join the Mirai Innovation Research Immersion Program for two reasons. The first reason is that at this point in my life, I am as certain as one can be that my life's direction is taking me to Japan, since the number of work opportunities that deal with research at the intersection of medicine and technology are growing in Japan, and I am determined to live in Japan and find what cultural immersion can be like there. The second reason is that I hope for the MIRI program to give me chances to work with the experienced mentors and fellow students and graduates and people working directly in the industry settings who themselves are contributing to the body of research in smart prosthetics. If the immersion of this program can tackle both the immersion in technology research for fields like smart prosthetics and also the immersion in Japanese culture, then this absolutely is the perfect program for me.",
+      "I believe that the scholarship should be given to anyone with great academic achievements, and I can say for myself that I am proud of the academic achievements I have at UC Davis and the ones I have made prior to my time at UC Davis. And what they mean to me is that they are actually the start--much like a driver's license is the start of you officially driving--I feel like these achievements are the start of me actually going on a long journey to learn and study every facet of smart prosthetics that I can so that I will be able to make great contributions to the body of research in smart prosthetics"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 75,
+        "explanation": "The answer provides relevant project experience but contradicts the question by stating that Linux was not used prominently.",
+        "_id": "69700c9c950ff445499462d9"
+      },
+      {
+        "score": 80,
+        "explanation": "The response highlights specific applications of Python in AI and robotics, demonstrating relevant experience, but could benefit from more detail on the automation work.",
+        "_id": "69700c9c950ff445499462da"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer describes a challenging project with clear contributions and effective communication, showcasing language skills and team collaboration.",
+        "_id": "69700c9c950ff445499462db"
+      },
+      {
+        "score": 85,
+        "explanation": "The approach to problem-solving is well-articulated, emphasizing understanding and communication, although it could include specific examples.",
+        "_id": "69700c9c950ff445499462dc"
+      },
+      {
+        "score": 95,
+        "explanation": "The motivation is compelling, clearly outlining personal and professional reasons for applying, demonstrating a strong fit for the program.",
+        "_id": "69700c9c950ff445499462dd"
+      },
+      {
+        "score": 70,
+        "explanation": "The answer speaks to academic achievements but lacks a strong personal narrative or specific examples of contributions to justify the scholarship.",
+        "_id": "69700c9c950ff445499462de"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1768949274648_69700458950ff4454994610b.webm",
+    "interviewVideoTranscription": "Test, test, test. Okay. My name is Barrett Fusey. My Japanese name is Fumizu Hayate. I'm a recent graduate from UC Davis' Biomedical Engineering Master's program, and I focused on smart prosthetics and human assistive movement. I also have a programming language proficiency in Python, MATLAB, and C++ for robotics, and have used them many times for brain-computer interfaces at my research at UC Davis. Additionally, I have worked with Python for a six-control, automated control of a six-axis robotic arm, and for a simple prosthetic that I built with my team at UCLA about 10 years ago. I continually aim to overcome cultural and linguistic barriers wherever I decide to learn or work, so I commit myself to studying Japanese about two years ago and have reached an intermediate level. Thank you",
+    "createdAt": "2026-01-20T22:40:24.257Z",
+    "updatedAt": "2026-01-27T03:39:25.312Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Pawat Sukkasem",
+    "email": "pawatsuk.ps@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-78",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "2004-02-04",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Java, Node.js, Python, React, Adobe Premiere Pro, Blender, Critical Thinking, Effective Communication, English, Godot, Html, Japanese, Photoshop, Problem Solving, Teamwork, Thai, Time Management, Unity",
+    "cvAnalysis": "Java, Node.js, Python, React, Adobe Premiere Pro, Blender, Critical Thinking, Effective Communication, English, Godot, Html, Japanese, Photoshop, Problem Solving, Teamwork, Thai, Time Management, Unity",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrates a solid foundation in both technical skills and soft skills, showcasing a willingness to learn and grow. They articulate their experiences clearly, drawing on relevant academic projects to highlight their competencies. However, there are areas for improvement, particularly in providing more concrete examples and demonstrating a stronger personal connection to their motivations and aspirations.\n\n### Strengths Identified in the Answers\n\n- **Technical Knowledge**: The candidate effectively discusses their experience with Java and React, indicating a good understanding of object-oriented programming and component-based design.\n- **Problem-Solving Skills**: They provide a clear example of overcoming challenges in a project setting, particularly with React, demonstrating their ability to troubleshoot and adapt to technical difficulties.\n- **Communication Skills**: The candidate highlights their capability to facilitate teamwork and resolve conflicts through effective communication, which is crucial in collaborative environments.\n- **Motivation and Enthusiasm**: Their passion for research and innovation, especially regarding the desired program at Mirai Innovation Research Institute, is evident and aligns with their career aspirations.\n\n### Areas That Need Improvement\n\n- **Depth of Technical Examples**: While the candidate mentions their experiences, they could enhance their responses by providing more specific details about their contributions and outcomes.\n- **Personal Connection**: In discussing their motivations, the candidate could benefit from sharing personal anecdotes or experiences that connect them more deeply to their aspirations in research and technology.\n- **Confidence and Assertiveness**: At times, the candidate's phrasing could be more assertive, particularly when discussing their achievements and qualifications for the scholarship.\n\n### Specific, Actionable Recommendations for Each Area of Improvement\n\n1. **Depth of Technical Examples**:\n   - **Action**: Prepare to discuss specific projects in detail, including the technologies used, the role played, challenges faced, and the impact of the work.\n   - **Example**: Instead of saying, \"I worked on backend logic,\" they could say, \"I implemented RESTful APIs using Java that improved data retrieval speed by 20%, which streamlined the user experience on the frontend.\"\n\n2. **Personal Connection**:\n   - **Action**: Reflect on personal experiences that may have influenced their career path and be prepared to share these during interviews.\n   - **Example**: They could mention a specific moment during their studies that sparked their interest in research or a mentor who inspired them.\n\n3. **Confidence and Assertiveness**:\n   - **Action**: Practice delivering responses with a more assertive tone, emphasizing achievements without downplaying them.\n   - **Example**: Instead of saying, \"I believe I deserve this scholarship,\" they could confidently state, \"I am a strong candidate for this scholarship because I have consistently demonstrated my ability to succeed in research environments.\"\n\n### Tips for Future Interviews\n\n- **Practice Mock Interviews**: Engage in mock interviews with peers or mentors to build confidence and receive feedback on both technical and soft skills.\n- **Use the STAR Method**: Structure answers to behavioral questions using the Situation, Task, Action, Result (STAR) method to provide clear and concise responses.\n- **Prepare Questions for Interviewers**: Show interest in the institution and the program by preparing thoughtful questions for interviewers, demonstrating engagement and preparedness.\n- **Body Language and Tone**: Be mindful of body language and vocal tone. Maintaining eye contact and using a clear, steady voice can enhance the delivery of responses.\n- **Follow-Up**: After the interview, send a thank-you note to express gratitude for the opportunity and reiterate interest in the position or program.\n\n### Conclusion\n\nOverall, the candidate shows promise with a solid understanding of technical concepts and a good grasp of teamwork and communication. By addressing the areas for improvement and implementing the recommendations, they can enhance their interview performance and increase their chances of securing the desired position or scholarship. Encouragement to continue building on their strengths while working on identified weaknesses will serve them well in their career journey.",
+    "questions": [
+      "What experience do you have with Java and how have you utilized it in your previous projects?",
+      "Can you describe a project where you used React and the challenges you faced while implementing it?",
+      "Can you provide an example of a situation where your effective communication skills helped resolve a conflict within a team?",
+      "How do you prioritize tasks to manage your time effectively when working in a team environment?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "So most of my experience with Java comes from my coursework in faculty of ICT at Mahidol University. I used it to learn and apply object-oriented programming concepts such as classes, inheritance, and encapsulation. I also applied Java in web programming projects where I worked on the backend to implement basic application logic and support the web functionality alongside the Java. I also used JavaScript on the front end to create simple interactive features which help me understand how different parts of the web application connect. Through this project, I developed a solid foundation in Java and backend development, so I'm eager to continue learning and apply this skill in real-world internship environment.",
+      "I used React in a university project to develop a web application with reusable components and dynamic user interfaces, which helped me understand how React managed the component-based design. One challenge I faced was setting up and maintaining the consistent development environment. There were cases where differences in React or library versions caused warnings or unexpected behavior, especially when switching between machine or tools. To address this, I learned to check documentation carefully, manage dependency, and use version control to keep projects stable. Through this experience, I improved my ability to troubleshoot front-end issues and gained a better understanding of how React projects are structured and maintained.",
+      "During a university group project related to SAATM air traffic communication, our team faced a conflict because some tasks were highly dependent on each other. This led to overlapping work and confusion about responsibility which caused strife within the team. To address this, we used daily scrum-style meeting where each member clearly communicated what they have completed, what they were working on, and any problems they faced. I actively participated in this discussion by clarifying task boundaries and making sure dependencies were clearly understood. So, as a result, the team became more aligned, redundancies were reduced, and we were able to adapt more quickly to an issue. This experience showed me how effective communication and regular check-in can help resolve conflicts and keep the team working smoothly.",
+      "When working in a team, I start by listing all the tasks and prioritizing them based on the importance and urgency. We categorize tasks as urgent and important, important but not urgent, or low priority. After that, we assign tasks in a way that minimizes dependency so team members can work in parallel without waiting for others. If someone finishes early, they help support all the tasks that are still in progress. This approach helps the team stay organized, reduce delay, and use our time efficiently while maintaining flexibility.",
+      "My motivation for applying to Mirai Innovation Research Institute stemmed from my previous experience at JAIST where I learned that research is a powerful way to try innovation and advance technology in a meaningful way. That experience made me want to further develop my research skills in a professional research environment. I believe this program at Mirai would allow me to deepen my technical knowledge while contributing to innovation research projects that have real-world impact. I am particularly motivated by the opportunity to learn from researchers and apply my skills in a collaborative setting. In addition, I admire Japanese research culture, especially in its emphasis on discipline, precision, and continuous improvement, which strongly aligns with how I want to grow as a researcher and engineer.",
+      "I believe I deserve this scholarship because I have demonstrated both strong motivation and ability to grow in a research environment. Through my applied internship at JAIST, I gained hands-on experience and proved that I can adapt to academic research, learn independently, and contribute meaningfully to technical projects. I am highly motivated to continue developing my skills and apply them to create innovative technologies that I can contribute to the research community. This scholarship would allow me to fully focus on research and maximize my potential to contribute to the future of technological advancements. Additionally, I stated that I admire Japanese culture which aligns with my personal work ethics."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "Clear and well-founded answer with examples demonstrating understanding of Java and its application.",
+        "_id": "6974ac37df6cd8e0a73cb445"
+      },
+      {
+        "score": 80,
+        "explanation": "Good description of challenges faced with React, but could benefit from more specific examples.",
+        "_id": "6974ac37df6cd8e0a73cb446"
+      },
+      {
+        "score": 90,
+        "explanation": "Effectively illustrates the use of communication skills to resolve conflict, with a clear example of actions taken.",
+        "_id": "6974ac37df6cd8e0a73cb447"
+      },
+      {
+        "score": 75,
+        "explanation": "Practical approach to task prioritization, but could include more specifics on implementation within a team.",
+        "_id": "6974ac37df6cd8e0a73cb448"
+      },
+      {
+        "score": 90,
+        "explanation": "Strong motivation articulated with clear connections between past experience and future aspirations in research.",
+        "_id": "6974ac37df6cd8e0a73cb449"
+      },
+      {
+        "score": 80,
+        "explanation": "Well-articulated reasoning for deserving the scholarship, though could be strengthened with more quantifiable achievements.",
+        "_id": "6974ac37df6cd8e0a73cb44a"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769252125571_6970da2ed22ae23bf239a9e6.webm",
+    "interviewVideoTranscription": "Hi, I'm Pobasukasem, a software engineering student with a strong interest in programming and research-driven innovation. My academic journey began in bilingual school followed by a computer-focused program in high school, which led me to pursue a degree in software engineering at the Faculty of ICT, Maidone University. I'm currently a four-year student. My notable experiences include participating in Thailand's National Software Contest, Thailand's Home Game Jam, and an overseas internship in Japan at JICE, where I worked in a software engineering laboratory on road scenario analysis and formal method of verification. I have a strong problem-solving and programming skill in Java and Python, and I'm adaptable to learn new technologies. I'm fluent in English and have recently begun learning Japanese. I look forward to further developing my skills in international research environments",
+    "createdAt": "2026-01-21T13:52:46.259Z",
+    "updatedAt": "2026-01-27T03:44:56.198Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Jesus Dassaef Lopez Barrios",
+    "email": "dass.lopez.barrios@hotmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-102",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Male",
+    "dob": "2001-09-07",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Artificial Intelligence, Cloud Computing, Data Analysis, Data Visualization, Machine Learning, Python, Robotics, Sql, Tensorflow, User Experience Design, Adaptability, Automation, Communication, Computer Vision, Creativity, Critical Thinking, Deep Learning, Explainable Ai, Interdisciplinary Collaboration, Keras, Mentoring, Natural Language Processing, Presentation Skills, Problem Solving, Project Management, Reinforcement Learning, Research, Teaching, Teamwork, Technical Writing, Time Management",
+    "cvAnalysis": "Artificial Intelligence, Cloud Computing, Data Analysis, Data Visualization, Machine Learning, Python, Robotics, Sql, Tensorflow, User Experience Design, Adaptability, Automation, Communication, Computer Vision, Creativity, Critical Thinking, Deep Learning, Explainable Ai, Interdisciplinary Collaboration, Keras, Mentoring, Natural Language Processing, Presentation Skills, Problem Solving, Project Management, Reinforcement Learning, Research, Teaching, Teamwork, Technical Writing, Time Management",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrates a strong technical background and relevant experiences, particularly in machine learning, cloud computing, and effective communication. The responses indicate a good understanding of the industry and a clear passion for their field. However, there are areas where the candidate could improve their delivery and clarity to enhance their overall performance in an interview setting.\n\n### Strengths Identified in the Answers\n\n- **Technical Expertise**: The candidate showcases a solid grasp of machine learning concepts, cloud computing, and their applications in real-world scenarios. Their examples demonstrate hands-on experience and familiarity with advanced technologies.\n\n- **Problem-Solving Approach**: The candidate effectively outlines specific problems encountered in projects and how they addressed these issues, particularly in their machine learning and cloud computing discussions.\n\n- **Communication Skills**: The candidate articulates their thought process clearly, especially when discussing how they communicated complex ideas to non-technical stakeholders. The use of visuals and a storytelling approach is commendable.\n\n- **Motivation and Fit**: The candidate demonstrates a well-researched motivation for applying to the program, linking their personal goals with the institute’s mission and culture.\n\n### Areas That Need Improvement\n\n1. **Structure and Clarity of Responses**: While the candidate has strong content knowledge, some answers lack clear structure and could benefit from more concise delivery. \n\n2. **Over-Reliance on Past Experiences**: The candidate frequently referenced their Microsoft internship, which, while relevant, may give the impression of a limited scope of experience.\n\n3. **Response Length and Repetitiveness**: Some answers were lengthy and included unnecessary filler phrases. This may dilute key points and make them less impactful.\n\n4. **Handling Technical Jargon**: While the candidate has a strong technical vocabulary, there is a risk that some interviewers may not be familiar with all terms. Simplifying language could enhance understanding.\n\n### Specific, Actionable Recommendations for Each Area of Improvement\n\n1. **Structure and Clarity of Responses**:\n   - **Recommendation**: Use the STAR method (Situation, Task, Action, Result) to frame answers. This structure will help convey complex information in a digestible manner.\n   - **Action**: Practice structuring responses ahead of time, focusing on maintaining a clear narrative flow.\n\n2. **Over-Reliance on Past Experiences**:\n   - **Recommendation**: Diversify examples in responses by including different projects or experiences beyond the Microsoft internship.\n   - **Action**: Prepare a range of examples from various roles, emphasizing different skills and accomplishments to showcase a broader skill set.\n\n3. **Response Length and Repetitiveness**:\n   - **Recommendation**: Aim for brevity and avoid filler phrases. Focus on delivering essential information succinctly.\n   - **Action**: Practice summarizing key points in 1-2 sentences and rehearse responses to ensure conciseness.\n\n4. **Handling Technical Jargon**:\n   - **Recommendation**: When discussing technical concepts, explain terms in layman's language to ensure clarity for all audiences.\n   - **Action**: Rehearse explaining complex concepts to a non-technical audience, focusing on simplifying language and using analogies where appropriate.\n\n### Tips for Future Interviews\n\n- **Practice Active Listening**: Ensure you fully understand the questions before answering. If needed, take a moment to gather your thoughts or ask for clarification.\n\n- **Engage with the Interviewer**: Maintain eye contact, nod in agreement, and use verbal affirmations to show engagement. This builds rapport and creates a more interactive dialogue.\n\n- **Prepare for Behavioral Questions**: Anticipate common behavioral questions and prepare thoughtful, structured responses that reflect your experiences and skills.\n\n- **Follow-Up Questions**: Be prepared to answer follow-up questions or elaborate on particular points. This will demonstrate your depth of knowledge and ability to engage in discussion.\n\n- **Stay Calm and Positive**: Interviews can be stressful, but maintaining a positive and composed demeanor will reflect well on you. Practice relaxation techniques if needed before the interview.\n\nBy focusing on these recommendations and tips, the candidate can enhance their interview performance and present themselves as a confident, capable applicant ready to contribute to the Mirai Innovation Research Institute.",
+    "questions": [
+      "Can you describe a project where you utilized machine learning algorithms to solve a specific problem?",
+      "How have you applied your skills in cloud computing to enhance the performance of a data analysis project?",
+      "Can you provide an example of how you effectively communicated a complex technical concept to a non-technical audience?",
+      "How do you handle conflicts within a team to ensure collaboration and productivity?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "Great. Can you describe a project where you utilize machine learning algorithms to solve a specific problem? Well, one project I'm actually currently working on is healthcare computer vision for tauopathies classification, Alzheimer's-related neurodegenerative disease, from immunofluorescence microscopy. That's actually my recent work. The actual problem was manual slide reviews are slow and can be subjective, so I build models to classify disease patterns and explain their decisions. Regarding the machine learning approach, I train strong CNN baselines with a leakage-free pipeline and added granular explainability, for example, eigengradcam, grad-cam and occlusion checks, to verify the model focuses on relevant regions, not artifacts. Regarding the current extension, I'm now benchmarking VLMs, or visual language models, with zero-fish-shot and supervised fine-tuning, some post-training techniques such as SFT, including medical BLMs like MedGemma from Google and models like Gwen, you know, the Chinese ones, to compare accuracy",
+      "Okay, how have you applied your skills in cloud computing to enhance the performance of a data analysis project? So, I don't want to overuse my Microsoft internship experience, but I'm going to use it anyways. Well, in my Microsoft internship, I used cloud tools to make a data analysis workflow faster, more scalable, and easier to iterate on. I worked with large, production datasets by querying and navigating in Azure Data Explorer (Kusto) instead of pulling everything locally, which reduced latency and made experiments reproducible. I also run heavier modeling and feature engineering on cloud compute, so I could iterate quickly, then share results through lightweight deliverables like dashboards and a Streamlit What-If simulator for stakeholders. Overall, cloud helped me move from one-off analysis to a scalable pipeline with reliable, repeatable outputs. And that's it. Thank you",
+      "Okay, can you provide an example of how you effectively communicated a complex technical concept to a non-technical audience? Okay, so I'm going to use again my experience in Microsoft cause it's worth it for this case. So, during my Microsoft internship, I had to explain a predictive modeling result to stakeholders, who were not machine learning specialists, obviously, basically the PMs. Instead of starting with algorithms, I framed it as a risk and decision story. Which services are most likely to trigger action items, and what can we change to reduce that risk? I used simple visuals, sub-drivers, and before-after scenarios, and built a small what-if simulator, so they could adjust a few inputs and immediately see how the predicted risk changed. I also clarified limits in plain language, like, this is not a guarantee, it is probability based on historical patterns. And summarized the ticket weight as a short set of actions, rather than technical metrics. And that's it. Thank you",
+      "I get it. So, regarding this question, I think I handled team conflicts by keeping the focus on the shared goal and the facts, not personalities, basically. First of all, what we are trying to achieve by when and what success looks like. Maybe as a second point, listen to each side separately and together to understand the real root cause, misaligned assumptions on peer ownership, different risk tolerance, or communication gaps. Number three, kind of like make the disagreement concrete. Write down options, trade-offs, and what data will resolve it. Number four, maybe propose a small testable plan, a quick prototype, a comparison, or a short spike, so the decision is evidence-based. Finally, agree on the next steps in writing and set a check-in to ensure momentum. Basically, overall, this is how I think this approach keeps collaborating strong, turns conflict into a structured decision, and prevents the same issue from repeating over and over again. That's it. Thanks again!",
+      "Great, so I'm applying because Miri is kind of like a rare chance to spend three months fully focused on hands-on research in Japan, in exactly the areas I'm building my career around, in this case AI, computer vision, and robotics, with a strong mentorship and the goal of producing publishable outcomes. My background spans robotic systems, industry ML, including my Microsoft internship, of course, and research with multiple publications across healthcare and agriculture computer vision. What I want next is an environment where I can move fast from idea to prototype to results, using state-of-the-art tools like vision language models, VLMs, and multi-modal pipelines, maybe agents, and collaborate closely with researchers in a lab setting. Finally, I'm also motivated by the international aspects. I value Japanese research culture and I want to deepen my network and experience in Japan while contributing real output to Mirai's projects. And actually, I want to come back to Japan, you know. Thank you",
+      "Okay, it seems that I have to do all over again, okay. I believe, first of all, that I deserve this scholarship because I have a proven track record of turning opportunities into real, measurable outcomes, and I will use MIRI to produce high-quality research that represents MIRI well. Second of all, I combine academic excellence and innovation with execution. I have multiple peer-reviewed publications across computer vision and machine learning, including work presented at CVPR workshops, and I'm currently extending my research toward a journal submission. I also bring a strong industry experience, including my Microsoft internship and an applied scientist internship in Japan, where I build real systems on real data and communicate our results to stakeholders. And finally, most importantly, I'm ready to contribute immediately at MIRI. I can move from ideas to prototype quickly, work independently with mentorship, and deliver outcomes such as a working demo, a technical report, and a publishable paper. I believe that's it. I'm pretty excited to be here. Thank you. And finally, I had to do it all over again, so I don't know why. The platform? Thank you still!"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "The answer clearly describes a relevant project involving machine learning, showcasing technical depth and specific applications. However, the clarity is slightly diminished by jargon and lengthy sentences.",
+        "_id": "6971712c48b10d71f91d12c4"
+      },
+      {
+        "score": 80,
+        "explanation": "The candidate effectively communicates their cloud computing experience, emphasizing practical applications and outcomes. The response could benefit from more specific examples of challenges faced and solutions implemented.",
+        "_id": "6971712c48b10d71f91d12c5"
+      },
+      {
+        "score": 90,
+        "explanation": "This answer demonstrates a strong ability to communicate complex concepts clearly to a non-technical audience. The use of relatable frameworks and visuals highlights effective communication skills, making it a strong response.",
+        "_id": "6971712c48b10d71f91d12c6"
+      },
+      {
+        "score": 75,
+        "explanation": "The answer provides a structured approach to conflict resolution but lacks depth in personal experience or specific examples. More concrete instances would enhance the relevance and impact of the response.",
+        "_id": "6971712c48b10d71f91d12c7"
+      },
+      {
+        "score": 88,
+        "explanation": "The candidate's motivation for joining the program is well-articulated, connecting personal ambitions with the program's offerings. The answer showcases relevant background and enthusiasm, though it could be more concise.",
+        "_id": "6971712c48b10d71f91d12c8"
+      },
+      {
+        "score": 82,
+        "explanation": "The candidate presents a compelling case for deserving the scholarship, citing accomplishments and readiness to contribute. However, the response is slightly repetitive and could be more focused on unique contributions.",
+        "_id": "6971712c48b10d71f91d12c9"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769040561265_69714cee7f30c77fab88a5cf.webm",
+    "interviewVideoTranscription": "Hi, my name is Daz Lopez. I'm a Master in Computer Science AI student with a BS in Robotics and Digital Systems Engineering, and my work spans robotics, computer vision, and applied AI across multiple domains. My research and publications cover healthcare, AI, including a CVPR workshop paper and an ongoing journal extension on explainable microscopy for Alzheimer's-related neurodegeneration, precision agriculture, a Q1 appliances paper using MasterCNN, and broader applied machine learning, a Mi'kai paper. I also have a strong industry experience as a data scientist intern at Microsoft and as an applied scientist intern in Japan, where I built computer vision prototypes on real-world multimodal data. I'm currently focused on state-of-the-art multimodal AI world models, and I also have a strong personal interest in the physical space. I'm excited about MIRI because it aligns with my background, and I'm ready to contribute to a strong, publishable project. Thank you",
+    "createdAt": "2026-01-21T22:02:22.682Z",
+    "updatedAt": "2026-01-27T03:53:00.159Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Pablo Bermejo Hernández",
+    "email": "contact@pablobh.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-105",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "2007-01-07",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "C++, Cpu Design, Docker, Git, Github, Java, Javascript, Linux, React, 3d Rendering, Assembly, Astro, Cmake, Css3, Embedded Systems, English, Entrepreneurship, Express, Glsl, Html5, Japanese, Opengl, Physics Engines, Problem Solving, Research, Spanish, Teaching, Teamwork, Technical Writing, Voxel Engines",
+    "cvAnalysis": "C++, Cpu Design, Docker, Git, Github, Java, Javascript, Linux, React, 3d Rendering, Assembly, Astro, Cmake, Css3, Embedded Systems, English, Entrepreneurship, Express, Glsl, Html5, Japanese, Opengl, Physics Engines, Problem Solving, Research, Spanish, Teaching, Teamwork, Technical Writing, Voxel Engines",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Overall Performance Assessment\n\nThe candidate demonstrated a strong technical background and a clear passion for their field. Their answers reflected a solid understanding of relevant technologies and experiences that could add value to the program at Mirai Innovation Research Institute. However, the responses were occasionally vague and lacked specific examples or measurable outcomes that would make their achievements more compelling. Overall, the candidate has potential, but there is room for improvement in articulating their experiences and tailoring their responses to better fit the interview context.\n\n### Strengths Identified in the Answers\n\n1. **Technical Knowledge**: The candidate showcased a deep understanding of C++, Docker, and game engine development, which are important skills for the role they are applying for.\n   \n2. **Leadership Experience**: They provided an example of managing a team, illustrating their ability to lead and collaborate effectively.\n\n3. **Teaching Ability**: The candidate has experience in teaching technical concepts, indicating strong communication skills and a commitment to helping others understand complex topics.\n\n4. **Motivation and Passion**: Their enthusiasm for robotics, AI, and Japanese culture was evident, which can resonate well with interviewers looking for candidates who are genuinely interested in the field.\n\n5. **Unique Profile**: The candidate highlighted a rare combination of skills in hardware, software, and teaching, which could differentiate them from other applicants.\n\n### Areas That Need Improvement\n\n1. **Specificity and Clarity**: Some responses were vague and could benefit from more concrete examples and details about their contributions and achievements.\n\n2. **Structured Responses**: The answers sometimes lacked a clear structure, making it difficult for the interviewer to follow their train of thought.\n\n3. **Outcome Focus**: The candidate should emphasize the impact of their work and the results achieved rather than just describing tasks.\n\n4. **Practice with Cultural Context**: While the candidate mentioned their interest in Japanese culture, showing more awareness of the specific cultural aspects of the organization could strengthen their application.\n\n### Specific, Actionable Recommendations for Each Area of Improvement\n\n1. **Specificity and Clarity**:\n   - **Action**: Prepare detailed examples for each experience that illustrate not just the tasks completed, but also the challenges faced, how they were overcome, and the results achieved.\n   - **Example**: Instead of saying \"I made a ray tracing engine,\" expand this to include what specific challenges you faced, how you approached them, and what you learned or achieved from the project.\n\n2. **Structured Responses**:\n   - **Action**: Use the STAR (Situation, Task, Action, Result) method to structure answers, which will help in presenting experiences coherently.\n   - **Example**: For teamwork questions, start by outlining the Situation and Task, followed by the Actions taken, and conclude with the Results.\n\n3. **Outcome Focus**:\n   - **Action**: Quantify achievements where possible. This could include metrics like performance improvements, time saved, or user adoption rates.\n   - **Example**: Instead of stating \"I managed a team,\" say \"I led a team that improved system performance by 20% through optimized code structures.\"\n\n4. **Practice with Cultural Context**:\n   - **Action**: Research the values, mission, and current projects of the Mirai Innovation Research Institute to tailor responses that resonate with their objectives.\n   - **Example**: Mention specific projects or values of the institute that align with your skills and interests to show that you are well-informed and genuinely interested.\n\n### Tips for Future Interviews\n\n- **Practice Mock Interviews**: Conduct mock interviews with peers or mentors to receive constructive feedback on your delivery and content.\n- **Refine Your Elevator Pitch**: Develop a concise summary of your background, strengths, and motivations that can be shared at the beginning of the interview.\n- **Stay Calm and Confident**: Practice relaxation techniques to help manage anxiety before the interview. Confidence can significantly enhance delivery and engagement.\n- **Ask for Feedback**: After the interview, if possible, ask for feedback from the interviewer to identify strengths and areas for improvement.\n\nBy focusing on these areas for improvement and applying the actionable recommendations, the candidate will enhance their interview skills and increase their chances of success in future opportunities.",
+    "questions": [
+      "Can you describe your experience with C++ and how you've applied it in previous projects?",
+      "How do you utilize Docker in your development workflow, and what advantages does it provide?",
+      "Can you give an example of a time when you worked collaboratively in a team to solve a complex problem?",
+      "How do you approach teaching technical concepts to others, especially those who may not have a strong background in technology?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "C++ is a really powerful language because it allows me to control the memory at low level. I've worked with embedded systems like Arduino, but most of the time I tend to work into more complex things, for example game engines from scratch using only OpenGL, and I've touched a little bit of Vulkan. I generally make simulations and to design logic and make this performant code. For example, I've made a ray tracing engine to understand the core principles about ray tracing and all the math. I've also programmed a little bit of simulations and more with Java about physics simulation and I have a deep understanding about the language",
+      "Docker is a powerful tool because it allows you to decouple things into modules and build into production more easily. For example, instead of having a database and the backend, the API, and the frontend or the code that shows the frontend, instead of having everything mixed together, it's more easily if you configure everything into a separate Docker and then you mix it to production. For example, the benefits is, for example, I've worked into my local computer and I can, for example, use Windows and then upload my web page to other external services and I'm sure that I'm not going to have problems with dependencies, for example, for my web page or in the past, or I've used it to prevent those conflicts between your local machine and the external machine you're trying deploy to.",
+      "For example, this summer I've managed a team of three persons, I was the leader, and we were trying to design the core principles and how the system should be managed and interact for my game Industrialized, that it's under my personal brand Electrodiux. So we had to figure out how to manage scalability as well as performance, and for example to mix different backgrounds, OpenGL, Vulkan, to be able to make optimizations and also have the abstraction power. So we've designed general code maps of how things should be structured, and I've designed a roadmap and managed the tasks with the team with Trello. And that showed me that good code starts always with a good design first, and then you implement the solution instead of trying to implement the solution without a plan before",
+      "I've been a programming and robotics tutor from children to university students. When I try to explain and give my classes I always try to demystify the things out of the black box and explain first the core principles and understand why things work the way they work and not just to try to explain just the steps you must follow to reach x or do y. I always try to that everyone really understands this the concept by explaining the core principles and using real world analogies like for example the clock CPU with a heartbeat or or everything like that. I try to always explain the things as easy as possible because I think that if you are not able to explain something simply it's because you don't understand it well enough.",
+      "I have several reasons of why I want to join this program. The first of all is your focus about robotics and human-augmented reality. So I think that fits my profile because I'm used to work with with simulation engines. Also I have hardware knowledge and it's related to the things I love and I'm passionate about. And I think this program is a bridge between the real world of robotics and the breakthrough technology of AI. I also have interest about Japanese culture. I'm a self-taught Japanese learner. I started learning two years ago. And I think this program is just the first steps of my long-term career goal to contribute to Japan's research ecosystem and probably in the future get there, work there for a company or research. So it's a really important first step for me",
+      "I think that I should be awarded with this scholarship because I'm a really rare hybrid profile that I have the knowledge from transistors and logic gates to more everything in between operating systems all through all to AI and modern systems. I've built an 8-bit computer from scratch, I also have made a lot of game engines and I have a deep understanding about how robotics work and how modern technology like AI work and I also have a passing research when for example I won the prize Fernando Cabrera about research and where I've talked about the technology of the telescopes in the Canary Islands and I also have knowledge about the Japanese language and I'm easily able to adapt to the culture and the language required for this scholarship."
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 85,
+        "explanation": "The answer demonstrates strong knowledge of C++, practical applications, and relevant projects. However, it could be more structured and concise.",
+        "_id": "69721cbd5338ad06eb99949b"
+      },
+      {
+        "score": 75,
+        "explanation": "The answer provides a decent overview of Docker's utility but could benefit from clearer examples and a more organized structure.",
+        "_id": "69721cbd5338ad06eb99949c"
+      },
+      {
+        "score": 80,
+        "explanation": "The response effectively illustrates leadership and collaboration, with specific examples, but could be more concise and focused on the problem-solving aspect.",
+        "_id": "69721cbd5338ad06eb99949d"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer showcases a solid approach to teaching, emphasizing core principles and effective communication. It is clear and relatable.",
+        "_id": "69721cbd5338ad06eb99949e"
+      },
+      {
+        "score": 85,
+        "explanation": "The response articulates a clear motivation for joining the program and aligns personal goals with the institute's focus. It could use slight refinement for clarity.",
+        "_id": "69721cbd5338ad06eb99949f"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer highlights a unique skill set and relevant experiences but lacks a more structured narrative and could benefit from clearer articulation of achievements.",
+        "_id": "69721cbd5338ad06eb9994a0"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769084421968_69715205f594ba064157dcc4.webm",
+    "interviewVideoTranscription": "Hi, my name is Pablo. I'm a computer science student and I've started learning programming since I was 13 years old and I have a really solid experience. I'm interested in deep engineering. I build, for example, an 8-bit computer that is there on the background and I also made a lot of 3D gaming giants from scratch using, for example, C++ and Java, so I'm very specialized about a low level. I'm currently studying at the university and I'm recognized as a high performance student and I combine a real deep understanding and background and I also have some research experience. For example, I won the Fernando Cabrera Astronomy Award on the Canary Islands and I also have a dedication about Japanese language and culture and I'm able to speak a little bit of Japanese",
+    "createdAt": "2026-01-21T22:24:05.709Z",
+    "updatedAt": "2026-01-27T03:54:11.955Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Aylin Louisa Kitte",
+    "email": "aylin@kitte-net.de",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-153",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "Postgraduate Level",
+    "gender": "Female",
+    "dob": "2000-05-27",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Crosscultural Leadership, Datadriven Decision Making, Design Thinking, Digital Strategy, Digital Transformation, Ai Literacy, Career Guidance, Communication, Continuous Improvement, Customercentric Sales, English, French, German, Global Strategic Thinking, Innovation, Language Skills, Leadership, Negotiation, Organizational Skills, Problem Solving, Project Management, Social Responsibility, Stakeholder Alignment, Strategic Management, Sustainability, Teamwork, Technical Problem Solving",
+    "cvAnalysis": "Crosscultural Leadership, Datadriven Decision Making, Design Thinking, Digital Strategy, Digital Transformation, Ai Literacy, Career Guidance, Communication, Continuous Improvement, Customercentric Sales, English, French, German, Global Strategic Thinking, Innovation, Language Skills, Leadership, Negotiation, Organizational Skills, Problem Solving, Project Management, Social Responsibility, Stakeholder Alignment, Strategic Management, Sustainability, Teamwork, Technical Problem Solving",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Comprehensive Analysis of Candidate's Performance\n\n**Overall Performance Assessment:**\nThe candidate demonstrated a solid understanding of key concepts such as data-driven decision-making, design thinking, effective communication, and problem-solving in team environments. Their responses reflect a proactive approach to both their current professional role and their future aspirations. However, the delivery was occasionally disjointed, lacking clarity in some areas, which could affect how their experiences are perceived by interviewers.\n\n---\n\n**Strengths Identified in the Answers:**\n\n1. **Relevant Experience:**\n   - The candidate effectively highlights their role at Airbus and their involvement in various projects, particularly emphasizing their leadership in the AI literacy project.\n   \n2. **Adaptability and Learning Orientation:**\n   - The desire to further their knowledge in AI and robotics, alongside their commitment to pursuing an MBA, showcases a strong motivation for personal and professional growth.\n\n3. **Cultural Awareness:**\n   - The candidate's interest in Japanese culture and their experience in working with transnational teams suggest a strong ability to navigate and appreciate diverse environments, an essential skill in today’s global workplace.\n\n4. **Positive Approach to Conflict:**\n   - The candidate’s perspective on conflicts as opportunities for creativity indicates a mature and constructive approach to teamwork and problem-solving.\n\n---\n\n**Areas That Need Improvement:**\n\n1. **Clarity and Structure of Responses:**\n   - Some answers were lengthy and could benefit from more concise and structured delivery. Important points were sometimes lost in extended explanations.\n\n2. **Specificity in Examples:**\n   - While the candidate provided general examples of their experiences, they could enhance their responses by including more specific, quantifiable outcomes or impacts from their projects, particularly in areas like data-driven decision-making and design thinking.\n\n3. **Engagement with the Interviewer:**\n   - The candidate could improve their engagement by asking follow-up questions or inviting the interviewer to delve deeper into their experiences, demonstrating an interactive dialogue.\n\n4. **Confidence in Self-Promotion:**\n   - While the candidate mentioned their qualifications and experiences, there could be a stronger emphasis on personal achievements and unique contributions to projects, particularly in the context of why they deserve the scholarship.\n\n---\n\n**Specific, Actionable Recommendations for Each Area of Improvement:**\n\n1. **Clarity and Structure of Responses:**\n   - **Practice the STAR Method:** Structure responses using the Situation, Task, Action, Result framework to ensure clarity and focus.\n   - **Rehearse Responses:** Practice delivering responses in a timed manner to become more concise while still covering key points.\n\n2. **Specificity in Examples:**\n   - **Quantify Achievements:** Incorporate metrics or specific outcomes (e.g., “improved quality by X%” or “reduced costs by Y%”) in their examples to illustrate impact more vividly.\n   - **Prepare Detailed Case Studies:** Select a few key projects and prepare detailed descriptions that can be used to answer multiple questions about skills and experiences.\n\n3. **Engagement with the Interviewer:**\n   - **Ask Thoughtful Questions:** Prepare a few questions that reflect genuine interest in the program or organization, encouraging a two-way conversation.\n   - **Practice Active Listening:** Focus on the interviewer's cues and respond to them, making the interaction feel more collaborative.\n\n4. **Confidence in Self-Promotion:**\n   - **Highlight Unique Contributions:** Prepare a few key achievements or contributions that stand out and practice discussing these with confidence.\n   - **Use Affirmative Language:** Frame accomplishments positively and assertively, reinforcing their value to the scholarship committee.\n\n---\n\n**Tips for Future Interviews:**\n\n- **Research the Institution:** Familiarize yourself with the specific goals and values of the Mirai Innovation Research Institute, allowing you to tailor your responses to align with their mission.\n- **Dress Professionally:** Ensure that your attire is appropriate for the interview setting, as this can influence the first impression.\n- **Practice Mock Interviews:** Engage in mock interviews with friends or mentors to build confidence and refine your answers.\n- **Follow Up:** After the interview, consider sending a thank-you email to express appreciation for the opportunity, reinforcing your interest in the program.\n\nBy focusing on these areas and implementing the recommendations, the candidate can enhance their interview performance, effectively communicate their strengths, and increase their chances of success in future applications and interviews.",
+    "questions": [
+      "Can you describe your experience with data-driven decision making and how you have applied it in a previous project?",
+      "How have you utilized design thinking in a digital strategy project to achieve a successful outcome?",
+      "Can you provide an example of a time when you demonstrated effective communication skills in a team setting?",
+      "How do you approach problem solving when faced with conflicts in a team environment?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "I'm pursuing my MBA program as a part-time program on Saturdays and Sundays. So during my normal week from Mondays to Fridays, I'm a full-time employee for Airbus here in Hamburg. I am supporting our team, our transnational team, as a Business Support Manager. So there I need data-driven decision-making every day. For example, with regards to performance management, we're using AI to analyze quality data and then to find the information we are needing, to use the information to improve quality, for example. So I am applying it every day and also, of course, in university projects, in the AI projects and the AI literacy project that I'm currently working on. ",
+      "I'm using design thinking, for example, in two different ways. One is a current AI literacy project at Airbus that I'm working on. I'm leading this project and I'm in charge of all the four work streams. And there, for example, we do design thinking workshops together with our employees in order to find out what are their concrete needs and to understand better how we can translate those needs in our AI digital solutions that we are currently developing. Second thing is, for the design thinking, I was a scholarship holder for the so-called TNCC program in 2025, where I was able to visit the Silicon Valley together with other scholarship holders. And there, we also had design thinking strategy workshops, talking about global challenges, for example, sustainability that I'm very excited about. My motto in life is one step further for a better future. That was a great opportunity to develop my innovation as well as intercultural skills. ",
+      "Communication, and in particular transcultural communication, is one of my core skills. I'm using communication every day in my professional life as a business support manager. I'm supporting our vice president of more than 400 employees acress four sites worldwide. With regards to all management communications, I'm for example leading our team meeting and I obviously need to take care of all four different sites that we're working on, so we have employees in Hamburg, Toulouse, Tianjin and Mobile, and all four sites have their different requirements, have their own local cultural needs, so that's where I'm demonstrating effective communication every day. Also, the AI literacy project is transnational and requires project communication. ",
+      "I think especially when it comes to innovation, conflicts can be also a good thing. Conflicts can be a source of creativity. So in general, I don't avoid conflicts. I try to create an environment where everyone feels comfortable, where everyone feels comfortable to speak out all the thoughts they have, where everyone feels comfortable to share feedback. So you can then discuss it together and resolve any conflicts and use it maybe as a good opportunity for some new ideas. Maybe there is something to improve, for example, and when no one speaks up, then you cannot resolve conflicts and improve. So for me, my problem-solving approach is always to create an environment where people are comfortable, where people are speaking about what they are thinking, and then you can sit all together, discuss pros and cons, and then find a good compromise together. ",
+      "So for me, there are two main motivations to applying to this great program of Mira Innovation Research Institute. First of all, I'm excited to learn more about AI, robotics, VR, about future-ready technologies, and I would really like to deep dive a little bit more and use this three-month program to, yeah, really just focus on one thing. I will stop and pause my job for this three-month period, so I have really time to learn more about the technologies. And second motivation for me is, the environment. I'm really looking forward to learn more about Japanese culture and business environemtn. I haven't been to Japan, so that would be a great opportunity with the scholarship. And I'm also excited to learn from my fellow students, from all the people that I will meet there. And I think it's a great opportunity, to strengthen the cross-country collaboration to learn from each other. And yeah, that's my two biggest motivations",
+      "I deserve to be awarded this scholarship because I'm an innovation enthusiast. I have a very strong, excellent academic background, with already two scholarships of the German government. I am bringing the perfect combination of industrial engineering, as well as leadership and innovation, so I can benefit from this project, but also contribute to the research which is carried out at Mirai Innovation University. So I'm looking forward to learn from my fellow students, but also contribute to their learning journey. And I'm also excited to learn more about Japanese culture, Japanese business environment, and to also bring some German, some maybe German background, some maybe German tradition to Japan. So I'm looking forward to this, and investing in me is taking a step together into the future, taking together a step further for a better society. Thank you"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 80,
+        "explanation": "The answer demonstrates relevant experience with data-driven decision-making and provides specific examples, but could benefit from clearer structure.",
+        "_id": "6973829287b583850aae6859"
+      },
+      {
+        "score": 85,
+        "explanation": "The response effectively outlines the application of design thinking in two contexts, showing initiative and leadership, while also connecting personal motivations.",
+        "_id": "6973829287b583850aae685a"
+      },
+      {
+        "score": 75,
+        "explanation": "The answer highlights effective communication skills and experience in a multicultural setting, but could provide a specific example to enhance clarity.",
+        "_id": "6973829287b583850aae685b"
+      },
+      {
+        "score": 90,
+        "explanation": "The response offers a thoughtful approach to conflict resolution, emphasizing the value of open communication and creativity, showcasing strong problem-solving skills.",
+        "_id": "6973829287b583850aae685c"
+      },
+      {
+        "score": 80,
+        "explanation": "The motivations for applying are clearly articulated, showing eagerness to learn and cultural interest, but could be more concise.",
+        "_id": "6973829287b583850aae685d"
+      },
+      {
+        "score": 88,
+        "explanation": "The answer effectively emphasizes the candidate's qualifications and enthusiasm, linking personal attributes to the scholarship's goals, while being persuasive and well-structured.",
+        "_id": "6973829287b583850aae685e"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769176337473_6971e781d4b59c2acf987591.webm",
+    "interviewVideoTranscription": "Hello, my name is Aileen Luisa Kitte. I'm from Germany and I'm very excited for this scholarship opportunity. In my past, I have already studied industrial engineering here in Germany, where I started with some projects related to AI with drones and where I found out about my passion for innovation and future ready technology. Now I'm currently studying in an MBA program, Leadership and Innovation, with an international perspective. It's a double degree program together with international school here in Hamburg. And yeah, I'm learning more about how organizations will be future ready in the future",
+    "createdAt": "2026-01-22T09:01:53.959Z",
+    "updatedAt": "2026-01-27T04:13:30.252Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Amuchie Chizitara Princewill",
+    "email": "amuchiechizitara@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-158",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "2002-12-19",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "3d Modelling, Attention To Detail, Collaboration, Continuous Learning, Critical Thinking, Dhcp, Dns, Effective Communication, Embedded Systems, Firewall Solutions, Hardwaresoftware Integration, Incident Detection And Response, Networking Fundamentals, Problem Solving, Resilience, Time Management",
+    "cvAnalysis": "3d Modelling, Attention To Detail, Collaboration, Continuous Learning, Critical Thinking, Dhcp, Dns, Effective Communication, Embedded Systems, Firewall Solutions, Hardwaresoftware Integration, Incident Detection And Response, Networking Fundamentals, Problem Solving, Resilience, Time Management",
+    "interviewCompleted": true,
+    "interviewScore": 83,
+    "interviewRecommendations": "### Comprehensive Analysis of Candidate's Interview Performance\n\n#### Overall Performance Assessment\nThe candidate demonstrated a commendable level of technical knowledge and passion for their field during the interview. However, their responses lacked clarity, structure, and conciseness. This made it challenging for the interviewer to grasp the full extent of the candidate's skills and experiences. While enthusiasm and motivation were evident, a more polished presentation would greatly enhance their chances of success in future interviews.\n\n#### Strengths Identified in the Answers\n1. **Technical Knowledge**: The candidate showed a solid understanding of 3D modeling software (Fusion 360) and network troubleshooting (DHCP and DNS), indicating practical experience.\n2. **Real-World Application**: The example of designing a robotic arm for users with impairments illustrates innovative thinking and a desire to solve real-world problems.\n3. **Team Collaboration**: The candidate provided a relevant example of teamwork in addressing a vulnerability within the bank's network, demonstrating problem-solving skills.\n4. **Motivation and Passion**: There was a clear enthusiasm for AI and computer vision, which underscores a strong intrinsic motivation for pursuing further education and research in these areas.\n\n#### Areas That Need Improvement\n1. **Clarity and Structure**: Answers were often lengthy and lacked clear organization. This can lead to confusion and make key points less impactful.\n2. **Technical Jargon**: Some responses included overly technical language without sufficient explanation, which could alienate interviewers who may not share the same technical background.\n3. **Conciseness**: Several responses could be shortened while retaining essential information. This would help maintain the interviewer’s attention and convey confidence.\n4. **Confidence in Delivery**: A few answers exhibited hesitation and filler language (e.g., “So,” “I feel,” “If you can call it”), which could undermine the perception of confidence.\n\n#### Specific, Actionable Recommendations for Each Area of Improvement\n1. **Clarity and Structure**\n   - **Recommendation**: Use the STAR (Situation, Task, Action, Result) method to structure responses to behavioral questions. This will help you provide clear and concise answers that directly address the question asked.\n   - **Action**: Before the interview, practice structuring your responses using this framework to enhance clarity.\n\n2. **Technical Jargon**\n   - **Recommendation**: Tailor technical explanations to the audience. Practice explaining complex concepts in simpler terms, ensuring that the interviewer can follow along.\n   - **Action**: Conduct mock interviews with peers from different backgrounds to gauge their understanding of your explanations.\n\n3. **Conciseness**\n   - **Recommendation**: Aim to limit answers to 1-2 minutes by focusing on key points. Prioritize the most relevant information to convey your message effectively.\n   - **Action**: Record practice responses and time them. Edit responses to eliminate unnecessary details and practice delivering them succinctly.\n\n4. **Confidence in Delivery**\n   - **Recommendation**: Work on body language and voice modulation to enhance confidence. Practice maintaining eye contact and using gestures to emphasize points.\n   - **Action**: Participate in public speaking or presentation workshops to improve overall delivery and confidence.\n\n#### Tips for Future Interviews\n- **Preparation**: Research the organization and role thoroughly. Tailor your answers to reflect how your skills and experiences align with their needs.\n- **Practice**: Engage in mock interviews with peers or mentors to build confidence and receive constructive feedback. Consider recording these sessions to review your performance.\n- **Ask Questions**: Prepare insightful questions to ask the interviewer. This demonstrates your interest and engagement in the role and organization.\n- **Stay Calm**: Take a deep breath before responding to questions, especially if they are challenging. This can help you gather your thoughts and respond more clearly.\n\nIn conclusion, while the candidate possesses significant strengths and passion for their field, enhancing clarity, structure, and delivery will greatly improve their interview performance. With focused practice and refinement, they can effectively convey their qualifications and stand out as a candidate.",
+    "questions": [
+      "Can you explain your experience with 3D modeling software and how you have applied it in past projects?",
+      "How do you approach troubleshooting network issues involving DHCP and DNS configurations?",
+      "Can you provide an example of a time when you had to collaborate with a team to solve a complex problem?",
+      "How do you manage your time effectively when working on multiple projects with tight deadlines?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "My experience with 3D modeling software can be seen when I used Fusion 360 to model my design of a voice-controlled robotic arm that feeds users with impairments, people that can't use their hands, or people that have medical conditions that they are not able to use their hands to eat. So I designed the software, I designed the robotic arm to be able to fit the user's descriptions to be able to eat. i ensured the motors and actuators fit the design to make it capable of delivering food and also safe for the users to use",
+      "So, for troubleshooting issues involving DHCP and DNS, for example, we start with DHCP, where users, in my experience, usually describe issues where they don't get network, usually resulting to an IPIPA IP, which is an IP that's gotten when the device does not connect to the DHCP server. I troubleshoot it by looking at their MAC addresses, looking at their locations, looking at where the routers are and their default gateways. As for DNS, we use applications of platforms called CloudStrike or Firewalls, which is able to translate those IPs into public IPs for them to be seen and for them to reach a URL. I compare them and ensure that they are allowed and protected on the network, if the URL being reached is malicious it will be flagged and blocked on the firewalls",
+      "So we had an experience where auditors, we call them, they are people that move between branches in our bank. They go to different branches and they are able to plug in and play, which means that they can get an IP with the bank's network at any branch you go with no restrictions. So that was because the DHCP servers there allow them to be able to automatically get IPs, which we did not want because it's an infringement and it's a vulnerability. So we looked at ways we could solve that issue and the way we solved it was by creating the users manually using static IPv4 mapping, map addressing. So we statically binded each user, which was a tedious task, but we were able to do it to avoid users moving from branch to branch and getting access. And when they needed access, they had to send an email which required an approval from their group heads for us to be able to map them statically in those branches.",
+      "When I have multiple projects with tight deadlines, I create a table, if you can call it a scale of preference, where each project is set based on some criteria, which are time, most importantly, and then difficulty, cost, resources that will be used, and then time in terms of how long it will take to complete it. So when all those projects are drawn on that table, the one that meets all those parameters the most is the one that will be on the highest, on the top list. And so how I manage my time is by avoiding the distractions, focusing on that specific project, and then putting all my time and effort into it. Try not to get too burnt out, because being burnt out can reduce the time you have on that project. But taking it easily and being focused on it, and also not neglecting the projects that come after by doing a little work on the w ",
+      "First of all, I would like to thank you, To Miirai Research Institute, for allowing me to apply. Secondly, my motivation is to get more knowledge about AI, which I'm really fascinated about, and also computer vision, which is a bit new to me, but I'm really eager to learn more about it. I've worked with AI in some few cases in school, and I was very intrigued and fascinated by the things and numerous things it's capable and will be capable of doing. And I see MIRA as a place where I can come and put in my all and develop and learn more about this in AI, computer vision, and a whole lot more. I'm really excited and I'm hopeful that MIRA Innovation Research Institute is capable and will help me develop as a person in my career. Im excited about integrating AI into my research projects like my robotic arm. ",
+      "First and foremost, I deserve to be awarded this scholarship because of my strong passion for AI and computer vision. I've worked with AI for a while now in school and I'm very intrigued by many possibilities it can provide for us and to the world. I feel AI can be a good thing if harnessed well and I also possess core values too within an organization or within a team that make me stand out. I'm a critical thinker, I'm a problem solver, I always try to learn, I always try to do my best in every situation, I'm a calm-headed person, I have good time management skills im resilient as well. I feel with these values and for my passion for AI, which aren't taught but inbred, I feel I deserve to be awarded this scholarship. Thank you. "
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 80,
+        "explanation": "The answer demonstrates practical application of 3D modeling software in a relevant project, but some grammatical errors and unclear phrasing affect clarity.",
+        "_id": "6973e0c127e6a3f4f61cea32"
+      },
+      {
+        "score": 75,
+        "explanation": "The answer provides a reasonable troubleshooting process but could benefit from more structure and clarity in explaining technical details.",
+        "_id": "6973e0c127e6a3f4f61cea33"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer provides a clear example of collaboration and problem-solving in a team context, but could use more detail on the team's dynamics.",
+        "_id": "6973e0c127e6a3f4f61cea34"
+      },
+      {
+        "score": 80,
+        "explanation": "The answer shows a systematic approach to time management, though it could be more concise and focused on clarity.",
+        "_id": "6973e0c127e6a3f4f61cea35"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer expresses genuine motivation and enthusiasm for the program, along with relevant personal experiences, making it compelling.",
+        "_id": "6973e0c127e6a3f4f61cea36"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer effectively communicates passion and personal qualities, but could be more concise to enhance impact.",
+        "_id": "6973e0c127e6a3f4f61cea37"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769187491984_69722ff016569cb346e09d4d.webm",
+    "interviewVideoTranscription": "Good day. My name is Amucheche Saraprenswil. I am from Imu State, Nigeria. I graduated from Naira University of Nigeria, studied computer engineering. I worked on a few projects while there. I worked on an obstacle avoiding robot. I also worked on a voice-controlled robotic arm that feeds people with disabilities. I have skills that are useful to an organization, such as I'm good with people. I'm very resilient. I'm eager to learn. I'm very attentive to detail. And I think these skills are what make me what I am with people. And I'm also eager to learn with people and strive to get better in every organization I find myself in. Thank you",
+    "createdAt": "2026-01-22T14:10:56.821Z",
+    "updatedAt": "2026-01-27T04:15:29.192Z",
+    "role": "user",
+    "isActive": true
+  },
+  {
+    "name": "Oscar Henry Sarmiento Sanchez",
+    "email": "oscarhenrysarmiento@gmail.com",
+    "digitalId": "FUTURE_INNOVATORS_JAPAN-2026-182",
+    "program": "FUTURE_INNOVATORS_JAPAN",
+    "academic_level": "University Level",
+    "gender": "Male",
+    "dob": "2003-06-09",
+    "cvAnalyzed": true,
+    "cvScore": 100,
+    "skills": "Data Cleaning, Data Transformation, Data Visualization, Docker, Feature Engineering, Git, Github, Linux, Machine Learning, Python, Sql, Adaptability, Apis, Collaboration, Communication, Computer Vision, Creativity, Critical Thinking, Deep Learning, Discipline, Gru, Leadership, Lstm, Natural Language Processing, Numpy, Ocr, Pandas, Problem Solving, Project Management, Reproducibility, Responsibility",
+    "cvAnalysis": "Data Cleaning, Data Transformation, Data Visualization, Docker, Feature Engineering, Git, Github, Linux, Machine Learning, Python, Sql, Adaptability, Apis, Collaboration, Communication, Computer Vision, Creativity, Critical Thinking, Deep Learning, Discipline, Gru, Leadership, Lstm, Natural Language Processing, Numpy, Ocr, Pandas, Problem Solving, Project Management, Reproducibility, Responsibility",
+    "interviewCompleted": true,
+    "interviewScore": 86,
+    "interviewRecommendations": "### Comprehensive Analysis of Candidate's Interview Performance\n\n#### Overall Performance Assessment\nThe candidate demonstrates a solid foundation in technical skills and a strong understanding of collaborative work environments. Their responses are generally well-structured and articulate, showcasing their knowledge in data cleaning, Docker usage, teamwork, communication, motivation for the program, and their deservingness for a scholarship. However, there are areas for improvement in clarity, confidence, and engagement that could enhance the impact of their answers.\n\n#### Strengths Identified in the Answers\n- **Technical Proficiency:** The candidate exhibits a strong grasp of data cleaning techniques and tools, demonstrating familiarity with Python, Pandas, NumPy, and Docker. This reflects both their practical experience and theoretical understanding.\n- **Team Collaboration:** They articulate their role in team settings effectively, highlighting their ability to structure workflows and maintain communication, which are vital skills in any work environment.\n- **Clear Motivation:** The candidate conveys a clear understanding of their personal and professional motivations for applying, emphasizing their desire for growth and contribution to their academic community.\n- **Commitment to Results:** Their responses indicate a strong work ethic and a commitment to delivering value, which is an appealing trait for any institution or employer.\n\n#### Areas That Need Improvement\n- **Clarity and Brevity:** Some answers are overly detailed and could benefit from more concise wording. This would help maintain the interviewer's attention and ensure key points stand out.\n- **Confidence in Delivery:** The use of phrases like “Hello again” and repetitive “Thank you” can detract from a confident presentation. These may come off as filler rather than enhancing the conversation.\n- **Engagement with the Interviewer:** The candidate could improve on making their responses more engaging by incorporating questions or inviting dialogue, rather than delivering monologues.\n\n#### Specific, Actionable Recommendations for Each Area of Improvement\n1. **Clarity and Brevity:**\n   - **Practice Summarizing:** Before the interview, practice summarizing complex ideas in one or two sentences. Focus on key points that directly answer the question.\n   - **Use Bullet Points:** When preparing for interviews, consider using bullet points to outline your main ideas for each topic, which can help keep your answers focused.\n\n2. **Confidence in Delivery:**\n   - **Minimize Filler Phrases:** Work on reducing the use of greetings and thank-yous that may interrupt the flow of conversation. Instead, focus on starting with the answer directly.\n   - **Mock Interviews:** Participate in mock interviews with peers or mentors to practice delivering your answers more confidently and succinctly.\n\n3. **Engagement with the Interviewer:**\n   - **Incorporate Questions:** After answering a question, consider adding an open-ended question such as, “Does that align with what you were looking for?” This invites dialogue and shows your interest in the conversation.\n   - **Active Listening:** Pay close attention to the interviewer’s reactions and adjust your responses based on their cues, which can create a more interactive experience.\n\n#### Tips for Future Interviews\n- **Research the Organization:** Understand the values and current projects of the Mirai Innovation Research Institute to tailor your responses to show alignment with their goals.\n- **Prepare STAR Responses:** For behavioral questions, use the STAR (Situation, Task, Action, Result) method to ensure your answers are structured and impactful.\n- **Practice Body Language:** In addition to verbal communication, practice positive body language (e.g., eye contact, open posture) to convey confidence and engagement.\n- **Follow-up Questions:** Prepare thoughtful questions to ask at the end of the interview. This demonstrates your interest and engagement with the opportunity.\n\nIn conclusion, the candidate has a strong foundation but can enhance their performance through more concise communication, confident delivery, and active engagement with the interviewer. With targeted practice and attention to these areas, they will be well-equipped for future interviews.",
+    "questions": [
+      "How do you approach data cleaning and what tools do you typically use in the process?",
+      "Can you explain your experience with Docker and how it has benefited your development workflow?",
+      "Can you describe a situation where you had to collaborate with a team to solve a complex problem?",
+      "How do you ensure effective communication when working on projects with team members from different backgrounds?",
+      "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
+      "Why do you deserve to be awarded this scholarship?"
+    ],
+    "answers": [
+      "Hello, I'll start by understanding the objective and the why of the data. What variable do you want to predict or explain? And what does a correct data mean? Then I make a quick version to detect typical problems, missing, duplicated, out-of-range values, inconsistencies of format, and possible biases due to the origin of the data. Then I clean in layers, first simple and traceable rules, and then finer validations according to the case. I always separate data cleaning and modeling so as not to contaminate the experiment. I mainly use Python tools with Pandas and NumPy for quick visualization, Matplotlib, Seaborn, and if the project asks for it, I document the process and leave reusable functions, with version control so that the cleaning is replicable. Thank you",
+      "Hello again. I have used Docker to ensure that my projects run the same on any machine. In practice, what has helped me the most is to eliminate the in my computer if it works, I set dependencies, versions and environment variables and I can launch services with the same configuration in development and deployment. In projects with App and Backend, Docker allowed me to package the service, test it in a controlled way and share it with other people without them depending on my local environment. It also facilitates collaboration, anyone can clone the repository and run the system with minimal steps. In short, Docker gives reproducibility, speed to iterate and less friction when moving from development to production. Thank you. Thank you",
+      "Hello again. In a Datatone, I worked with a team where the main challenge was to coordinate imperfect data, little time and quick technical decisions. My role was to help structure the workflow so that the team advanced without losing control. We divided the problem into blocks, cleaning and preparation, modeling, evaluation and presentation. I focused on leaving the technical part well connected, that what was cleaned fed the model correctly, and that the metrics were clear to compare alternatives. The key was to maintain a short communication rhythm, quick agreements, well-delimited tasks and frequent revisions. That allowed us to train a complete and defensible solution over time. I was also part of the team within the university, which allowed me to have the experience of collaborating with different people",
+      "The first thing is to align expectations. What does it mean? Success. What deliverables are needed and on what date? Then I translate the technical part to decisions. What is going to be done, why and what impact does it have? I avoid saturating with details, but I do leave evidence and traceability for those who need it. It works a lot for me to work with short and constant updates. What did I do? What's next? What blockages are there? I also use simple definitions to avoid misunderstandings and I confirm agreements in writing when the project requires it. My goal is that everyone understands the progress, even if they come from different areas, and that communication reduces friction instead of creating it, as well as using assertiveness and clear communication as the main axis of collaboration. Thank you",
+      "My motivation is to grow in an environment where the standard is high and the work becomes real results. I am interested because I combine mentoring, research and execution in an international context, and that speeds up learning in a way that can hardly be replicated from home. I want to take advantage of the excellence to raise my technical and professional level and come out with a solid project that I can defend with evidence. And for me, the return is also important. I want to return with applied knowledge, with high-level work practices and with a result that contributes to my academic environment and my region. Thank you very much",
+      "Hello again. I deserve this scholarship because I am going to take advantage of it with seriousness and with results. I come from a place where this type of opportunity does not seem easy and that is why when they open, I respond with discipline and constancy. I already had to demonstrate my work in an international environment and I learned to maintain the level, work hard, be clear and support what I say with results. If they choose me, I do not come to test my luck. I come to represent well, to work to the maximum and to return with a solid deliverable that has real value. And also, there will be a way for more students from where I come from"
+    ],
+    "interviewAnalysis": [
+      {
+        "score": 90,
+        "explanation": "The answer is well-structured, covers essential aspects of data cleaning, and provides relevant tools and methodologies, demonstrating a strong understanding of the process.",
+        "_id": "6972fa371a5b6055c5974316"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer effectively communicates the benefits of Docker, providing practical examples of its impact on the development workflow, though it could be slightly more concise.",
+        "_id": "6972fa371a5b6055c5974317"
+      },
+      {
+        "score": 80,
+        "explanation": "The response describes a relevant experience with teamwork and problem-solving, but it could include more specific outcomes or results to enhance its impact.",
+        "_id": "6972fa371a5b6055c5974318"
+      },
+      {
+        "score": 90,
+        "explanation": "The answer articulates a clear strategy for effective communication across diverse backgrounds, emphasizing alignment and simplicity, which is crucial in collaborative settings.",
+        "_id": "6972fa371a5b6055c5974319"
+      },
+      {
+        "score": 88,
+        "explanation": "The motivation is well-articulated with a focus on growth and contribution, demonstrating a strong alignment with the program's values and objectives.",
+        "_id": "6972fa371a5b6055c597431a"
+      },
+      {
+        "score": 85,
+        "explanation": "The answer conveys a strong sense of commitment and seriousness towards the scholarship, effectively linking personal background to motivation, though it could benefit from specific examples of past achievements.",
+        "_id": "6972fa371a5b6055c597431b"
+      }
+    ],
+    "interviewVideo": "https://mirai-interviews.s3.ap-southeast-2.amazonaws.com/videos/interview_1769141204563_6972e52297b3a4fe37bc5865.webm",
+    "interviewVideoTranscription": "Hello, I am Oscar Henry. I study engineering and artificial intelligence at the IPN. I come from a area of Tlaxcala and I am the first person in my family to go to university. I am interested in artificial intelligence for a practical reason. I like to solve problems with evidence, not with assumptions. That is why I have looked for experiences where I have to show results and explain them clearly. I presented my work in an international environment like NeurIPS and that experience confirmed to me that I can sustain a high standard and compete at that level. I am here because I want an opportunity that requires me, trains me with mentorship and allows me to return with concrete results that have an impact. Thank you",
+    "createdAt": "2026-01-23T03:04:02.995Z",
+    "updatedAt": "2026-01-27T04:23:31.017Z",
+    "role": "user",
+    "isActive": true
+  }
+]

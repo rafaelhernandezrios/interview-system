@@ -405,7 +405,32 @@ const Results = () => {
                   </div>
                 )}
 
-                {/* Interview Analysis and Recommendations */}
+                {/* Mensaje de agradecimiento y próximos pasos */}
+                {profile?.interviewCompleted && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Thank You for Completing Your Interview!</h3>
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-xl border-l-4 border-purple-500">
+                      <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                        <p className="mb-3">
+                          Thank you for completing your interview with <strong className="font-semibold text-gray-900">Mirai Innovation Research Institute</strong>. We appreciate the time and effort you invested in this process.
+                        </p>
+                        <div className="bg-white/60 p-4 rounded-lg border border-purple-200">
+                          <p className="font-semibold text-gray-900 mb-2">📢 Coming Soon:</p>
+                          <ul className="list-disc list-inside space-y-2 ml-2">
+                            <li><strong className="font-semibold">Personalized Recommendations:</strong> Detailed analysis and improvement suggestions based on your interview performance.</li>
+                            <li><strong className="font-semibold">Exclusive Webinars:</strong> Professional development webinars with certificates for all participants, brought to you by Mirai Innovation Research Institute.</li>
+                          </ul>
+                        </div>
+                        <p className="mt-3 text-gray-600 italic">
+                          Please stay tuned for updates! We will notify you via email when these resources become available.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Interview Analysis and Recommendations - COMENTADO TEMPORALMENTE */}
+                {/* 
                 {(interviewData?.recommendations || profile?.interviewRecommendations) && (
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-3">Performance Analysis & Recommendations</h3>
@@ -419,6 +444,7 @@ const Results = () => {
                     </div>
                   </div>
                 )}
+                */}
 
                 {/* Video Link */}
                 {profile?.interviewVideo && (

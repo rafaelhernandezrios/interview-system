@@ -8,7 +8,9 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "create-env": "node create-env.js",
-    "generate-recommendations": "node scripts/generateRecommendations.js"
+    "generate-recommendations": "node scripts/generateRecommendations.js",
+    "export-user-data": "node scripts/exportUserData.js",
+    "export-missing-users": "node scripts/exportMissingUsers.js"
   },
   "keywords": [
     "evaluation",
