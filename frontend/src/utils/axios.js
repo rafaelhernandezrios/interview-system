@@ -40,8 +40,32 @@ api.interceptors.request.use(
 
 // Interceptor para manejar errores de autenticación
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Si la respuesta es un blob, no intentar parsear como JSON
+    if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+      return response;
+    }
+    return response;
+  },
   (error) => {
+    // Si el error es de un blob response, verificar si es un error JSON
+    if (error.config?.responseType === 'blob' && error.response?.data instanceof Blob) {
+      // Intentar leer el blob como texto para ver si es un error JSON
+      error.response.data.text().then(text => {
+        try {
+          const jsonError = JSON.parse(text);
+          if (jsonError.message) {
+            console.error('Error from server:', jsonError.message);
+            alert(jsonError.message || 'Error downloading file. Please try again.');
+          }
+        } catch (e) {
+          // No es JSON, es un blob real
+          console.error('Error downloading file:', error);
+          alert('Error downloading file. Please try again.');
+        }
+      });
+    }
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

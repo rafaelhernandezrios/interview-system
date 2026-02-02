@@ -552,7 +552,24 @@ const AdminPanel = () => {
                       window.URL.revokeObjectURL(url);
                     } catch (error) {
                       console.error('Error downloading file:', error);
-                      alert('Error downloading file. Please try again.');
+                      // Si el error tiene un mensaje del servidor, mostrarlo
+                      if (error.response?.data) {
+                        // Si es un blob, intentar leerlo como texto
+                        if (error.response.data instanceof Blob) {
+                          error.response.data.text().then(text => {
+                            try {
+                              const jsonError = JSON.parse(text);
+                              alert(jsonError.message || 'Error downloading file. Please try again.');
+                            } catch (e) {
+                              alert('Error downloading file. Please try again.');
+                            }
+                          });
+                        } else {
+                          alert(error.response.data.message || 'Error downloading file. Please try again.');
+                        }
+                      } else {
+                        alert('Error downloading file. Please try again.');
+                      }
                     }
                   }}
                   className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all shadow-lg hover:shadow-xl flex items-center gap-2 text-sm"
@@ -580,7 +597,24 @@ const AdminPanel = () => {
                       window.URL.revokeObjectURL(url);
                     } catch (error) {
                       console.error('Error downloading file:', error);
-                      alert('Error downloading file. Please try again.');
+                      // Si el error tiene un mensaje del servidor, mostrarlo
+                      if (error.response?.data) {
+                        // Si es un blob, intentar leerlo como texto
+                        if (error.response.data instanceof Blob) {
+                          error.response.data.text().then(text => {
+                            try {
+                              const jsonError = JSON.parse(text);
+                              alert(jsonError.message || 'Error downloading file. Please try again.');
+                            } catch (e) {
+                              alert('Error downloading file. Please try again.');
+                            }
+                          });
+                        } else {
+                          alert(error.response.data.message || 'Error downloading file. Please try again.');
+                        }
+                      } else {
+                        alert('Error downloading file. Please try again.');
+                      }
                     }
                   }}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-2 px-4 rounded-lg transition-all shadow-lg hover:shadow-xl flex items-center gap-2 text-sm"
@@ -1029,6 +1063,95 @@ const AdminPanel = () => {
                               <DataCard label="Promotional Code" value={userDetails.application.promotionalCode || 'None'} />
                             </div>
                           </div>
+
+                          {/* Screening Status */}
+                          {userDetails.application?.scheduledMeeting && (
+                            <div className="glass-card p-6 mb-6">
+                              <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Screening Interview Scheduled
+                              </h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                <DataCard 
+                                  label="Scheduled Date & Time" 
+                                  value={userDetails.application.scheduledMeeting.dateTime 
+                                    ? new Date(userDetails.application.scheduledMeeting.dateTime).toLocaleString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZoneName: 'short'
+                                      })
+                                    : 'N/A'} 
+                                />
+                                <DataCard 
+                                  label="Timezone" 
+                                  value={userDetails.application.scheduledMeeting.timezone || 'N/A'} 
+                                />
+                                {userDetails.application.scheduledMeeting.zoomMeeting?.joinUrl && (
+                                  <DataCard 
+                                    label="Zoom Meeting" 
+                                    value={
+                                      <a 
+                                        href={userDetails.application.scheduledMeeting.zoomMeeting.joinUrl} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:underline"
+                                      >
+                                        Join Meeting
+                                      </a>
+                                    } 
+                                    colSpan={2}
+                                  />
+                                )}
+                                {userDetails.application.scheduledMeeting.additionalNotes && (
+                                  <DataCard 
+                                    label="Additional Notes" 
+                                    value={userDetails.application.scheduledMeeting.additionalNotes} 
+                                    colSpan={2}
+                                  />
+                                )}
+                              </div>
+                              
+                              {/* Generate Acceptance Letter Button */}
+                              <div className="pt-6 border-t border-white/20">
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const response = await api.get(`/admin/users/${selectedUser}/acceptance-letter`, {
+                                        responseType: 'blob'
+                                      });
+                                      const url = window.URL.createObjectURL(new Blob([response.data]));
+                                      const link = document.createElement('a');
+                                      const fullName = userDetails.application?.firstName && userDetails.application?.lastName
+                                        ? `${userDetails.application.firstName}_${userDetails.application.lastName}`
+                                        : userDetails.name?.replace(/\s+/g, '_') || 'User';
+                                      const fileName = `Acceptance_Letter_${fullName}.pdf`;
+                                      link.href = url;
+                                      link.setAttribute('download', fileName);
+                                      document.body.appendChild(link);
+                                      link.click();
+                                      link.remove();
+                                      window.URL.revokeObjectURL(url);
+                                    } catch (error) {
+                                      console.error('Error generating acceptance letter:', error);
+                                      const errorMessage = error.response?.data?.message || 'Error generating acceptance letter. Please try again.';
+                                      alert(errorMessage);
+                                    }
+                                  }}
+                                  className="inline-flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                  </svg>
+                                  Generate Acceptance Letter PDF
+                                </button>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Application Status */}
                           <div className="glass-card p-6">
