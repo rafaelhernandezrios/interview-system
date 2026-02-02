@@ -904,6 +904,22 @@ const AdminPanel = () => {
                 </div>
               ) : userDetails ? (
                 <div className="p-8">
+                  {/* Basic Information - Always Visible */}
+                  <div className="glass-card p-6 mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Basic Information
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <DataCard label="Email" value={userDetails.email} />
+                      <DataCard label="Program" value={userDetails.program || 'N/A'} />
+                      <DataCard label="Academic Level" value={userDetails.academic_level || 'N/A'} />
+                      <DataCard label="Digital ID" value={userDetails.digitalId || 'N/A'} />
+                    </div>
+                  </div>
+
                   {/* Tabs Navigation */}
                   <div className="flex gap-2 mb-6 border-b border-white/20 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                     <button

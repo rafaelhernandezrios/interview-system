@@ -43,6 +43,25 @@ const Interview = () => {
   const [shouldAutoStartRecording, setShouldAutoStartRecording] = useState(false); // Flag to auto-start recording
   const [countdownBeforeRecord, setCountdownBeforeRecord] = useState(0); // Visible 5s countdown before recording
   const countdownIntervalRef = useRef(null);
+  
+  // Tutorial video states (from main)
+  const [tutorialVideoUrl, setTutorialVideoUrl] = useState(null); // URL del video tutorial
+  const [tutorialVideoError, setTutorialVideoError] = useState(null); // Error al cargar el video tutorial
+  
+  // Retake and language states (from main)
+  const [retakeUsed, setRetakeUsed] = useState({}); // Track if retake has been used for each question index
+  const [selectedLanguage, setSelectedLanguage] = useState('en'); // Language for transcription: 'en' or 'es'
+  
+  // Summary and retake flow states (from main)
+  const [showSummary, setShowSummary] = useState(false); // Show summary before submit
+  const [showRetakeReason, setShowRetakeReason] = useState(false); // Show retake reason textbox
+  const [retakeReasonText, setRetakeReasonText] = useState(''); // Retake reason text
+  
+  // Satisfaction survey states (from main)
+  const [showSatisfactionSurvey, setShowSatisfactionSurvey] = useState(false); // Show satisfaction survey after submit
+  const [satisfactionRating, setSatisfactionRating] = useState(0); // Satisfaction rating 1-5
+  const [satisfactionComments, setSatisfactionComments] = useState(''); // Satisfaction comments
+  const [readyToSubmit, setReadyToSubmit] = useState(false); // Ready to show submit button
 
   // ============================================================================
   // STATE MACHINE: TTS/STT Voice Interaction Control
@@ -61,14 +80,44 @@ const Interview = () => {
   const currentQuestionIndexRef = useRef(null); // Ref para rastrear pregunta actual sin causar re-renders
   const reviewEditRef = useRef(null); // Ref para el cuadro de Review and edit (para scroll automático)
 
-  // Default questions
-  const defaultQuestions = [
-    "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?",
-    "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?"
-  ];
+  // Function to get default questions based on program (from main)
+  const getDefaultQuestions = (program) => {
+    const firstQuestion = "What is your motivation for applying to this program and joining Mirai Innovation Research Institute?";
+    
+    // Last question changes based on program
+    let lastQuestion;
+    if (program === 'FUTURE_INNOVATORS_JAPAN') {
+      lastQuestion = "Why do you deserve to be awarded this scholarship?";
+    } else {
+      lastQuestion = "What is your plan to finance your tuition, travel expenses, and accommodation during your stay in Japan?";
+    }
+    
+    return [firstQuestion, lastQuestion];
+  };
+
+  // Fetch tutorial video URL from backend (from main)
+  const fetchTutorialVideoUrl = async () => {
+    try {
+      const response = await api.get('/users/tutorial-video-url');
+      setTutorialVideoUrl(response.data.url);
+      setTutorialVideoError(null);
+    } catch (error) {
+      // If 404, the video doesn't exist
+      if (error.response?.status === 404) {
+        setTutorialVideoError('Tutorial video not found. Please ensure the file exists in S3 at videos/tutorial.mp4');
+      } else {
+        // Fallback to constructed URL if API fails
+        const bucketName = import.meta.env.VITE_AWS_BUCKET_NAME || 'mirai-interviews';
+        const region = import.meta.env.VITE_AWS_REGION || 'us-east-1';
+        const fallbackUrl = `https://${bucketName}.s3.${region}.amazonaws.com/videos/tutorial.mp4`;
+        setTutorialVideoUrl(fallbackUrl);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchProfile();
+    fetchTutorialVideoUrl();
     
     // Prevent text selection and copy on the entire page
     const preventSelection = (e) => {
@@ -189,11 +238,16 @@ const Interview = () => {
       // Check if interview is already completed
       if (response.data.interviewCompleted) {
         setInterviewCompleted(true);
+        // Redirect to results page if interview is already completed
+        navigate('/results');
         return;
       }
       
       if (response.data.questions && response.data.questions.length > 0) {
         const generatedQuestions = response.data.questions;
+        // Get default questions based on user's program
+        const userProgram = response.data.program || '';
+        const defaultQuestions = getDefaultQuestions(userProgram);
         // Combine generated questions with default questions
         const combinedQuestions = [...generatedQuestions, ...defaultQuestions];
         setQuestions(generatedQuestions);
@@ -1183,7 +1237,8 @@ const Interview = () => {
       const timeoutMs = 180000; // 3 minutes for transcription
       const response = await Promise.race([
         api.post('/users/transcribe-video', {
-          s3Url: publicUrl
+          s3Url: publicUrl,
+          language: selectedLanguage // Send selected language to backend
         }, {
           headers: {
             'Content-Type': 'application/json',
@@ -1316,6 +1371,19 @@ const Interview = () => {
   };
 
   const retakeRecording = () => {
+    // Check if retake has already been used for this question (from main)
+    if (retakeUsed[currentQuestionIndex] === true) {
+      setError('You have already used your retake for this question. You can only retake once.');
+      return; // Already used retake for this question
+    }
+    
+    // Mark retake as used for current question IMMEDIATELY (synchronous-like update)
+    const updatedRetakeUsed = {
+      ...retakeUsed,
+      [currentQuestionIndex]: true
+    };
+    setRetakeUsed(updatedRetakeUsed);
+    
     // Cancel any ongoing transcription
     setIsTranscribing(false);
     setAnswerSaved(false); // Reset answer saved flag
@@ -1465,10 +1533,8 @@ const Interview = () => {
       });
       
       setMessage('Interview submitted successfully');
-      // Redirect to Dashboard to see updated progress
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+      // Show satisfaction survey instead of redirecting immediately (from main)
+      setShowSatisfactionSurvey(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Error submitting interview');
     } finally {
@@ -1599,6 +1665,112 @@ const Interview = () => {
                     Your progress is automatically saved as you answer.
                   </p>
                 )}
+              </div>
+            </div>
+
+            {/* Tutorial Video (from main) */}
+            {tutorialVideoUrl || tutorialVideoError ? (
+              <div className="glass-card bg-gradient-to-br from-purple-50/80 to-pink-50/80 border border-purple-200/50 rounded-2xl p-6 sm:p-8 mb-8">
+                <h3 className="font-bold text-gray-900 mb-4 sm:mb-6 text-lg sm:text-xl flex items-center gap-2">
+                  <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Tutorial Video
+                </h3>
+                <p className="text-gray-700 text-sm sm:text-base mb-4">
+                  Watch this tutorial to learn how to complete the interview process:
+                </p>
+                <div className="w-full rounded-lg overflow-hidden bg-gray-900">
+                  {tutorialVideoError ? (
+                    <div className="w-full h-64 flex flex-col items-center justify-center bg-gray-800 text-gray-300 p-4">
+                      <svg className="w-12 h-12 text-yellow-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <p className="text-sm text-center">{tutorialVideoError}</p>
+                      <p className="text-xs text-gray-400 mt-2 text-center">
+                        URL: {tutorialVideoUrl || 'Not available'}
+                      </p>
+                    </div>
+                  ) : tutorialVideoUrl ? (
+                    <video
+                      controls
+                      className="w-full h-auto"
+                      style={{ maxHeight: '500px' }}
+                      src={tutorialVideoUrl}
+                      onError={() => {
+                        setTutorialVideoError('Failed to load tutorial video. Please check that the file exists and has public-read permissions in S3.');
+                      }}
+                      onCanPlay={() => {
+                        setTutorialVideoError(null);
+                      }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <div className="w-full h-64 flex items-center justify-center bg-gray-800 text-gray-400">
+                      Loading tutorial video...
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Language Selection (from main) */}
+            <div className="glass-card bg-gradient-to-br from-blue-50/80 to-purple-50/80 border border-blue-200/50 rounded-2xl p-6 sm:p-8 mb-8">
+              <h3 className="font-bold text-gray-900 mb-4 sm:mb-6 text-lg sm:text-xl flex items-center gap-2">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                </svg>
+                Select Interview Language / Seleccionar Idioma de la Entrevista
+              </h3>
+              <p className="text-gray-700 text-sm sm:text-base mb-4">
+                Choose the language you will use to answer the interview questions. This will ensure accurate transcription of your responses.
+              </p>
+              <p className="text-gray-600 text-xs sm:text-sm mb-4 italic">
+                Elige el idioma que usarás para responder las preguntas de la entrevista. Esto asegurará una transcripción precisa de tus respuestas.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <button
+                  onClick={() => setSelectedLanguage('en')}
+                  className={`flex-1 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedLanguage === 'en'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-600 shadow-lg transform scale-105'
+                      : 'bg-white/60 text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50/60'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    <span className="font-semibold">English</span>
+                    {selectedLanguage === 'en' && (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
+                <button
+                  onClick={() => setSelectedLanguage('es')}
+                  className={`flex-1 p-4 rounded-xl border-2 transition-all duration-300 ${
+                    selectedLanguage === 'es'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white border-blue-600 shadow-lg transform scale-105'
+                      : 'bg-white/60 text-gray-700 border-gray-300 hover:border-blue-400 hover:bg-blue-50/60'
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                    <span className="font-semibold">Español</span>
+                    {selectedLanguage === 'es' && (
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    )}
+                  </div>
+                </button>
               </div>
             </div>
 
@@ -1965,17 +2137,34 @@ const Interview = () => {
               // Para preguntas de texto (no video question)
               // Estado: Answer Saved - Botón Next o Submit según si es la última pregunta
               if (answerSaved && !isReviewMode && !isTranscribing) {
-                // Si es la última pregunta de texto, mostrar botón Submit
+                // Si es la última pregunta de texto
                 if (isLastTextQuestion) {
+                  // Si ya seleccionaron "submit", mostrar botón de submit (from main)
+                  if (readyToSubmit) {
+                    return (
+                      <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
+                        <div className="flex items-center justify-center">
+                          <button
+                            type="submit"
+                            disabled={submitting}
+                            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-full px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {submitting ? 'Submitting...' : 'Submit Interview'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // Si no, mostrar botón "Review Final Answers" (from main)
                   return (
                     <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl -mt-4 sm:-mt-8 relative z-20">
                       <div className="flex items-center justify-center">
                         <button
-                          type="submit"
-                          disabled={submitting}
-                          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-full px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                          type="button"
+                          onClick={() => setShowSummary(true)}
+                          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-full px-6 sm:px-8 py-3 sm:py-4 font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
                         >
-                          {submitting ? 'Submitting...' : 'Submit Interview'}
+                          Review Final Answers
                         </button>
                       </div>
                     </div>
@@ -2125,10 +2314,21 @@ const Interview = () => {
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
                     <button
                       type="button"
-                      onClick={retakeRecording}
-                      className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (retakeUsed[currentQuestionIndex] !== true) {
+                          retakeRecording();
+                        }
+                      }}
+                      disabled={retakeUsed[currentQuestionIndex] === true}
+                      className={`glass-card border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all text-sm sm:text-base ${
+                        retakeUsed[currentQuestionIndex] === true
+                          ? 'bg-gray-100/40 cursor-not-allowed opacity-50'
+                          : 'bg-white/40 hover:bg-white/60 hover:scale-105'
+                      }`}
                     >
-                      Retake Recording
+                      {retakeUsed[currentQuestionIndex] === true ? 'Retake Used' : 'Retake Recording'}
                     </button>
                     <button
                       type="button"
@@ -2185,10 +2385,21 @@ const Interview = () => {
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
                     <button
                       type="button"
-                      onClick={retakeRecording}
-                      className="glass-card bg-white/40 hover:bg-white/60 border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all hover:scale-105 text-sm sm:text-base"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (retakeUsed[currentQuestionIndex] !== true) {
+                          retakeRecording();
+                        }
+                      }}
+                      disabled={retakeUsed[currentQuestionIndex] === true}
+                      className={`glass-card border border-white/30 text-gray-700 rounded-full px-4 sm:px-6 py-2 sm:py-3 font-semibold transition-all text-sm sm:text-base ${
+                        retakeUsed[currentQuestionIndex] === true
+                          ? 'bg-gray-100/40 cursor-not-allowed opacity-50'
+                          : 'bg-white/40 hover:bg-white/60 hover:scale-105'
+                      }`}
                     >
-                      Retake Recording
+                      {retakeUsed[currentQuestionIndex] === true ? 'Retake Used' : 'Retake Recording'}
                     </button>
                     <button
                       type="button"
@@ -2215,6 +2426,208 @@ const Interview = () => {
           </form>
         </div>
       </div>
+
+      {/* Summary Modal - Before Submit (from main) */}
+      {showSummary && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card bg-white/90 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">Review Your Final Answers</h2>
+            
+            {/* Summary of Answers */}
+            <div className="space-y-4 mb-6">
+              {/* Video Question */}
+              <div className="glass-card bg-white/60 p-4 rounded-xl">
+                <h3 className="font-semibold text-gray-900 mb-2">1. Video Presentation</h3>
+                {videoAnswers[0] ? (
+                  <p className="text-gray-600 text-sm">✓ Video recorded</p>
+                ) : (
+                  <p className="text-gray-400 text-sm">No video recorded</p>
+                )}
+              </div>
+              
+              {/* Text Questions */}
+              {allQuestions.map((question, idx) => {
+                const answerIndex = idx + 1; // answers[1] = allQuestions[0]
+                const answer = answers[answerIndex] || '';
+                return (
+                  <div key={idx} className="glass-card bg-white/60 p-4 rounded-xl">
+                    <h3 className="font-semibold text-gray-900 mb-2">{idx + 2}. {question}</h3>
+                    <p className="text-gray-600 text-sm whitespace-pre-wrap">
+                      {answer.trim() || <span className="text-gray-400 italic">No answer provided</span>}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <button
+                onClick={() => {
+                  setShowSummary(false);
+                  setShowRetakeReason(true);
+                }}
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl px-6 py-4 font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+              >
+                I would like to retake the interview
+              </button>
+              <button
+                onClick={() => {
+                  setShowSummary(false);
+                  setReadyToSubmit(true);
+                }}
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl px-6 py-4 font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+              >
+                I would like to submit these final answers
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Retake Reason Modal (from main) */}
+      {showRetakeReason && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card bg-white/90 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Why would you like to retake the interview?</h2>
+            <p className="text-gray-600 mb-4 text-sm">
+              Please describe your reason. Your previous interview data will be deleted.
+            </p>
+            
+            <textarea
+              value={retakeReasonText}
+              onChange={(e) => setRetakeReasonText(e.target.value)}
+              placeholder="Please describe why you would like to retake the interview..."
+              className="w-full h-32 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
+              required
+            />
+            
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4 rounded">
+              <p className="text-yellow-800 text-sm font-semibold">⚠️ Warning</p>
+              <p className="text-yellow-700 text-sm">Your previous interview data will be permanently deleted if you proceed.</p>
+            </div>
+
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowRetakeReason(false);
+                  setRetakeReasonText('');
+                }}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl px-6 py-3 font-semibold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!retakeReasonText.trim()) {
+                    setError('Please provide a reason for retaking the interview');
+                    return;
+                  }
+                  
+                  try {
+                    // Save retake reason and reset interview
+                    await api.post('/users/retake-interview', {
+                      reason: retakeReasonText
+                    });
+                    
+                    // Reset all interview states
+                    setShowRetakeReason(false);
+                    setRetakeReasonText('');
+                    setShowSummary(false);
+                    setReadyToSubmit(false);
+                    setAnswers(new Array(allQuestions.length + 1).fill(''));
+                    setVideoAnswers([]);
+                    setRecordedVideo(null);
+                    setVideoBlob(null);
+                    setVideoPresentationTranscription('');
+                    setCurrentQuestionIndex(0);
+                    setRetakeUsed({});
+                    setAnswerSaved(false);
+                    setIsReviewMode(false);
+                    setInterviewStarted(false);
+                    setMessage('Interview has been reset. You can now start again.');
+                  } catch (error) {
+                    setError(error.response?.data?.message || 'Error resetting interview');
+                  }
+                }}
+                disabled={!retakeReasonText.trim()}
+                className="flex-1 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-xl px-6 py-3 font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirm Retake
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Satisfaction Survey Modal (from main) */}
+      {showSatisfactionSurvey && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-card bg-white/90 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Thank You!</h2>
+            <p className="text-gray-600 mb-6">
+              Your interview has been submitted successfully. We would appreciate your feedback on your experience.
+            </p>
+            
+            <div className="mb-6">
+              <label className="block text-gray-900 font-semibold mb-3">
+                How satisfied were you with the interview process? (1-5)
+              </label>
+              <div className="flex gap-2 justify-center">
+                {[1, 2, 3, 4, 5].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => setSatisfactionRating(rating)}
+                    className={`w-12 h-12 rounded-full font-bold text-lg transition-all ${
+                      satisfactionRating === rating
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white scale-110 shadow-lg'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {rating}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="mb-6">
+              <label className="block text-gray-900 font-semibold mb-2">
+                Additional Comments (Optional)
+              </label>
+              <textarea
+                value={satisfactionComments}
+                onChange={(e) => setSatisfactionComments(e.target.value)}
+                placeholder="Share any additional feedback..."
+                className="w-full h-32 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              />
+            </div>
+            
+            <button
+              onClick={async () => {
+                try {
+                  // Submit satisfaction survey
+                  await api.post('/users/satisfaction-survey', {
+                    rating: satisfactionRating,
+                    comments: satisfactionComments
+                  });
+                  
+                  // Close survey and redirect to dashboard
+                  setShowSatisfactionSurvey(false);
+                  navigate('/dashboard');
+                } catch (error) {
+                  // Even if survey fails, redirect to dashboard
+                  console.error('Error submitting satisfaction survey:', error);
+                  setShowSatisfactionSurvey(false);
+                  navigate('/dashboard');
+                }
+              }}
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white rounded-xl px-6 py-4 font-bold text-lg shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+            >
+              Submit Feedback & Continue
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
