@@ -645,31 +645,24 @@ router.patch("/users/:userId/reports/:reportIndex/resolve", async (req, res) => 
 router.get("/users/:userId/acceptance-letter", async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    // Get user and application data
+
     const user = await User.findById(userId).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const application = await Application.findOne({ userId: userId });
-    
-    // Check if user has scheduled screening
+
     if (!application || !application.scheduledMeeting || !application.scheduledMeeting.dateTime) {
-      return res.status(400).json({ 
-        message: "User has not scheduled a screening interview yet. Cannot generate acceptance letter." 
+      return res.status(400).json({
+        message: "User has not scheduled a screening interview yet. Cannot generate acceptance letter."
       });
     }
 
-    // Get user's full name (from application or user model)
     const fullName = application?.firstName && application?.lastName
       ? `${application.firstName} ${application.lastName}`
       : user.name;
 
-    // Get registration code (digitalId)
     const regCode = user.digitalId || `MIRI-2026-01-${String(userId).slice(-3).padStart(3, '0')}`;
 
-    // Get program name for subject
     const programNames = {
       'MIRI': 'Mirai Innovation Research Immersion (MIRI) Program 2026',
       'EMFUTECH': 'Emerging Future Technologies Program 2026',
@@ -680,284 +673,197 @@ router.get("/users/:userId/acceptance-letter", async (req, res) => {
     };
     const programName = programNames[user.program] || 'Mirai Innovation Research Immersion (MIRI) Program 2026';
 
-    // Create PDF with A4 size
     const doc = new PDFDocument({
       size: 'A4',
-      margins: {
-        top: 72,
-        bottom: 72,
-        left: 72,
-        right: 72
-      }
+      margins: { top: 60, bottom: 60, left: 72, right: 72 }
     });
 
-    // Set response headers
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="Acceptance_Letter_${fullName.replace(/\s+/g, '_')}.pdf"`);
-
-    // Pipe PDF to response
     doc.pipe(res);
 
-    // Header section
+    // --- HEADER ---
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const logoPath = path.join(__dirname, '../../frontend/src/assets/logo.png');
-    
-    const headerY = 72;
-    const headerLeftX = 72;
-    const headerRightX = doc.page.width - 72 - 100; // Space for logo (100px width)
-    
-    // Left side: Address information
-    doc.fontSize(11)
-       .font('Helvetica-Bold')
-       .text('Mirai Innovation Research Institute', headerLeftX, headerY, { width: headerRightX - headerLeftX - 20 })
-       .font('Helvetica')
-       .fontSize(10)
-       .text('[Headquarters] Minamihonmachi 2-3-12 Edge Honmachi', headerLeftX, headerY + 20, { width: headerRightX - headerLeftX - 20 })
-       .text('Chuo-ku, Osaka-shi, Osaka, Japan. 5410054', headerLeftX, headerY + 35, { width: headerRightX - headerLeftX - 20 })
-       .text('contact@mirai-innovation-lab.com', headerLeftX, headerY + 50, { width: headerRightX - headerLeftX - 20 });
-    
-    // Right side: Logo
+
+    const headerY = 60;
+    const textWidth = doc.page.width - 144;
+
+    // Dirección (Izquierda)
+    doc.fontSize(10).font('Helvetica-Bold')
+       .text('Mirai Innovation Research Institute', 72, headerY)
+       .font('Helvetica').fontSize(9).fillColor('#444444')
+       .text('[Headquarters] Minamihonmachi 2-3-12 Edge Honmachi')
+       .text('Chuo-ku, Osaka-shi, Osaka, Japan. 5410054')
+       .text('contact@mirai-innovation-lab.com');
+
+    // Logo (Derecha)
     if (fs.existsSync(logoPath)) {
-      try {
-        doc.image(logoPath, headerRightX + 20, headerY, { width: 100, height: 100, fit: [100, 100] });
-      } catch (err) {
-        console.log('Could not add logo:', err.message);
-      }
+      doc.image(logoPath, doc.page.width - 72 - 80, headerY - 10, { width: 80 });
     }
 
-    // Date at top right (above logo area)
+    // Fecha dinámica
     const today = new Date();
     const day = today.getDate();
-    const suffix = day === 1 || day === 21 || day === 31 ? 'st' :
-                   day === 2 || day === 22 ? 'nd' :
-                   day === 3 || day === 23 ? 'rd' : 'th';
-    const formattedDate = today.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    }).replace(/\d+/, day + suffix);
-    
-    doc.fontSize(11)
+    const suffix = day === 1 || day === 21 || day === 31 ? 'st' : day === 2 || day === 22 ? 'nd' : day === 3 || day === 23 ? 'rd' : 'th';
+    const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }).replace(/\d+/, day + suffix);
+
+    // Fecha (Derecha)
+    doc.fillColor('black').fontSize(11).font('Helvetica')
+        .text(formattedDate, 72, headerY + 75, { align: 'right', width: textWidth });
+
+    // Asunto (debajo de la fecha)
+    doc.moveDown(0.5);
+    doc.font('Helvetica').fontSize(11)
+        .text('Subject: Official Final Decision for Mirai Innovation Research Immersion (MIRI) Program 2026', {
+            align: 'right',
+            width: textWidth
+        });
+    doc.moveDown(1.5);
+
+    // --- CUERPO ---
+    doc.font('Helvetica-Bold').fontSize(11).text(`Dear ${fullName},`, 72, doc.y, { align: 'left' });
+    doc.moveDown(1);
+
+    const bodyOptions = { align: 'justify', width: textWidth, lineGap: 2 };
+
+    doc.font('Helvetica').text(
+      'On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) 2026 at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been ',
+      { ...bodyOptions, continued: true }
+    )
+    .font('Helvetica-Bold').text('accepted ', { continued: true })
+    .font('Helvetica').text(' to participate in our short-term academic immersion program in Osaka, Japan, for a duration of ', { continued: true })
+    .font('Helvetica-Bold').text('4 to 12 weeks.', { continued: false });
+    doc.moveDown(0.8);
+
+    const currentYear = today.getFullYear();
+
+    doc.font('Helvetica')
+       .text(
+         `Your acceptance is valid for the year ${currentYear}, and your participation must begin after January ${currentYear} and conclude before December ${currentYear}. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule. Below you will find your `,
+         { align: 'justify', width: textWidth, continued: true }
+       )
+       .font('Helvetica-Bold')
+       .text('registration code ', { continued: true, align: 'justify', width: textWidth })
        .font('Helvetica')
-       .text(formattedDate, headerRightX + 20, headerY + 110, { width: 100, align: 'right' });
+       .text(
+         'for the program. Please use the registration link provided to select your preferred participation dates and duration:',
+         { align: 'justify', width: textWidth }
+       );
 
-    // Move down after header
-    const startY = headerY + 115; // Un poco más arriba para ganar espacio
-    doc.y = startY;
-    doc.x = 72; // Reset cursor X to left margin
+    doc.moveDown(0.8);
+    doc.moveDown(0.5);
+    doc.font('Helvetica-Bold').text(`Registration Code: ${regCode}`, { width: textWidth });
+    doc.font('Helvetica').text('', { continued: false }); // Ensures clean break
 
-    // Calculate text width (page width minus left and right margins)
-    const textWidth = doc.page.width - 144; // 72 (left) + 72 (right)
+    doc.font('Helvetica').text('', { continued: false }); // Spacer if needed
+    doc.font('Helvetica-Bold').text('Registration Link:', { continued: true, width: textWidth });
+    doc.font('Helvetica').text(' ', { continued: true });
+    doc.fillColor('blue').text('https://www.mirai-innovation-lab.com/miri-program-registration-form', {
+        link: 'https://www.mirai-innovation-lab.com/miri-program-registration-form',
+        continued: false
+    }).fillColor('black');
 
-    // Subject line - Bold and centered (only for MIRI program)
-    if (user.program === 'MIRI') {
-      doc.fontSize(11) // Bajamos un punto para ahorrar espacio
-         .font('Helvetica-Bold')
-         .text(`Subject: Official Final Decision for ${programName}`, { 
-           align: 'center',
-           width: textWidth
-         });
-      doc.moveDown(1);
+    doc.moveDown(0.8);
+
+    doc.font('Helvetica').text('To confirm your participation, please ensure you ', { ...bodyOptions, continued: true })
+       .font('Helvetica-Bold').text('complete your registration within 1 week', { continued: false })
+       .text(' after receiving this acceptance letter.', bodyOptions);
+
+    doc.moveDown(0.8);
+
+    doc
+      .font('Helvetica')
+      .text(
+        'After completing your registration, you will receive detailed information regarding the ',
+        { align: 'justify', width: textWidth, continued: true }
+      )
+      .font('Helvetica-Bold')
+      .text(
+        'program venue, logistics, and preparation guidelines',
+        { align: 'justify', width: textWidth, continued: true }
+      )
+      .font('Helvetica')
+      .text(
+        '. Additionally, you will be scheduled for a ',
+        { ...bodyOptions, continued: true }
+      )
+      .font('Helvetica-Bold')
+      .text(
+        'new online meeting',
+        { ...bodyOptions, continued: true }
+      )
+      .font('Helvetica')
+      .text(
+        ', where we will discuss your potential project, provide guidance on how to prepare and acquire the necessary skills before beginning your MIRI training, and answer any questions you may have regarding your upcoming travel to Japan.',
+        { ...bodyOptions, continued: false }
+      );
+
+    doc.moveDown(0.8);
+
+    doc.font('Helvetica').text('We are excited to welcome you to Japan—a place where innovation, creativity, and cultural enrichment come together in inspiring ways. We trust that your experience at Mirai Innovation will expand your vision, strengthen your skills, and open meaningful opportunities for your professional and academic future.', bodyOptions);
+
+    doc.moveDown(0.8);
+    doc.text('If you have any questions or require further assistance, please feel free to contact us.', bodyOptions);
+
+    // --- CIERRE Y SELLO ---
+    doc.moveDown(1.5);
+    const closingY = doc.y;
+    const centerX = doc.page.width / 2;
+
+    /*
+    // Dibujar Hanko (Centrado detrás del nombre)
+    const sealY = closingY + 40;
+    doc.save();
+    doc.circle(centerX, sealY, 32).lineWidth(1.2).strokeColor('#DC143C').stroke();
+    doc.fontSize(7).font('Helvetica-Bold').fillColor('#DC143C');
+    doc.text('株式会社', centerX - 25, sealY - 14, { width: 50, align: 'center' });
+    doc.fontSize(5).text('Mirai Innovation', centerX - 25, sealY - 2, { width: 50, align: 'center' });
+    doc.fontSize(6).text('研究所', centerX - 25, sealY + 6, { width: 50, align: 'center' });
+    doc.restore();
+    */
+
+    // Texto de cierre con Hanko (sello japonés) centrado detrás del texto
+
+    // Definir coordenadas base
+    const centerTextX = (doc.page.width - textWidth) / 2;
+    const cierreY = doc.y; // Posición y actual antes de cierre
+
+    // Ruta al hanko: backend/public/images/hanko.jpg (misma base que __dirname = backend/routes)
+    const hankoPath = path.join(__dirname, '..', 'public', 'images', 'hanko.png');
+    const hankoImgSize = 54;
+    const hankoImgOffsetY = 17; // cuanto abajo del cierre
+
+    // Hanko un poco a la derecha, casi al lado de "Institute"
+    const hankoOffsetRight = 85; // puntos a la derecha del centro (ajustar si hace falta)
+    const hankoCenterX = doc.page.width / 2 + hankoOffsetRight - hankoImgSize / 2;
+
+    if (fs.existsSync(hankoPath)) {
+      const hankoCenterY = cierreY + hankoImgOffsetY;
+      doc.image(hankoPath, hankoCenterX, hankoCenterY, { width: hankoImgSize, height: hankoImgSize });
     }
 
-    // Body text - Justified
-    doc.fontSize(11) // Fuente 11 es estándar y ahorra mucho espacio
-       .font('Helvetica')
-       .text(`Dear ${fullName},`, { align: 'left' });
-    doc.moveDown(0.5);
+    // Mueve el texto encima del sello y centrado
+    const cierreTextYOffset = 10; // Puede ajustar para que no se superponga con la imagen
+    doc.fillColor('black').font('Helvetica').fontSize(11)
+       .text('Evaluation Committee', centerTextX, cierreY + cierreTextYOffset, { align: 'center', width: textWidth });
 
-    // First paragraph
-    doc.text(
-      'On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) 2026 at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been accepted to participate in our short-term academic immersion program in Osaka, Japan, for a duration of ',
-      { 
-        align: 'justify', 
-        continued: true,
-        width: textWidth
-      }
-    )
-    .font('Helvetica-Bold')
-    .text('4 to 12 weeks', { 
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica')
-    .text('.', {
-      width: textWidth
-    });
-
-    doc.moveDown(0.6); // Espaciado entre párrafos más ajustado
-
-    // Second paragraph
-    doc.text(
-      'Your acceptance is valid for the year ',
-      { 
-        align: 'justify', 
-        continued: true,
-        width: textWidth
-      }
-    )
-    .font('Helvetica-Bold')
-    .text('2026', { 
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica')
-    .text(', and your participation must begin after ', {
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica-Bold')
-    .text('January 2026', { 
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica')
-    .text(' and conclude before ', {
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica-Bold')
-    .text('December 2026', { 
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica')
-    .text('. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule.', {
-      width: textWidth
-    });
-
-    doc.moveDown(0.6);
-
-    // Third paragraph
-    doc.text(
-      'Below you will find your registration code for the program. Please use the registration link provided to select your preferred participation dates and duration:',
-      { 
-        align: 'justify',
-        width: textWidth
-      }
-    );
-
-    doc.moveDown(0.4);
-    
-    // Registration Code - Bold
     doc.font('Helvetica-Bold')
-       .text(`Registration Code: ${regCode}`, { width: textWidth });
-    
-    // Registration Link
-    doc.font('Helvetica')
-       .text('Registration Link: ', { 
-         align: 'left', 
-         continued: true,
-         width: textWidth
-       })
-       .fillColor('blue')
-       .text('https://www.mirai-innovation-lab.com/miri-program-registration-form', { 
-         link: 'https://www.mirai-innovation-lab.com/miri-program-registration-form',
-         width: textWidth
-       })
-       .fillColor('black');
+       .text('Mirai Innovation Research Institute', centerTextX, doc.y, { align: 'center', width: textWidth });
 
-    doc.moveDown(0.6);
+    // --- FOOTER ---
+    const footerY = doc.page.height - 100;
 
-    // Fourth paragraph
-    doc.text(
-      'To confirm your participation, please ensure you complete your registration within ',
-      { 
-        align: 'justify', 
-        continued: true,
-        width: textWidth
-      }
-    )
-    .font('Helvetica-Bold')
-    .text('1 week', { 
-      continued: true,
-      width: textWidth
-    })
-    .font('Helvetica')
-    .text(' after receiving this acceptance letter.', {
-      width: textWidth
-    });
+    // Línea gris
+    doc.strokeColor('#d1d5db').lineWidth(0.5)
+       .moveTo(72, footerY - 20).lineTo(doc.page.width - 72, footerY - 20).stroke();
 
-    doc.moveDown(0.6);
+    doc.fontSize(7.5).font('Helvetica').fillColor('#6b7280');
+    doc.text('[Lab Address] ATC blg, ITM sec. 6th floor Rm. M-1-3 Nankoukita 2-1-10, Suminoe-ku, Osaka, Japan. 559-0034.', 72, footerY, { align: 'center', width: textWidth });
+    doc.text('Tel.: +81 06-6616-7897', 72, footerY + 12, { align: 'center', width: textWidth });
+    doc.text('www.mirai-innovation-lab.com', 72, footerY + 24, { align: 'center', width: textWidth });
 
-    // Fifth paragraph
-    doc.text(
-      'After completing your registration, you will receive detailed information regarding the program venue, logistics, and preparation guidelines. Additionally, you will be scheduled for a new online meeting, where we will discuss your potential project, provide guidance on how to prepare and acquire the necessary skills before beginning your MIRI training, and answer any questions you may have regarding your upcoming travel to Japan.',
-      { 
-        align: 'justify',
-        width: textWidth
-      }
-    );
-
-    doc.moveDown(0.6);
-
-    // Sixth paragraph
-    doc.text(
-      'We are excited to welcome you to Japan—a place where innovation, creativity, and cultural enrichment come together in inspiring ways. We trust that your experience at Mirai Innovation will expand your vision, strengthen your skills, and open meaningful opportunities for your professional and academic future.',
-      { 
-        align: 'justify',
-        width: textWidth
-      }
-    );
-
-    doc.y += 12; // Move down (reduced spacing)
-    doc.x = 72; // Reset X to left margin
-
-    // Seventh paragraph
-    doc.text(
-      'If you have any questions or require further assistance, please feel free to contact us.',
-      { 
-        align: 'justify',
-        width: textWidth
-      }
-    );
-
-    doc.moveDown(1.5); // Espacio para la firma
-
-    // Closing - Centered
-    doc.font('Helvetica')
-       .text('Evaluation Committee', { align: 'center', width: textWidth });
-    doc.font('Helvetica-Bold')
-       .text('Mirai Innovation Research Institute', { align: 'center', width: textWidth });
-
-    // Sello (Hanko) - Red circular seal pegado al texto de cierre
-    const sealRadius = 25;
-    const sealX = doc.page.width / 2; // Centrado horizontalmente
-    const sealY = doc.y + 20; // Justo después del texto de cierre
-
-    // Draw red circle
-    doc.save();
-    doc.circle(sealX, sealY, sealRadius)
-       .fillColor('#DC143C') // Crimson red
-       .fill();
-
-    // Add text inside circle (white) - centered
-    doc.fontSize(7)
-       .font('Helvetica-Bold')
-       .fillColor('white');
-    
-    doc.text('株式会社', sealX - 25, sealY - 12, { width: 50, align: 'center' })
-       .fontSize(5)
-       .text('Mirai Innovation', sealX - 25, sealY - 2, { width: 50, align: 'center' })
-       .fontSize(6)
-       .text('研究所', sealX - 25, sealY + 6, { width: 50, align: 'center' });
-    
-    doc.restore();
-    doc.fillColor('black');
-
-    // Footer section - Position absoluta al final
-    const pageHeight = doc.page.height;
-    const footerY = pageHeight - 85;
-
-    // Footer text
-    doc.fontSize(8)
-       .font('Helvetica')
-       .fillColor('black')
-       .text('[Lab Address] ATC blg, ITM sec. 6th floor Rm. M-1-3 Nankoukita 2-1-10, Suminoe-ku, Osaka, Japan. 559-0034.', 72, footerY, { align: 'left' })
-       .text('Tel.: +81 06-6616-7897 | www.mirai-innovation-lab.com', 72, footerY + 12, { align: 'left' });
-
-    // Finalize PDF
     doc.end();
 
   } catch (error) {
