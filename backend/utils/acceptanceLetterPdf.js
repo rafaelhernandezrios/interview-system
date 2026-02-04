@@ -351,7 +351,7 @@ function streamFIJSEAcceptanceLetterPdf(res, user, application) {
     .font("Helvetica")
     .fontSize(11)
     .text(
-      "Subject: Official Final Decision for Future Innovators Japan Selection Entry Program 2026",
+      "Subject: Official Acceptance – Mirai Innovation Research Immersion (MIRI) Program 2026 in Osaka Japan",
       { align: "right", width: textWidth }
     );
   doc.moveDown(1.5);
