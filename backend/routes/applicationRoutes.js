@@ -218,11 +218,8 @@ router.get("/acceptance-letter", authMiddleware, async (req, res) => {
       });
     }
 
-    // Mark step 4 as completed when user downloads (if step4Completed exists on application)
-    if (application.step4Completed === false) {
-      application.step4Completed = true;
-      await application.save();
-    }
+    // Allow multiple downloads - removed the logic that marks step4Completed as true
+    // Users can download the acceptance letter as many times as they want
 
     // Use the program type stored in the application (default to MIRI for backward compatibility)
     const programType = application.acceptanceLetterProgramType || 'MIRI';

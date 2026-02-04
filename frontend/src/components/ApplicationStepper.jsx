@@ -8,30 +8,15 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const step4Completed = applicationStatus?.step4Completed || false;
   const acceptanceLetterGeneratedAt = applicationStatus?.acceptanceLetterGeneratedAt;
 
+  // Only show AI Interview and Acceptance Letter steps
   const steps = [
-    {
-      id: 1,
-      title: 'Application Form',
-      description: 'Complete your personal and academic information',
-      route: '/application-form',
-      completed: step1Completed,
-      available: true,
-    },
     {
       id: 2,
       title: 'AI Interview',
       description: 'Answer personalized interview questions',
       route: '/interview',
       completed: step2Completed,
-      available: step1Completed,
-    },
-    {
-      id: 3,
-      title: 'Schedule Screening',
-      description: 'Schedule your screening interview',
-      route: '/schedule-screening',
-      completed: step3Completed,
-      available: step2Completed,
+      available: true, // Always available, no dependency on step 1
     },
     {
       id: 4,
@@ -92,6 +77,8 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
           const isCompleted = step.completed;
           const isAvailable = step.available;
           const isLast = index === steps.length - 1;
+          // Display step number as 1, 2 instead of 2, 4
+          const displayStepNumber = index + 1;
 
           return (
             <div key={step.id} className="relative">
@@ -124,7 +111,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                     </div>
                   ) : isActive ? (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg animate-pulse">
-                      <span className="text-white font-bold text-lg">{step.id}</span>
+                      <span className="text-white font-bold text-lg">{displayStepNumber}</span>
                     </div>
                   ) : (
                     <div
@@ -139,7 +126,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                           isAvailable ? 'text-gray-600' : 'text-gray-400'
                         }`}
                       >
-                        {step.id}
+                        {displayStepNumber}
                       </span>
                     </div>
                   )}
@@ -174,11 +161,8 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                     {/* Action Button */}
                     <div className="flex-shrink-0">
                       {step.id === 4 ? (
-                        isCompleted ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                            Completed
-                          </span>
-                        ) : isAvailable ? (
+                        // Acceptance Letter - always show download button if available, allow multiple downloads
+                        isAvailable ? (
                           <button
                             onClick={handleDownloadAcceptanceLetter}
                             className="inline-flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:scale-105 hover:from-emerald-700 hover:to-teal-700 transition-all duration-300"
@@ -193,32 +177,35 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                             Locked
                           </span>
                         )
-                      ) : isCompleted ? (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                          Completed
-                        </span>
-                      ) : isActive ? (
-                        <Link to={step.route}>
-                          <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                            {step.id === 1 ? 'Start' : 'Continue'}
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          </button>
-                        </Link>
-                      ) : isAvailable ? (
-                        <Link to={step.route}>
-                          <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                            Start
-                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                          </button>
-                        </Link>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
-                          Locked
-                        </span>
+                        // AI Interview step
+                        isCompleted ? (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                            Completed
+                          </span>
+                        ) : isActive ? (
+                          <Link to={step.route}>
+                            <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                              Continue
+                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </button>
+                          </Link>
+                        ) : isAvailable ? (
+                          <Link to={step.route}>
+                            <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                              Start
+                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                            </button>
+                          </Link>
+                        ) : (
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                            Locked
+                          </span>
+                        )
                       )}
                     </div>
                   </div>
