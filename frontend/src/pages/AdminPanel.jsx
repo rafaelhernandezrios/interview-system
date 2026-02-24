@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 
@@ -174,6 +174,7 @@ const ReportItem = ({ report, reportIndex, userId, userName, onResponseSent }) =
 };
 
 const AdminPanel = () => {
+  const initialLoadExecutedRef = useRef(false);
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -201,6 +202,10 @@ const AdminPanel = () => {
   const [downloadingAllLetters, setDownloadingAllLetters] = useState(false);
 
   useEffect(() => {
+    if (initialLoadExecutedRef.current) {
+      return;
+    }
+    initialLoadExecutedRef.current = true;
     fetchUsers();
     fetchStats();
   }, []);

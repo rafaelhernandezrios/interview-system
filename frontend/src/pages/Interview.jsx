@@ -62,6 +62,9 @@ const Interview = () => {
   const [satisfactionRating, setSatisfactionRating] = useState(0); // Satisfaction rating 1-5
   const [satisfactionComments, setSatisfactionComments] = useState(''); // Satisfaction comments
   const [readyToSubmit, setReadyToSubmit] = useState(false); // Ready to show submit button
+  const timerAdvanceHandledRef = useRef(false);
+  const isRecordingRef = useRef(false);
+  const startRecordingLockRef = useRef(false);
 
   // ============================================================================
   // STATE MACHINE: TTS/STT Voice Interaction Control
@@ -177,29 +180,33 @@ const Interview = () => {
   }, []);
 
   useEffect(() => {
-    if (timerActive && timeRemaining > 0) {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+
+    if (timerActive && !submitting && !interviewCompleted && !showSatisfactionSurvey) {
       timerIntervalRef.current = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setTimerActive(false);
-            handleNextQuestion();
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimeRemaining(prev => Math.max(prev - 1, 0));
       }, 1000);
-    } else {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
     }
 
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
       }
     };
-  }, [timerActive, timeRemaining]);
+  }, [timerActive, submitting, interviewCompleted, showSatisfactionSurvey, currentQuestionIndex]);
+
+  useEffect(() => {
+    if (!timerActive || timeRemaining !== 0 || timerAdvanceHandledRef.current) {
+      return;
+    }
+    timerAdvanceHandledRef.current = true;
+    setTimerActive(false);
+    handleNextQuestion();
+  }, [timeRemaining, timerActive]);
 
   const fetchProfile = async () => {
     try {
@@ -409,6 +416,9 @@ const Interview = () => {
         
         // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
         readQuestionAloud(videoQuestion).then(() => {
+          if (isRecordingRef.current || recordingTimerRef.current) {
+            return;
+          }
           // REQUERIMIENTO 2.4: Pausa de 10s visible antes de grabar
           setCountdownBeforeRecord(10);
           if (countdownIntervalRef.current) {
@@ -763,8 +773,17 @@ const Interview = () => {
     setVoiceState('IDLE');
   };
 
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
   // Unified recording function - starts video + audio recording with speech recognition
   const startUnifiedRecording = async () => {
+    const hasActiveRecorder = mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording';
+    if (startRecordingLockRef.current || isRecordingRef.current || !!recordingTimerRef.current || hasActiveRecorder) {
+      return;
+    }
+    startRecordingLockRef.current = true;
     // If a pre-recording countdown is running, stop it
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
@@ -886,11 +905,12 @@ const Interview = () => {
       }, 1000);
     } catch (error) {
       setError('Could not access camera or microphone. Please check permissions.');
+    } finally {
+      startRecordingLockRef.current = false;
     }
   };
 
   const stopUnifiedRecording = () => {
-    
     // Stop video recording
     if (mediaRecorderRef.current) {
       try {
@@ -917,6 +937,7 @@ const Interview = () => {
       recordingTimerRef.current = null;
     }
 
+    startRecordingLockRef.current = false;
     setIsRecording(false);
     // Transcription will happen when videoBlob is ready (in useEffect)
   };
@@ -934,7 +955,7 @@ const Interview = () => {
     const isVideoQuestion = currentQuestionIndex === 0; // Video está en índice 0
     
     // Validaciones
-    if (!videoBlob || isRecording || isTranscribing || isReviewMode || answerSaved) {
+    if (!videoBlob || isRecording || isTranscribing || isReviewMode || answerSaved || submitting || interviewCompleted || showSatisfactionSurvey) {
       return;
     }
     
@@ -953,6 +974,9 @@ const Interview = () => {
             !isTranscribing && 
             !isReviewMode && 
             !answerSaved && 
+            !submitting &&
+            !interviewCompleted &&
+            !showSatisfactionSurvey &&
             currentQuestionIndex === 0) {
           transcribeVideo();
         }
@@ -970,6 +994,9 @@ const Interview = () => {
           !isTranscribing && 
           !isReviewMode && 
           !answerSaved && 
+          !submitting &&
+          !interviewCompleted &&
+          !showSatisfactionSurvey &&
           currentQuestionIndex !== undefined && 
           currentQuestionIndex > 0) { // Preguntas de texto empiezan en índice 1
         transcribeVideo();
@@ -979,7 +1006,7 @@ const Interview = () => {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [videoBlob, isRecording, isReviewMode, isTranscribing, answerSaved, currentQuestionIndex, allQuestions.length]);
+  }, [videoBlob, isRecording, isReviewMode, isTranscribing, answerSaved, currentQuestionIndex, allQuestions.length, submitting, interviewCompleted, showSatisfactionSurvey]);
 
   // Load voices when component mounts (some browsers need this)
   useEffect(() => {
@@ -1027,6 +1054,9 @@ const Interview = () => {
     if (!interviewStarted) return;
     if (currentQuestionIndex === undefined) return;
     if (currentQuestionIndexRef.current === currentQuestionIndex) return; // Evitar re-ejecución
+    if (isRecording) {
+      return;
+    }
 
     // REQUERIMIENTO 3: PROHIBICIÓN durante transcripción
     if (voiceState === 'TRANSCRIBING' || isTranscribing) {
@@ -1097,6 +1127,9 @@ const Interview = () => {
           
           // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
           readQuestionAloud(videoQuestion).then(() => {
+            if (isRecordingRef.current || recordingTimerRef.current) {
+              return;
+            }
             // REQUERIMIENTO 2.4: Pausa de 10s visible antes de grabar
             setCountdownBeforeRecord(10);
             if (countdownIntervalRef.current) {
@@ -1123,6 +1156,9 @@ const Interview = () => {
         if (currentQuestion) {
           // REQUERIMIENTO 2.3: Esperar estrictamente a onAudioEnd
           readQuestionAloud(currentQuestion).then(() => {
+            if (isRecordingRef.current || recordingTimerRef.current) {
+              return;
+            }
             // REQUERIMIENTO 2.4: Pausa de 10s visible antes de grabar
             setCountdownBeforeRecord(10);
             if (countdownIntervalRef.current) {
@@ -1144,16 +1180,22 @@ const Interview = () => {
         }
       }
     }
-  }, [currentQuestionIndex, interviewStarted, allQuestions.length]);
+  }, [currentQuestionIndex, interviewStarted, allQuestions.length, isRecording]);
 
   const transcribeVideo = async (retryCount = 0) => {
-    if (!videoBlob || isTranscribing) {
+    if (!videoBlob || isTranscribing || submitting || interviewCompleted || showSatisfactionSurvey) {
       return;
     }
 
     // REQUERIMIENTO 3: Asegurar que estamos en estado TRANSCRIBING
     setVoiceState('TRANSCRIBING');
     setIsTranscribing(true);
+    // Clear any stale countdown so it never overlays review/transcribing states
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownBeforeRecord(0);
 
     // Validate blob before sending
     if (videoBlob.size < 1024) {
@@ -1330,7 +1372,7 @@ const Interview = () => {
           setMessage(`Retrying in ${retryDelay/1000} seconds...`);
           
           setTimeout(() => {
-            if (currentQuestionIndex === questionIndexAtStart && videoBlob) {
+            if (currentQuestionIndex === questionIndexAtStart && videoBlob && !submitting && !interviewCompleted && !showSatisfactionSurvey) {
               transcribeVideo(retryCount + 1);
             }
           }, retryDelay);
@@ -1426,6 +1468,12 @@ const Interview = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setTimerActive(false);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+    setCountdownBeforeRecord(0);
     setError('');
     setMessage('');
 
@@ -2297,7 +2345,7 @@ const Interview = () => {
             )}
 
             {/* Video Presentation Transcription - Mostrar cuando está en review mode para video question */}
-            {isReviewMode && !isTranscribing && isVideoQuestion && videoPresentationTranscription && (
+            {isReviewMode && !isTranscribing && isVideoQuestion && (
               <>
                 <div className="glass-card bg-white/60 backdrop-blur-md border border-white/40 rounded-2xl p-4 sm:p-6 mb-6">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-2 sm:mb-3">
@@ -2305,9 +2353,23 @@ const Interview = () => {
                       Video Presentation Transcription:
                     </label>
                   </div>
-                  <div className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed">
-                    {videoPresentationTranscription}
-                  </div>
+                  <textarea
+                    value={videoPresentationTranscription || ''}
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      setVideoPresentationTranscription(nextValue);
+                    }}
+                    onPaste={handlePaste}
+                    className="glass-card bg-white/80 backdrop-blur-sm border border-white/40 rounded-xl w-full py-3 sm:py-4 px-4 sm:px-6 text-sm sm:text-base text-gray-800 leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    style={{
+                      userSelect: 'text',
+                      WebkitUserSelect: 'text',
+                      MozUserSelect: 'text',
+                      msUserSelect: 'text'
+                    }}
+                    rows="5"
+                    placeholder="Review and edit your video presentation transcription..."
+                  />
                 </div>
                 {/* Botones Retake y Next Question - Aparecen después del cuadro de transcripción para video presentation */}
                 <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-2xl mb-6">

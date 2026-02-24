@@ -10,13 +10,16 @@ const router = express.Router();
 router.get("/status", authMiddleware, async (req, res) => {
   try {
     const application = await Application.findOne({ userId: req.userId });
+    const user = await User.findById(req.userId).select("interviewCompleted cvAnalyzed");
+    const effectiveStep2Completed = !!(application?.step2Completed || user?.interviewCompleted);
+    const effectiveCurrentStep = Math.max(application?.currentStep || 1, effectiveStep2Completed ? 3 : 1);
     
     if (!application) {
       return res.json({
         exists: false,
-        currentStep: 1,
+        currentStep: effectiveCurrentStep,
         step1Completed: false,
-        step2Completed: false,
+        step2Completed: effectiveStep2Completed,
         step3Completed: false,
         step4Completed: false,
         acceptanceLetterGeneratedAt: null,
@@ -25,9 +28,9 @@ router.get("/status", authMiddleware, async (req, res) => {
 
     res.json({
       exists: true,
-      currentStep: application.currentStep,
+      currentStep: effectiveCurrentStep,
       step1Completed: application.step1Completed,
-      step2Completed: application.step2Completed,
+      step2Completed: effectiveStep2Completed,
       step3Completed: application.step3Completed,
       step4Completed: application.step4Completed,
       acceptanceLetterGeneratedAt: application.acceptanceLetterGeneratedAt || null,
