@@ -3,6 +3,7 @@ import Application from "../models/Application.js";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import { streamAcceptanceLetterPdf } from "../utils/acceptanceLetterPdf.js";
+import { streamInvoicePdf } from "../utils/invoicePdf.js";
 
 const router = express.Router();
 
@@ -23,6 +24,10 @@ router.get("/status", authMiddleware, async (req, res) => {
         step3Completed: false,
         step4Completed: false,
         acceptanceLetterGeneratedAt: null,
+        invoiceDateRange: null,
+        invoiceStatus: null,
+        scholarshipPercentage: null,
+        invoiceApprovedAt: null,
       });
     }
 
@@ -37,6 +42,10 @@ router.get("/status", authMiddleware, async (req, res) => {
       isDraft: application.isDraft,
       lastSavedAt: application.lastSavedAt,
       scheduledMeeting: application.scheduledMeeting || null,
+      invoiceDateRange: application.invoiceDateRange || null,
+      invoiceStatus: application.invoiceStatus || null,
+      scholarshipPercentage: application.scholarshipPercentage ?? null,
+      invoiceApprovedAt: application.invoiceApprovedAt || null,
     });
   } catch (error) {
     console.error("Error fetching application status:", error);
@@ -221,8 +230,11 @@ router.get("/acceptance-letter", authMiddleware, async (req, res) => {
       });
     }
 
-    // Allow multiple downloads - removed the logic that marks step4Completed as true
-    // Users can download the acceptance letter as many times as they want
+    // Mark step 4 as completed when user downloads the letter (so dashboard shows green indicator)
+    await Application.findOneAndUpdate(
+      { userId: req.userId },
+      { step4Completed: true, currentStep: 4 }
+    );
 
     // Use the program type stored in the application (default to MIRI for backward compatibility)
     const programType = application.acceptanceLetterProgramType || 'MIRI';
@@ -230,6 +242,92 @@ router.get("/acceptance-letter", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error downloading acceptance letter:", error);
     res.status(500).json({ message: "Error downloading acceptance letter" });
+  }
+});
+
+// MIRI only: submit date range for invoice (available after acceptance letter downloaded)
+router.post("/confirm-dates", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("program");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Confirm dates is only available for MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application || !application.step4Completed) {
+      return res.status(403).json({
+        message: "Please download your acceptance letter first to confirm your dates.",
+      });
+    }
+    if (application.invoiceStatus === "approved") {
+      return res.status(400).json({
+        message: "Your dates are already approved. Contact support if you need to change them.",
+      });
+    }
+
+    const { dateRangeStart, dateRangeEnd } = req.body;
+    if (!dateRangeStart || !dateRangeEnd) {
+      return res.status(400).json({ message: "Start and end dates are required." });
+    }
+    const start = new Date(dateRangeStart);
+    const end = new Date(dateRangeEnd);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format." });
+    }
+    if (end <= start) {
+      return res.status(400).json({ message: "End date must be after start date." });
+    }
+
+    const updated = await Application.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        invoiceDateRange: { startDate: start, endDate: end },
+        invoiceStatus: "pending",
+        scholarshipPercentage: null,
+        invoiceApprovedAt: null,
+      },
+      { new: true }
+    );
+    res.json({
+      message: "Dates submitted. An admin will verify and approve them.",
+      invoiceDateRange: updated.invoiceDateRange,
+      invoiceStatus: updated.invoiceStatus,
+    });
+  } catch (error) {
+    console.error("Error confirming dates:", error);
+    res.status(500).json({ message: "Error submitting dates" });
+  }
+});
+
+// MIRI: download invoice PDF (only when admin has approved)
+router.get("/invoice", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Invoice is only available for MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application) {
+      return res.status(403).json({ message: "Invoice is not available." });
+    }
+    if (application.invoiceStatus !== "approved") {
+      return res.status(403).json({
+        message: application.invoiceStatus === "pending"
+          ? "Your dates are pending admin approval. You will be able to download the invoice after approval."
+          : "Invoice is not available.",
+      });
+    }
+    if (!application.invoiceDateRange?.startDate || !application.invoiceDateRange?.endDate) {
+      return res.status(403).json({ message: "Invoice data is incomplete." });
+    }
+
+    streamInvoicePdf(res, user, application);
+  } catch (error) {
+    console.error("Error downloading invoice:", error);
+    res.status(500).json({ message: "Error downloading invoice" });
   }
 });
 

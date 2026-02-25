@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
 import ApplicationStepper from '../components/ApplicationStepper';
+import ConfirmDatesSection from '../components/ConfirmDatesSection';
 
 // Circular progress (same style as main / Results)
 const CircularProgress = ({ percentage, size = 120, color = 'blue' }) => {
@@ -166,6 +167,9 @@ const Dashboard = () => {
             </div>
           </div>
           <ApplicationStepper applicationStatus={applicationStatus} onDownloadAcceptanceLetterSuccess={fetchApplicationStatus} />
+          {profile?.program === 'MIRI' && applicationStatus?.step4Completed && (
+            <ConfirmDatesSection applicationStatus={applicationStatus} onSuccess={fetchApplicationStatus} />
+          )}
         </div>
 
         {/* View summary - elemento separado, mismo ancho que Your journey (estilo main: azul, letras blancas, icono Results) */}

@@ -71,6 +71,15 @@ const applicationSchema = new mongoose.Schema(
     // Program type for the acceptance letter: 'MIRI' or 'FIJSE' (Future Innovators Japan Selection Entry)
     acceptanceLetterProgramType: { type: String, enum: ['MIRI', 'FIJSE'], default: 'MIRI' },
 
+    // MIRI: Confirm dates & Invoice (after acceptance letter downloaded)
+    invoiceDateRange: {
+      startDate: { type: Date },
+      endDate: { type: Date },
+    },
+    invoiceStatus: { type: String, enum: ['pending', 'approved', 'rejected'] },
+    scholarshipPercentage: { type: Number, min: 0, max: 100, default: null },
+    invoiceApprovedAt: { type: Date },
+
     // Scheduled Meeting (Step 3)
     scheduledMeeting: {
       dateTime: { type: Date },

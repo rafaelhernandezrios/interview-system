@@ -275,6 +275,30 @@ router.patch("/users/:userId/role", async (req, res) => {
   }
 });
 
+const VALID_PROGRAMS = ['MIRI', 'EMFUTECH', 'JCTI', 'MIRAITEACH', 'FUTURE_INNOVATORS_JAPAN', 'OTHER'];
+
+// Cambiar programa de usuario
+router.patch("/users/:userId/program", async (req, res) => {
+  try {
+    const { program } = req.body;
+    if (program !== undefined && program !== null && program !== '' && !VALID_PROGRAMS.includes(program)) {
+      return res.status(400).json({ message: "Programa inválido" });
+    }
+
+    const user = await User.findById(req.params.userId);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    user.program = program === '' ? undefined : program;
+    await user.save();
+
+    res.json({ message: "Programa actualizado exitosamente", user });
+  } catch (error) {
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
 // Activar/Desactivar usuario
 router.patch("/users/:userId/toggle-status", async (req, res) => {
   try {
@@ -648,6 +672,91 @@ router.patch("/users/:userId/reports/:reportIndex/resolve", async (req, res) => 
   } catch (error) {
     console.error('Error in resolve report:', error);
     res.status(500).json({ message: "Error interno del servidor" });
+  }
+});
+
+// ----- MIRI Invoice / Confirm dates -----
+// List pending invoice (date confirmation) requests
+router.get("/invoice-requests", async (req, res) => {
+  try {
+    const applications = await Application.find({
+      invoiceStatus: "pending",
+      "invoiceDateRange.startDate": { $exists: true },
+      "invoiceDateRange.endDate": { $exists: true },
+    })
+      .populate("userId", "name email program")
+      .sort({ updatedAt: -1 });
+    const list = applications.map((app) => ({
+      userId: app.userId?._id,
+      name: app.userId?.name,
+      email: app.userId?.email,
+      program: app.userId?.program,
+      dateRangeStart: app.invoiceDateRange?.startDate,
+      dateRangeEnd: app.invoiceDateRange?.endDate,
+      applicationId: app._id,
+    }));
+    res.json({ pending: list });
+  } catch (error) {
+    console.error("Error listing invoice requests:", error);
+    res.status(500).json({ message: "Error listing invoice requests" });
+  }
+});
+
+// Approve invoice (dates + optional scholarship %)
+router.patch("/users/:userId/invoice-approve", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    let { scholarshipPercentage } = req.body;
+    if (scholarshipPercentage !== undefined) {
+      const pct = Number(scholarshipPercentage);
+      if (isNaN(pct) || pct < 0 || pct > 100) {
+        return res.status(400).json({ message: "Scholarship percentage must be between 0 and 100." });
+      }
+      scholarshipPercentage = pct;
+    } else {
+      scholarshipPercentage = 0;
+    }
+
+    const application = await Application.findOne({ userId, invoiceStatus: "pending" });
+    if (!application) {
+      return res.status(404).json({
+        message: "No pending invoice request found for this user.",
+      });
+    }
+
+    application.invoiceStatus = "approved";
+    application.scholarshipPercentage = scholarshipPercentage;
+    application.invoiceApprovedAt = new Date();
+    await application.save();
+
+    res.json({
+      message: "Invoice approved.",
+      invoiceStatus: application.invoiceStatus,
+      scholarshipPercentage: application.scholarshipPercentage,
+    });
+  } catch (error) {
+    console.error("Error approving invoice:", error);
+    res.status(500).json({ message: "Error approving invoice" });
+  }
+});
+
+// Reject invoice (date confirmation)
+router.patch("/users/:userId/invoice-reject", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const application = await Application.findOne({ userId, invoiceStatus: "pending" });
+    if (!application) {
+      return res.status(404).json({
+        message: "No pending invoice request found for this user.",
+      });
+    }
+    application.invoiceStatus = "rejected";
+    application.invoiceApprovedAt = null;
+    await application.save();
+    res.json({ message: "Invoice request rejected.", invoiceStatus: application.invoiceStatus });
+  } catch (error) {
+    console.error("Error rejecting invoice:", error);
+    res.status(500).json({ message: "Error rejecting invoice" });
   }
 });
 

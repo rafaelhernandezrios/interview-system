@@ -185,6 +185,7 @@ const AdminPanel = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterProgram, setFilterProgram] = useState('');
   const [filterAcceptanceLetter, setFilterAcceptanceLetter] = useState(''); // 'sent', 'not-sent', ''
   const [sortBy, setSortBy] = useState(''); // Sort by: 'both', 'cv-only', 'none', 'with-reports'
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -200,6 +201,10 @@ const AdminPanel = () => {
   const [bulkAcceptanceLetterProgramType, setBulkAcceptanceLetterProgramType] = useState('MIRI'); // For bulk
   const [downloadAllLettersProgramType, setDownloadAllLettersProgramType] = useState('MIRI');
   const [downloadingAllLetters, setDownloadingAllLetters] = useState(false);
+  const [invoiceRequests, setInvoiceRequests] = useState([]);
+  const [loadingInvoiceRequests, setLoadingInvoiceRequests] = useState(false);
+  const [invoiceActionUserId, setInvoiceActionUserId] = useState(null); // userId being approved/rejected
+  const [scholarshipPctByUserId, setScholarshipPctByUserId] = useState({}); // { [userId]: "50" }
 
   useEffect(() => {
     if (initialLoadExecutedRef.current) {
@@ -208,7 +213,20 @@ const AdminPanel = () => {
     initialLoadExecutedRef.current = true;
     fetchUsers();
     fetchStats();
+    fetchInvoiceRequests();
   }, []);
+
+  const fetchInvoiceRequests = async () => {
+    try {
+      setLoadingInvoiceRequests(true);
+      const response = await api.get('/admin/invoice-requests');
+      setInvoiceRequests(response.data?.pending || []);
+    } catch (err) {
+      console.error('Error fetching invoice requests:', err);
+    } finally {
+      setLoadingInvoiceRequests(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -290,6 +308,15 @@ const AdminPanel = () => {
       await fetchUsers();
     } catch (error) {
       alert('Error changing user role');
+    }
+  };
+
+  const changeUserProgram = async (userId, newProgram) => {
+    try {
+      await api.patch(`/admin/users/${userId}/program`, { program: newProgram || undefined });
+      await fetchUsers();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error changing user program');
     }
   };
 
@@ -382,6 +409,7 @@ const AdminPanel = () => {
     const matchesStatus = !filterStatus || 
                          (filterStatus === 'active' && user.isActive) ||
                          (filterStatus === 'inactive' && !user.isActive);
+    const matchesProgram = !filterProgram || (user.program || '') === filterProgram;
     
     // Filter by acceptance letter status
     const hasAcceptanceLetter = user.acceptanceLetterGeneratedAt !== null && user.acceptanceLetterGeneratedAt !== undefined;
@@ -411,7 +439,7 @@ const AdminPanel = () => {
     }
     // If sortBy is empty, show all
     
-    return matchesSearch && matchesRole && matchesStatus && matchesAcceptanceLetter;
+    return matchesSearch && matchesRole && matchesStatus && matchesProgram && matchesAcceptanceLetter;
   });
   
   // Sort users based on sortBy
@@ -638,13 +666,119 @@ const AdminPanel = () => {
           </div>
         </div>
 
+        {/* Confirm dates (MIRI) - Pending invoice/date confirmations */}
+        <div className="glass-card p-5 sm:p-6 md:p-8 mb-6 sm:mb-8 rounded-2xl border border-gray-200/60">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Confirm dates (MIRI)</h2>
+              <p className="text-sm text-gray-500">Review and approve date ranges submitted by MIRI users. Set scholarship % if applicable; then the user can download their invoice.</p>
+            </div>
+            {loadingInvoiceRequests ? (
+              <p className="text-sm text-gray-500">Loading pending requests...</p>
+            ) : invoiceRequests.length === 0 ? (
+              <p className="text-sm text-gray-500">No pending date confirmations.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
+                <table className="w-full min-w-[600px] text-left text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Name</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Email</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">From</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">To</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Scholarship %</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {invoiceRequests.map((row) => {
+                      const uid = row.userId?._id || row.userId;
+                      const isBusy = invoiceActionUserId === uid;
+                      const pct = scholarshipPctByUserId[uid] ?? '';
+                      const formatD = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+                      return (
+                        <tr key={uid} className="bg-white/60 hover:bg-white/80">
+                          <td className="px-4 py-3 text-gray-900">{row.name || '—'}</td>
+                          <td className="px-4 py-3 text-gray-700">{row.email || '—'}</td>
+                          <td className="px-4 py-3 text-gray-700">{formatD(row.dateRangeStart)}</td>
+                          <td className="px-4 py-3 text-gray-700">{formatD(row.dateRangeEnd)}</td>
+                          <td className="px-4 py-3">
+                            <input
+                              type="number"
+                              min="0"
+                              max="100"
+                              placeholder="0"
+                              value={pct}
+                              onChange={(e) => setScholarshipPctByUserId((prev) => ({ ...prev, [uid]: e.target.value }))}
+                              className="w-16 rounded border border-gray-300 px-2 py-1 text-center text-sm"
+                              disabled={isBusy}
+                            />
+                          </td>
+                          <td className="px-4 py-3 flex flex-wrap gap-2">
+                            <button
+                              onClick={async () => {
+                                setInvoiceActionUserId(uid);
+                                try {
+                                  const num = pct === '' ? 0 : Math.min(100, Math.max(0, Number(pct)));
+                                  await api.patch(`/admin/users/${uid}/invoice-approve`, { scholarshipPercentage: num });
+                                  await fetchInvoiceRequests();
+                                  setScholarshipPctByUserId((prev) => {
+                                    const next = { ...prev };
+                                    delete next[uid];
+                                    return next;
+                                  });
+                                  alert('Approved. The user can now download their invoice.');
+                                } catch (err) {
+                                  alert(err.response?.data?.message || 'Error approving.');
+                                } finally {
+                                  setInvoiceActionUserId(null);
+                                }
+                              }}
+                              disabled={isBusy}
+                              className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              {isBusy ? '…' : 'Approve'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Reject this date confirmation? The user can submit new dates.')) return;
+                                setInvoiceActionUserId(uid);
+                                try {
+                                  await api.patch(`/admin/users/${uid}/invoice-reject`);
+                                  await fetchInvoiceRequests();
+                                  setScholarshipPctByUserId((prev) => {
+                                    const next = { ...prev };
+                                    delete next[uid];
+                                    return next;
+                                  });
+                                  alert('Rejected.');
+                                } catch (err) {
+                                  alert(err.response?.data?.message || 'Error rejecting.');
+                                } finally {
+                                  setInvoiceActionUserId(null);
+                                }
+                              }}
+                              disabled={isBusy}
+                              className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Tabla de Usuarios - Contenedor de Cristal */}
         <div className="glass-card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Users</h2>
-              {/* Download Button */}
-              <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Users</h2>
+            <div className="flex gap-2 flex-shrink-0">
                 <button
                   onClick={async () => {
                     try {
@@ -735,22 +869,24 @@ const AdminPanel = () => {
                   </svg>
                   CSV
                 </button>
-              </div>
-            </div>
-            
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          </div>
+          </div>
+
+          {/* Filters - single section, wraps inside card */}
+          <div className="w-full border-t border-white/20 pt-4">
+            <p className="text-sm font-medium text-gray-600 mb-3">Filters</p>
+            <div className="flex flex-wrap gap-2 sm:gap-3 items-center">
               <input
                 type="text"
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[180px] flex-1 max-w-xs"
               />
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
-                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="">All Roles</option>
                 <option value="user">User</option>
@@ -759,16 +895,29 @@ const AdminPanel = () => {
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </select>
               <select
+                value={filterProgram}
+                onChange={(e) => setFilterProgram(e.target.value)}
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
+              >
+                <option value="">All Programs</option>
+                <option value="MIRI">MIRI</option>
+                <option value="EMFUTECH">EMFUTECH</option>
+                <option value="JCTI">JCTI</option>
+                <option value="MIRAITEACH">MIRAITEACH</option>
+                <option value="FUTURE_INNOVATORS_JAPAN">FUTURE_INNOVATORS_JAPAN</option>
+                <option value="OTHER">OTHER</option>
+              </select>
+              <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="">All Scores</option>
                 <option value="both">CV + Interview Scores</option>
@@ -779,7 +928,7 @@ const AdminPanel = () => {
               <select
                 value={filterAcceptanceLetter}
                 onChange={(e) => setFilterAcceptanceLetter(e.target.value)}
-                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="glass-card bg-white/40 border border-white/40 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-0"
               >
                 <option value="">All Acceptance Letters</option>
                 <option value="sent">Letter Sent</option>
@@ -797,6 +946,7 @@ const AdminPanel = () => {
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Email</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Role</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
+                  <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Program</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Score</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Reports</th>
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Acceptance Letter</th>
@@ -806,7 +956,7 @@ const AdminPanel = () => {
               <tbody>
                 {filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan="9" className="px-6 py-12 text-center">
+                    <td colSpan="10" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <svg className="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -905,6 +1055,21 @@ const AdminPanel = () => {
                         }`}></span>
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
+                    </td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4">
+                      <select
+                        value={user.program || ''}
+                        onChange={(e) => changeUserProgram(user._id, e.target.value)}
+                        className="glass-card bg-white/40 border border-white/40 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition min-w-0 max-w-[180px]"
+                      >
+                        <option value="">—</option>
+                        <option value="MIRI">MIRI</option>
+                        <option value="EMFUTECH">EMFUTECH</option>
+                        <option value="JCTI">JCTI</option>
+                        <option value="MIRAITEACH">MIRAITEACH</option>
+                        <option value="FUTURE_INNOVATORS_JAPAN">FUTURE_INNOVATORS_JAPAN</option>
+                        <option value="OTHER">OTHER</option>
+                      </select>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <div className="flex flex-col gap-1">
