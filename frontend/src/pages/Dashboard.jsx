@@ -140,6 +140,13 @@ const Dashboard = () => {
     );
   }
 
+  // Match ApplicationStepper: only steps currently shown (AI Interview = step2, Acceptance Letter = step4)
+  const activeStepsTotal = 2;
+  const activeStepsCompleted = applicationStatus
+    ? [applicationStatus.step2Completed, applicationStatus.step4Completed].filter(Boolean).length
+    : 0;
+  const journeyPercentage = activeStepsTotal ? Math.round((activeStepsCompleted / activeStepsTotal) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-mesh-gradient">
       {/* Ambient Orbs */}
@@ -149,19 +156,15 @@ const Dashboard = () => {
       
       <Navbar />
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl">
-        {/* Your Journey card: circle progress + Application Progress (space of CV + Interview), View summary button below */}
+        {/* Your Journey card: circle progress + Application Progress (only active steps: AI Interview + Acceptance Letter) */}
         <div className="glass-card p-4 sm:p-6 mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-6">
             <div className="flex items-center gap-4">
-              <CircularProgress
-                percentage={applicationStatus ? Math.round(([applicationStatus.step1Completed, applicationStatus.step2Completed, applicationStatus.step3Completed, applicationStatus.step4Completed].filter(Boolean).length / 4) * 100) : 0}
-                size={120}
-                color="blue"
-              />
+              <CircularProgress percentage={journeyPercentage} size={120} color="blue" />
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Your journey</h2>
                 <p className="text-sm text-gray-600 mt-1">
-                  {applicationStatus ? `${[applicationStatus.step1Completed, applicationStatus.step2Completed, applicationStatus.step3Completed, applicationStatus.step4Completed].filter(Boolean).length} / 4 steps completed` : '0 / 4 steps completed'}
+                  {applicationStatus ? `${activeStepsCompleted} / ${activeStepsTotal} steps completed` : `0 / ${activeStepsTotal} steps completed`}
                 </p>
               </div>
             </div>
