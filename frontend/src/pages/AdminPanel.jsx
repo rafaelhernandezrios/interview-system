@@ -1327,6 +1327,18 @@ const AdminPanel = () => {
                         </span>
                       )}
                     </button>
+                    {userDetails.program === 'MIRI' && userDetails.application?.invoiceDateRange?.startDate && (
+                      <button
+                        onClick={() => setActiveTab('invoice')}
+                        className={`px-6 py-3 rounded-t-xl font-semibold transition-all duration-300 whitespace-nowrap ${
+                          activeTab === 'invoice'
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                            : 'text-gray-500 hover:bg-white/40'
+                        }`}
+                      >
+                        Invoice
+                      </button>
+                    )}
                   </div>
 
                   {/* Tab Content */}
@@ -1919,6 +1931,233 @@ const AdminPanel = () => {
                       ) : (
                         <p className="text-gray-500 py-8 text-center">No reports or feedback from this user.</p>
                       )}
+                    </div>
+                  )}
+
+                  {activeTab === 'invoice' && (
+                    <div className="space-y-6">
+                      <div className="glass-card p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          Invoice Information
+                        </h3>
+                        
+                        {userDetails.application?.invoiceDateRange?.startDate && userDetails.application?.invoiceDateRange?.endDate ? (
+                          <div className="space-y-6">
+                            {/* Invoice Status */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                              <DataCard 
+                                label="Invoice Status" 
+                                value={
+                                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                    userDetails.application.invoiceStatus === 'approved' 
+                                      ? 'bg-green-100 text-green-700' 
+                                      : userDetails.application.invoiceStatus === 'pending'
+                                      ? 'bg-yellow-100 text-yellow-700'
+                                      : 'bg-red-100 text-red-700'
+                                  }`}>
+                                    {userDetails.application.invoiceStatus === 'approved' ? '✓ Approved' : 
+                                     userDetails.application.invoiceStatus === 'pending' ? '⏳ Pending' : 
+                                     '✗ Rejected'}
+                                  </span>
+                                } 
+                              />
+                              {userDetails.application.invoiceApprovedAt && (
+                                <DataCard 
+                                  label="Approved At" 
+                                  value={formatDate(userDetails.application.invoiceApprovedAt)} 
+                                />
+                              )}
+                            </div>
+
+                            {/* Date Range */}
+                            <div className="glass-card p-6 bg-blue-50/30 border-blue-200/40">
+                              <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Selected Dates
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <DataCard 
+                                  label="Start Date" 
+                                  value={formatDate(userDetails.application.invoiceDateRange.startDate)} 
+                                />
+                                <DataCard 
+                                  label="End Date" 
+                                  value={formatDate(userDetails.application.invoiceDateRange.endDate)} 
+                                />
+                              </div>
+                            </div>
+
+                            {/* Payment Deadline */}
+                            {(() => {
+                              const startDate = new Date(userDetails.application.invoiceDateRange.startDate);
+                              const paymentDeadline = new Date(startDate);
+                              paymentDeadline.setMonth(paymentDeadline.getMonth() - 1);
+                              const today = new Date();
+                              const isOverdue = paymentDeadline < today;
+                              
+                              return (
+                                <div className={`glass-card p-6 ${isOverdue ? 'bg-red-50/30 border-red-200/40' : 'bg-purple-50/30 border-purple-200/40'}`}>
+                                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                    <svg className={`w-5 h-5 ${isOverdue ? 'text-red-600' : 'text-purple-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Payment Deadline
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <DataCard 
+                                      label="Payment Deadline" 
+                                      value={
+                                        <span className={`font-bold ${isOverdue ? 'text-red-700' : 'text-purple-700'}`}>
+                                          {formatDate(paymentDeadline)}
+                                          {isOverdue && (
+                                            <span className="ml-2 px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">
+                                              Overdue
+                                            </span>
+                                          )}
+                                        </span>
+                                      } 
+                                    />
+                                    <DataCard 
+                                      label="Days Remaining" 
+                                      value={
+                                        <span className={`font-bold ${isOverdue ? 'text-red-700' : 'text-gray-700'}`}>
+                                          {isOverdue 
+                                            ? `${Math.ceil((today - paymentDeadline) / (1000 * 60 * 60 * 24))} days overdue`
+                                            : `${Math.ceil((paymentDeadline - today) / (1000 * 60 * 60 * 24))} days remaining`
+                                          }
+                                        </span>
+                                      } 
+                                    />
+                                  </div>
+                                  <p className="text-sm text-gray-600 mt-3">
+                                    Payment deadline is calculated as <strong>1 month before the program start date</strong>.
+                                  </p>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Cost Calculation */}
+                            {(() => {
+                              const startDate = new Date(userDetails.application.invoiceDateRange.startDate);
+                              const endDate = new Date(userDetails.application.invoiceDateRange.endDate);
+                              const diffMs = endDate - startDate;
+                              const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                              const weeks = Math.max(0, Math.ceil(diffDays / 7));
+                              
+                              const tuitionPerWeek = weeks >= 7 && weeks <= 12 ? 300 : 350;
+                              const scholarshipPercentage = userDetails.application.scholarshipPercentage || 0;
+                              const tuitionBeforeScholarship = weeks * tuitionPerWeek;
+                              const scholarshipDiscount = tuitionBeforeScholarship * (scholarshipPercentage / 100);
+                              const tuitionAfterScholarship = tuitionBeforeScholarship - scholarshipDiscount;
+                              const tax = Math.round(tuitionAfterScholarship * 0.10 * 100) / 100;
+                              const total = Math.round((tuitionAfterScholarship + tax) * 100) / 100;
+
+                              return (
+                                <div className="glass-card p-6 bg-green-50/30 border-green-200/40">
+                                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Cost Breakdown
+                                  </h4>
+                                  <div className="space-y-3">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                      <DataCard label="Number of Weeks" value={`${weeks} week(s)`} />
+                                      <DataCard label="Tuition per Week" value={`$${tuitionPerWeek} USD`} />
+                                    </div>
+                                    <div className="border-t border-gray-200 pt-4 space-y-2">
+                                      <div className="flex justify-between items-center py-2">
+                                        <span className="text-gray-700 font-medium">Tuition ({weeks} weeks × ${tuitionPerWeek})</span>
+                                        <span className="text-gray-900 font-bold">${tuitionBeforeScholarship.toFixed(2)} USD</span>
+                                      </div>
+                                      {scholarshipPercentage > 0 && (
+                                        <div className="flex justify-between items-center py-2 text-red-600">
+                                          <span className="font-medium">Scholarship ({scholarshipPercentage}%)</span>
+                                          <span className="font-bold">-${scholarshipDiscount.toFixed(2)} USD</span>
+                                        </div>
+                                      )}
+                                      <div className="flex justify-between items-center py-2 border-t border-gray-200 pt-2">
+                                        <span className="text-gray-700 font-medium">Subtotal</span>
+                                        <span className="text-gray-900 font-bold">${tuitionAfterScholarship.toFixed(2)} USD</span>
+                                      </div>
+                                      <div className="flex justify-between items-center py-2">
+                                        <span className="text-gray-700 font-medium">Tax (10%)</span>
+                                        <span className="text-gray-900 font-bold">${tax.toFixed(2)} USD</span>
+                                      </div>
+                                      <div className="flex justify-between items-center py-3 border-t-2 border-gray-300 pt-3 bg-white/40 rounded-lg px-4">
+                                        <span className="text-gray-900 font-bold text-lg">Total</span>
+                                        <span className="text-green-700 font-bold text-xl">${total.toFixed(2)} USD</span>
+                                      </div>
+                                    </div>
+                                    {scholarshipPercentage > 0 && (
+                                      <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                        <p className="text-sm text-blue-800">
+                                          <strong>Scholarship Applied:</strong> {scholarshipPercentage}% discount on tuition
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Download Invoice Button */}
+                            <div className="flex gap-3">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const response = await api.get(`/admin/users/${selectedUser}/invoice`, {
+                                      responseType: 'blob'
+                                    });
+                                    const disposition = response.headers['content-disposition'];
+                                    const fileNameMatch = disposition?.match(/filename="?([^"]+)"?/);
+                                    const fullName = userDetails.application?.firstName && userDetails.application?.lastName
+                                      ? `${userDetails.application.firstName}_${userDetails.application.lastName}`
+                                      : userDetails.name || 'User';
+                                    const fileName = fileNameMatch?.[1] || `MIRI_Invoice_${fullName.replace(/\s+/g, '_')}.pdf`;
+                                    const url = window.URL.createObjectURL(new Blob([response.data]));
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.setAttribute('download', fileName);
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    link.remove();
+                                    window.URL.revokeObjectURL(url);
+                                  } catch (error) {
+                                    if (error.response?.data instanceof Blob) {
+                                      error.response.data.text().then((text) => {
+                                        try {
+                                          const jsonError = JSON.parse(text);
+                                          alert(jsonError.message || 'Error downloading invoice.');
+                                        } catch {
+                                          alert('Error downloading invoice.');
+                                        }
+                                      });
+                                    } else {
+                                      alert(error.response?.data?.message || 'Error downloading invoice.');
+                                    }
+                                  }
+                                }}
+                                className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Download Invoice PDF
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500 mb-4">This user has not selected dates for the invoice yet.</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

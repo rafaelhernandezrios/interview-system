@@ -99,6 +99,17 @@ function formatUSDNegative(amount) {
 }
 
 /**
+ * Calculates payment deadline: 1 month before start date
+ */
+function calculatePaymentDeadline(startDate) {
+  if (!startDate) return null;
+  const start = new Date(startDate);
+  const deadline = new Date(start);
+  deadline.setMonth(deadline.getMonth() - 1);
+  return deadline;
+}
+
+/**
  * Streams the MIRI Invoice PDF to res. Optimized layout: Helvetica, no overlap, thick table header, exact bank data.
  */
 export function streamInvoicePdf(res, user, application) {
@@ -249,17 +260,46 @@ export function streamInvoicePdf(res, user, application) {
   rowY += rowHeight + 18;
   doc.font("Helvetica-Bold").fontSize(10).text("Payment Terms:", margin, rowY);
   doc.font("Helvetica").fontSize(9);
-  rowY += 14;
-  doc.text("Amount", margin, rowY);
-  doc.text("Deadline", col2X - 80, rowY);
-  rowY += 12;
-  doc.text("1st Payment: Registration", margin, rowY);
-  doc.text(formatUSD(REGISTRATION_FEE_DISPLAY), col2X - 120, rowY, { width: 90, align: "right" });
-  doc.fillColor(RED).text("PAID ONLINE", col2X, rowY, { width: col2Width, align: "right" }).fillColor("black");
-  rowY += 14;
-  doc.text("2nd Payment: Tuition", margin, rowY);
-  doc.text(formatUSD(breakdown.total), col2X - 120, rowY, { width: 90, align: "right" });
-  doc.text("As agreed", col2X, rowY, { width: col2Width, align: "right" });
+  
+  // Payment Terms Table
+  const paymentTableTop = rowY + 20;
+  const paymentCol1X = margin; // Description column
+  const paymentCol2X = col2X - 100; // Amount column
+  const paymentCol2Width = 100;
+  const paymentCol3X = col2X; // Deadline column
+  const paymentCol3Width = col2Width;
+  const paymentDescWidth = paymentCol2X - paymentCol1X - 12;
+  const paymentRowHeight = 16;
+
+  // Table header
+  doc.font("Helvetica-Bold").fontSize(9);
+  doc.text("Description", paymentCol1X, paymentTableTop);
+  doc.text("Amount", paymentCol2X, paymentTableTop, { width: paymentCol2Width, align: "right" });
+  doc.text("Deadline", paymentCol3X, paymentTableTop, { width: paymentCol3Width, align: "right" });
+  
+  // Thick horizontal line under header
+  doc.lineWidth(2);
+  doc.moveTo(margin, paymentTableTop + paymentRowHeight).lineTo(pageWidth - margin, paymentTableTop + paymentRowHeight).stroke();
+  doc.lineWidth(1);
+
+  // Table rows
+  let paymentRowY = paymentTableTop + paymentRowHeight + 8;
+  doc.font("Helvetica").fontSize(9);
+  
+  // Row 1: Registration
+  doc.text("1st Payment: Registration", paymentCol1X, paymentRowY, { width: paymentDescWidth });
+  doc.text(formatUSD(REGISTRATION_FEE_DISPLAY), paymentCol2X, paymentRowY, { width: paymentCol2Width, align: "right" });
+  doc.fillColor(RED).text("PAID ONLINE", paymentCol3X, paymentRowY, { width: paymentCol3Width, align: "right" }).fillColor("black");
+  paymentRowY += paymentRowHeight + 4;
+  
+  // Row 2: Tuition
+  doc.text("2nd Payment: Tuition", paymentCol1X, paymentRowY, { width: paymentDescWidth });
+  doc.text(formatUSD(breakdown.total), paymentCol2X, paymentRowY, { width: paymentCol2Width, align: "right" });
+  const paymentDeadline = calculatePaymentDeadline(startDate);
+  const deadlineText = paymentDeadline ? formatDateLong(paymentDeadline) : "As agreed";
+  doc.text(deadlineText, paymentCol3X, paymentRowY, { width: paymentCol3Width, align: "right" });
+  
+  rowY = paymentRowY + paymentRowHeight;
 
   // ----- Payment to: exact bank data (hardcoded) -----
   rowY += 28;

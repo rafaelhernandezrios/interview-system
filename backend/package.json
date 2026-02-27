@@ -13,7 +13,8 @@
     "tunnel:start": "concurrently \"npm start\" \"npm run tunnel\"",
     "generate-recommendations": "node scripts/generateRecommendations.js",
     "export-user-data": "node scripts/exportUserData.js",
-    "export-missing-users": "node scripts/exportMissingUsers.js"
+    "export-missing-users": "node scripts/exportMissingUsers.js",
+    "import-miri-csv": "node scripts/importMiriCsv.js"
   },
   "keywords": [
     "evaluation",
@@ -30,6 +31,7 @@
     "axios": "^1.6.2",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
+    "csv-parse": "^5.5.2",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "googleapis": "^128.0.0",

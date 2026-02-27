@@ -8,6 +8,7 @@ import { sendBulkEmailToActiveUsers, sendReportResponseNotification, sendAccepta
 import * as XLSX from "xlsx";
 import archiver from "archiver";
 import { streamAcceptanceLetterPdf, generateAcceptanceLetterPdfBuffer } from "../utils/acceptanceLetterPdf.js";
+import { streamInvoicePdf } from "../utils/invoicePdf.js";
 
 const router = express.Router();
 
@@ -793,6 +794,35 @@ router.get("/users/:userId/acceptance-letter", async (req, res) => {
   } catch (error) {
     console.error('Error generating acceptance letter:', error);
     res.status(500).json({ message: "Error generating acceptance letter" });
+  }
+});
+
+// Download invoice PDF for a user (admin can download any user's invoice if it exists)
+router.get("/users/:userId/invoice", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Invoice is only available for MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId });
+    if (!application) {
+      return res.status(404).json({ message: "Application not found for this user." });
+    }
+    
+    if (!application.invoiceDateRange?.startDate || !application.invoiceDateRange?.endDate) {
+      return res.status(400).json({ message: "Invoice data is incomplete. User has not selected dates yet." });
+    }
+
+    // Admin can download invoice regardless of approval status (for preview purposes)
+    streamInvoicePdf(res, user, application);
+  } catch (error) {
+    console.error("Error downloading invoice:", error);
+    res.status(500).json({ message: "Error downloading invoice" });
   }
 });
 
