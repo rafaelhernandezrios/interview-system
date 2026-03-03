@@ -6,17 +6,26 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const step2Completed = applicationStatus?.step2Completed || false;
   const step3Completed = applicationStatus?.step3Completed || false;
   const step4Completed = applicationStatus?.step4Completed || false;
+  const cvAnalyzed = applicationStatus?.cvAnalyzed || false;
   const acceptanceLetterGeneratedAt = applicationStatus?.acceptanceLetterGeneratedAt;
 
-  // Only show AI Interview and Acceptance Letter steps
+  // Step 1: Upload CV (required for personalized questions). Step 2: AI Interview. Step 3: Acceptance Letter.
   const steps = [
+    {
+      id: 1,
+      title: 'Upload CV',
+      description: 'Upload your CV and generate personalized interview questions',
+      route: '/cv-upload',
+      completed: cvAnalyzed,
+      available: true,
+    },
     {
       id: 2,
       title: 'AI Interview',
       description: 'Answer personalized interview questions',
       route: '/interview',
       completed: step2Completed,
-      available: true, // Always available, no dependency on step 1
+      available: cvAnalyzed, // Only after CV has been analyzed
     },
     {
       id: 4,
@@ -28,7 +37,8 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
     },
   ];
 
-  const currentStep = applicationStatus?.currentStep || 1;
+  // Active step = first step not yet completed
+  const activeStepId = steps.find((s) => !s.completed)?.id ?? steps[steps.length - 1]?.id;
 
   const handleDownloadAcceptanceLetter = async () => {
     try {
@@ -73,7 +83,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
       
       <div className="space-y-6">
         {steps.map((step, index) => {
-          const isActive = currentStep === step.id;
+          const isActive = activeStepId === step.id;
           const isCompleted = step.completed;
           const isAvailable = step.available;
           const isLast = index === steps.length - 1;

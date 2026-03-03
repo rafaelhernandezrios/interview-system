@@ -10,6 +10,7 @@ import CVUpload from './pages/CVUpload';
 import Interview from './pages/Interview';
 import Results from './pages/Results';
 import AdminPanel from './pages/AdminPanel';
+import AdminInvoiceStats from './pages/AdminInvoiceStats';
 import ApplicationForm from './pages/ApplicationForm';
 import ScheduleScreening from './pages/ScheduleScreening';
 import ReportProblem from './pages/ReportProblem';
@@ -80,6 +81,14 @@ function App() {
             element={
               <AdminRoute>
                 <AdminPanel />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/invoice-stats"
+            element={
+              <AdminRoute>
+                <AdminInvoiceStats />
               </AdminRoute>
             }
           />

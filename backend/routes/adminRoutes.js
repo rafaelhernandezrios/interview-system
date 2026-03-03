@@ -680,6 +680,101 @@ router.patch("/users/:userId/reports/:reportIndex/resolve", async (req, res) => 
 });
 
 // ----- MIRI Invoice / Confirm dates -----
+// Helpers for invoice stats (same logic as invoicePdf)
+function getWeeksBetween(startDate, endDate) {
+  if (!startDate || !endDate) return 0;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffMs = end - start;
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.ceil(diffDays / 7));
+}
+function getTuitionPerWeek(weeks) {
+  return weeks >= 7 && weeks <= 12 ? 300 : 350;
+}
+function computeInvoiceTotal(weeks, scholarshipPercentage = 0) {
+  const tuitionPerWeek = getTuitionPerWeek(weeks);
+  const before = weeks * tuitionPerWeek;
+  const discount = before * ((scholarshipPercentage || 0) / 100);
+  const subtotal = before - discount;
+  const tax = Math.round(subtotal * 0.1 * 100) / 100;
+  return Math.round((subtotal + tax) * 100) / 100;
+}
+
+// Invoice statistics: list of invoices + aggregates for charts (admin only)
+router.get("/invoice-stats", async (req, res) => {
+  try {
+    const applications = await Application.find({
+      "invoiceDateRange.startDate": { $exists: true, $ne: null },
+      "invoiceDateRange.endDate": { $exists: true, $ne: null },
+    })
+      .populate("userId", "name email program")
+      .sort({ "invoiceDateRange.startDate": 1 })
+      .lean();
+
+    const list = [];
+    const revenueByMonth = {}; // { "YYYY-MM": total }
+    const studentsByMonth = {}; // { "YYYY-MM": count }
+    let totalApprovedRevenue = 0;
+    let totalPendingRevenue = 0;
+
+    for (const app of applications) {
+      const user = app.userId;
+      if (!user || user.program !== "MIRI") continue;
+
+      const startDate = app.invoiceDateRange?.startDate;
+      const endDate = app.invoiceDateRange?.endDate;
+      if (!startDate || !endDate) continue;
+
+      const start = new Date(startDate);
+      const paymentDeadline = new Date(start);
+      paymentDeadline.setMonth(paymentDeadline.getMonth() - 1);
+
+      const weeks = getWeeksBetween(startDate, endDate);
+      const scholarshipPercentage = app.scholarshipPercentage ?? 0;
+      const total = computeInvoiceTotal(weeks, scholarshipPercentage);
+
+      const startMonthKey = start.toISOString().slice(0, 7);
+      const payMonthKey = paymentDeadline.toISOString().slice(0, 7);
+      studentsByMonth[startMonthKey] = (studentsByMonth[startMonthKey] || 0) + 1;
+      revenueByMonth[payMonthKey] = (revenueByMonth[payMonthKey] || 0) + total;
+
+      if (app.invoiceStatus === "approved") totalApprovedRevenue += total;
+      else if (app.invoiceStatus === "pending") totalPendingRevenue += total;
+
+      list.push({
+        userId: user._id,
+        userName: user.name,
+        userEmail: user.email,
+        startDate: startDate,
+        endDate: endDate,
+        paymentDeadline: paymentDeadline.toISOString(),
+        weeks,
+        scholarshipPercentage,
+        total,
+        invoiceStatus: app.invoiceStatus || "pending",
+      });
+    }
+
+    const summary = {
+      totalApprovedRevenue,
+      totalPendingRevenue,
+      totalInvoices: list.length,
+      revenueByMonth: Object.entries(revenueByMonth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, value]) => ({ month, value })),
+      studentsByMonth: Object.entries(studentsByMonth)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([month, count]) => ({ month, count })),
+    };
+
+    res.json({ list, summary });
+  } catch (error) {
+    console.error("Error fetching invoice stats:", error);
+    res.status(500).json({ message: "Error fetching invoice statistics" });
+  }
+});
+
 // List pending invoice (date confirmation) requests
 router.get("/invoice-requests", async (req, res) => {
   try {
@@ -761,6 +856,61 @@ router.patch("/users/:userId/invoice-reject", async (req, res) => {
   } catch (error) {
     console.error("Error rejecting invoice:", error);
     res.status(500).json({ message: "Error rejecting invoice" });
+  }
+});
+
+// Admin: assign or change invoice dates (MIRI). Assign when user has no dates yet; change when they already have dates.
+router.patch("/users/:userId/invoice-dates", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { dateRangeStart, dateRangeEnd } = req.body;
+    if (!dateRangeStart || !dateRangeEnd) {
+      return res.status(400).json({ message: "Start and end dates are required." });
+    }
+    const start = new Date(dateRangeStart);
+    const end = new Date(dateRangeEnd);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ message: "Invalid date format." });
+    }
+    if (end <= start) {
+      return res.status(400).json({ message: "End date must be after start date." });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    let application = await Application.findOne({ userId });
+    const isAssign = !application || !application.invoiceDateRange?.startDate || !application.invoiceDateRange?.endDate;
+
+    if (!application) {
+      application = new Application({
+        userId,
+        email: user.email,
+        invoiceDateRange: { startDate: start, endDate: end },
+        invoiceStatus: "pending",
+      });
+      await application.save();
+    } else {
+      application.invoiceDateRange = { startDate: start, endDate: end };
+      if (isAssign) {
+        application.invoiceStatus = "pending";
+        application.invoiceApprovedAt = null;
+      }
+      await application.save();
+    }
+
+    res.json({
+      message: isAssign
+        ? "Invoice dates assigned. They will appear in 'Confirm dates (MIRI)' for approval; you can then approve and set scholarship %."
+        : "Invoice dates updated. The user can download a new invoice with the updated period.",
+      invoiceDateRange: application.invoiceDateRange,
+      invoiceStatus: application.invoiceStatus,
+    });
+  } catch (error) {
+    console.error("Error updating invoice dates:", error);
+    res.status(500).json({ message: "Error updating invoice dates" });
   }
 });
 

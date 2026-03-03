@@ -205,6 +205,10 @@ const AdminPanel = () => {
   const [loadingInvoiceRequests, setLoadingInvoiceRequests] = useState(false);
   const [invoiceActionUserId, setInvoiceActionUserId] = useState(null); // userId being approved/rejected
   const [scholarshipPctByUserId, setScholarshipPctByUserId] = useState({}); // { [userId]: "50" }
+  const [editingInvoiceDates, setEditingInvoiceDates] = useState(false);
+  const [adminEditStart, setAdminEditStart] = useState('');
+  const [adminEditEnd, setAdminEditEnd] = useState('');
+  const [savingInvoiceDates, setSavingInvoiceDates] = useState(false);
 
   useEffect(() => {
     if (initialLoadExecutedRef.current) {
@@ -215,6 +219,10 @@ const AdminPanel = () => {
     fetchStats();
     fetchInvoiceRequests();
   }, []);
+
+  useEffect(() => {
+    setEditingInvoiceDates(false);
+  }, [selectedUser]);
 
   const fetchInvoiceRequests = async () => {
     try {
@@ -1327,7 +1335,7 @@ const AdminPanel = () => {
                         </span>
                       )}
                     </button>
-                    {userDetails.program === 'MIRI' && userDetails.application?.invoiceDateRange?.startDate && (
+                    {userDetails.program === 'MIRI' && (
                       <button
                         onClick={() => setActiveTab('invoice')}
                         className={`px-6 py-3 rounded-t-xl font-semibold transition-all duration-300 whitespace-nowrap ${
@@ -1980,16 +1988,107 @@ const AdminPanel = () => {
                                 </svg>
                                 Selected Dates
                               </h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <DataCard 
-                                  label="Start Date" 
-                                  value={formatDate(userDetails.application.invoiceDateRange.startDate)} 
-                                />
-                                <DataCard 
-                                  label="End Date" 
-                                  value={formatDate(userDetails.application.invoiceDateRange.endDate)} 
-                                />
-                              </div>
+                              {!editingInvoiceDates ? (
+                                <>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <DataCard 
+                                      label="Start Date" 
+                                      value={formatDate(userDetails.application.invoiceDateRange.startDate)} 
+                                    />
+                                    <DataCard 
+                                      label="End Date" 
+                                      value={formatDate(userDetails.application.invoiceDateRange.endDate)} 
+                                    />
+                                  </div>
+                                  <div className="mt-4 pt-4 border-t border-blue-200/60">
+                                    <p className="text-sm text-gray-600 mb-2">If the user requested different dates, you can update them here. The new invoice PDF will reflect the updated period.</p>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const start = userDetails.application.invoiceDateRange.startDate;
+                                        const end = userDetails.application.invoiceDateRange.endDate;
+                                        setAdminEditStart(start ? new Date(start).toISOString().slice(0, 10) : '');
+                                        setAdminEditEnd(end ? new Date(end).toISOString().slice(0, 10) : '');
+                                        setEditingInvoiceDates(true);
+                                      }}
+                                      className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                      </svg>
+                                      Change dates (admin)
+                                    </button>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="space-y-4">
+                                  <p className="text-sm text-gray-700">Update the invoice date range. The user will see the new dates and can download an updated invoice.</p>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                      <input
+                                        type="date"
+                                        value={adminEditStart}
+                                        onChange={(e) => setAdminEditStart(e.target.value)}
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                      <input
+                                        type="date"
+                                        value={adminEditEnd}
+                                        onChange={(e) => setAdminEditEnd(e.target.value)}
+                                        min={adminEditStart || undefined}
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!adminEditStart || !adminEditEnd) {
+                                          alert('Please select both start and end dates.');
+                                          return;
+                                        }
+                                        const start = new Date(adminEditStart);
+                                        const end = new Date(adminEditEnd);
+                                        if (end <= start) {
+                                          alert('End date must be after start date.');
+                                          return;
+                                        }
+                                        setSavingInvoiceDates(true);
+                                        try {
+                                          await api.patch(`/admin/users/${selectedUser}/invoice-dates`, {
+                                            dateRangeStart: start.toISOString(),
+                                            dateRangeEnd: end.toISOString(),
+                                          });
+                                          setEditingInvoiceDates(false);
+                                          await fetchUserDetails(selectedUser);
+                                          alert('Dates updated. The user can download a new invoice with the updated period.');
+                                        } catch (err) {
+                                          alert(err.response?.data?.message || 'Error updating dates.');
+                                        } finally {
+                                          setSavingInvoiceDates(false);
+                                        }
+                                      }}
+                                      disabled={savingInvoiceDates}
+                                      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                      {savingInvoiceDates ? 'Saving...' : 'Save new dates'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingInvoiceDates(false)}
+                                      disabled={savingInvoiceDates}
+                                      className="inline-flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
                             </div>
 
                             {/* Payment Deadline */}
@@ -2153,8 +2252,95 @@ const AdminPanel = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500 mb-4">This user has not selected dates for the invoice yet.</p>
+                          <div className="space-y-6">
+                            <p className="text-gray-500">This user has not selected dates for the invoice yet.</p>
+                            <div className="glass-card p-6 bg-blue-50/30 border-blue-200/40">
+                              <h4 className="text-lg font-bold text-gray-900 mb-2">Assign dates (admin)</h4>
+                              <p className="text-sm text-gray-600 mb-4">You can assign the invoice date range for this MIRI user. After saving, the request will appear in &quot;Confirm dates (MIRI)&quot; where you can approve and set scholarship %.</p>
+                              {!editingInvoiceDates ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setAdminEditStart('');
+                                    setAdminEditEnd('');
+                                    setEditingInvoiceDates(true);
+                                  }}
+                                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                  Assign dates (admin)
+                                </button>
+                              ) : (
+                                <div className="space-y-4">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                      <input
+                                        type="date"
+                                        value={adminEditStart}
+                                        onChange={(e) => setAdminEditStart(e.target.value)}
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                      <input
+                                        type="date"
+                                        value={adminEditEnd}
+                                        onChange={(e) => setAdminEditEnd(e.target.value)}
+                                        min={adminEditStart || undefined}
+                                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="flex gap-3">
+                                    <button
+                                      type="button"
+                                      onClick={async () => {
+                                        if (!adminEditStart || !adminEditEnd) {
+                                          alert('Please select both start and end dates.');
+                                          return;
+                                        }
+                                        const start = new Date(adminEditStart);
+                                        const end = new Date(adminEditEnd);
+                                        if (end <= start) {
+                                          alert('End date must be after start date.');
+                                          return;
+                                        }
+                                        setSavingInvoiceDates(true);
+                                        try {
+                                          await api.patch(`/admin/users/${selectedUser}/invoice-dates`, {
+                                            dateRangeStart: start.toISOString(),
+                                            dateRangeEnd: end.toISOString(),
+                                          });
+                                          setEditingInvoiceDates(false);
+                                          await fetchUserDetails(selectedUser);
+                                          alert('Dates assigned. You can approve them in "Confirm dates (MIRI)" and set scholarship % if needed.');
+                                        } catch (err) {
+                                          alert(err.response?.data?.message || 'Error assigning dates.');
+                                        } finally {
+                                          setSavingInvoiceDates(false);
+                                        }
+                                      }}
+                                      disabled={savingInvoiceDates}
+                                      className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                      {savingInvoiceDates ? 'Saving...' : 'Save and assign dates'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingInvoiceDates(false)}
+                                      disabled={savingInvoiceDates}
+                                      className="inline-flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

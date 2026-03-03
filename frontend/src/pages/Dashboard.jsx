@@ -140,10 +140,10 @@ const Dashboard = () => {
     );
   }
 
-  // Match ApplicationStepper: only steps currently shown (AI Interview = step2, Acceptance Letter = step4)
-  const activeStepsTotal = 2;
+  // Match ApplicationStepper: CV upload, AI Interview, Acceptance Letter
+  const activeStepsTotal = 3;
   const activeStepsCompleted = applicationStatus
-    ? [applicationStatus.step2Completed, applicationStatus.step4Completed].filter(Boolean).length
+    ? [applicationStatus.cvAnalyzed, applicationStatus.step2Completed, applicationStatus.step4Completed].filter(Boolean).length
     : 0;
   const journeyPercentage = activeStepsTotal ? Math.round((activeStepsCompleted / activeStepsTotal) * 100) : 0;
 

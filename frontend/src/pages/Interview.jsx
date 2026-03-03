@@ -224,23 +224,15 @@ const Interview = () => {
         fullResponse: appStatusResponse.data
       });
       
-      // Check if step1Completed is true (strict check)
-      const step1Completed = appStatusResponse.data?.step1Completed === true;
-      
-      if (!step1Completed && !isAdmin) {
-        console.warn('Step 1 not completed, redirecting to dashboard');
-        // Show error message and redirect to dashboard
-        setError('Please complete the Application Form (Step 1) before starting the interview.');
-        setTimeout(() => {
-          navigate('/dashboard');
-        }, 2000);
+      const response = await api.get('/users/profile');
+      const cvAnalyzed = response.data?.cvAnalyzed === true;
+
+      // Require CV to be uploaded and analyzed first (personalized questions)
+      if (!cvAnalyzed && !isAdmin) {
+        console.warn('CV not analyzed, redirecting to CV upload');
+        navigate('/cv-upload');
         return;
       }
-      
-      // If we get here, step1Completed is true, proceed with interview
-      console.log('Step 1 completed, proceeding with interview');
-      
-      const response = await api.get('/users/profile');
       
       // Check if interview is already completed
       if (response.data.interviewCompleted) {
