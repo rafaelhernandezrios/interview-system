@@ -690,7 +690,7 @@ function getWeeksBetween(startDate, endDate) {
   return Math.max(0, Math.ceil(diffDays / 7));
 }
 function getTuitionPerWeek(weeks) {
-  return weeks >= 7 && weeks <= 12 ? 300 : 350;
+  return weeks >= 7 ? 300 : 350;
 }
 function computeInvoiceTotal(weeks, scholarshipPercentage = 0) {
   const tuitionPerWeek = getTuitionPerWeek(weeks);

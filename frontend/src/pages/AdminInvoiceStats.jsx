@@ -29,6 +29,41 @@ export default function AdminInvoiceStats() {
   const [data, setData] = useState({ list: [], summary: null });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [downloadingUserId, setDownloadingUserId] = useState(null);
+
+  const handleDownloadInvoice = async (userId, userName) => {
+    setDownloadingUserId(userId);
+    try {
+      const response = await api.get(`/admin/users/${userId}/invoice`, { responseType: 'blob' });
+      const disposition = response.headers['content-disposition'];
+      const fileNameMatch = disposition?.match(/filename="?([^"]+)"?/);
+      const fullName = (userName || 'Invoice').replace(/\s+/g, '_');
+      const fileName = fileNameMatch?.[1] || `MIRI_Invoice_${fullName}.pdf`;
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      if (err.response?.data instanceof Blob) {
+        err.response.data.text().then((text) => {
+          try {
+            const jsonError = JSON.parse(text);
+            alert(jsonError.message || 'Error downloading invoice.');
+          } catch {
+            alert('Error downloading invoice.');
+          }
+        });
+      } else {
+        alert(err.response?.data?.message || 'Error downloading invoice.');
+      }
+    } finally {
+      setDownloadingUserId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -183,7 +218,7 @@ export default function AdminInvoiceStats() {
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Discount %</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Payment deadline</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Total (USD)</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">Invoice</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -204,17 +239,17 @@ export default function AdminInvoiceStats() {
                         ${(row.total ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                            row.invoiceStatus === 'approved'
-                              ? 'bg-green-100 text-green-700'
-                              : row.invoiceStatus === 'pending'
-                              ? 'bg-amber-100 text-amber-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadInvoice(row.userId, row.userName)}
+                          disabled={downloadingUserId === row.userId}
+                          className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium text-sm disabled:opacity-50"
                         >
-                          {row.invoiceStatus === 'approved' ? 'Approved' : row.invoiceStatus === 'pending' ? 'Pending' : 'Rejected'}
-                        </span>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          {downloadingUserId === row.userId ? '…' : 'PDF'}
+                        </button>
                       </td>
                     </tr>
                   ))}

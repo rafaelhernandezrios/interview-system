@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 // Program fees (MIRI) — registration not in invoice total, shown in Payment Terms only
 const REGISTRATION_FEE_DISPLAY = 250; // shown in Payment Terms (1st Payment)
 const TUITION_PER_WEEK_4_6 = 350;  // USD per week (4 to 6 weeks)
-const TUITION_PER_WEEK_7_12 = 300; // USD per week (7 to 12 weeks)
+const TUITION_PER_WEEK_7_PLUS = 300; // USD per week (7+ weeks) — avoids big jump at 13 weeks
 const TAX_RATE = 0.10; // 10%
 const RED = "#c53030";
 
@@ -38,16 +38,16 @@ function getWeeksBetween(startDate, endDate) {
 }
 
 /**
- * Tuition fee per week: $350 (4–6 weeks), $300 (7–12 weeks).
+ * Tuition fee per week: $350 (4–6 weeks), $300 (7+ weeks).
  */
 function getTuitionPerWeek(weeks) {
-  if (weeks >= 7 && weeks <= 12) return TUITION_PER_WEEK_7_12;
+  if (weeks >= 7) return TUITION_PER_WEEK_7_PLUS;
   return TUITION_PER_WEEK_4_6;
 }
 
 /**
  * Invoice breakdown (no registration fee):
- * - Tuition: $350/week (4-6 weeks) or $300/week (7-12 weeks).
+ * - Tuition: $350/week (4-6 weeks) or $300/week (7+ weeks).
  * - Scholarship: applied only to Tuition.
  * - Subtotal: Tuition (after discount).
  * - Tax (10%): on Subtotal.

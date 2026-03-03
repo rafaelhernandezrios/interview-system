@@ -2148,7 +2148,7 @@ const AdminPanel = () => {
                               const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
                               const weeks = Math.max(0, Math.ceil(diffDays / 7));
                               
-                              const tuitionPerWeek = weeks >= 7 && weeks <= 12 ? 300 : 350;
+                              const tuitionPerWeek = weeks >= 7 ? 300 : 350;
                               const scholarshipPercentage = userDetails.application.scholarshipPercentage || 0;
                               const tuitionBeforeScholarship = weeks * tuitionPerWeek;
                               const scholarshipDiscount = tuitionBeforeScholarship * (scholarshipPercentage / 100);

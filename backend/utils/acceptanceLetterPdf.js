@@ -446,12 +446,12 @@ function streamFIJSEAcceptanceLetterPdf(res, user, application) {
   doc.font("Helvetica").text("Current tuition rates:", bodyOptions);
   doc.moveDown(0.3);
   doc.text("• USD 350 per week for programs lasting 4–6 weeks", bodyOptions);
-  doc.text("• USD 300 per week for programs lasting 7–12 weeks", bodyOptions);
+  doc.text("• USD 300 per week for programs lasting 7+ weeks", bodyOptions);
   doc.moveDown(0.4);
   doc.text("With your 15% tuition scholarship, the updated rates become:", bodyOptions);
   doc.moveDown(0.3);
   doc.text("• USD 297.50 per week for programs lasting 4–6 weeks", bodyOptions);
-  doc.text("• USD 255.00 per week for programs lasting 7–12 weeks", bodyOptions);
+  doc.text("• USD 255.00 per week for programs lasting 7+ weeks", bodyOptions);
   doc.moveDown(0.4);
   doc
     .font("Helvetica-Bold")
