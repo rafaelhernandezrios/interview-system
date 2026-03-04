@@ -5,6 +5,7 @@ import api from '../utils/axios';
 import {
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   Tooltip,
@@ -100,6 +101,15 @@ export default function AdminInvoiceStats() {
 
   const summary = data.summary || {};
   const list = data.list || [];
+  const paidList = list.filter((row) => row.isPaid);
+  const paidCount = paidList.length;
+  const paidRevenue = paidList.reduce((sum, row) => sum + (row.total ?? 0), 0);
+  const unpaidCount = list.length - paidCount;
+  const paidChartData = [
+    { name: 'Paid', count: paidCount },
+    { name: 'Unpaid', count: unpaidCount },
+  ].filter((d) => d.count > 0);
+
   const revenueByMonth = (summary.revenueByMonth || []).map(({ month, value }) => ({
     month: formatMonth(month),
     monthKey: month,
@@ -142,7 +152,7 @@ export default function AdminInvoiceStats() {
 
         {/* Summary cards */}
         {summary && (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div className="glass-card p-6">
               <p className="text-sm text-gray-600 mb-1">Approved revenue (estimated)</p>
               <p className="text-2xl font-bold text-green-600">
@@ -159,41 +169,82 @@ export default function AdminInvoiceStats() {
               <p className="text-sm text-gray-600 mb-1">Total invoices</p>
               <p className="text-2xl font-bold text-gray-900">{summary.totalInvoices ?? 0}</p>
             </div>
+            <div className="glass-card p-6 bg-green-50/80 border border-green-200/60">
+              <p className="text-sm text-gray-700 mb-1">Invoices paid</p>
+              <p className="text-2xl font-bold text-green-700">{paidCount}</p>
+              {paidCount > 0 && (
+                <p className="text-sm text-green-600 mt-1">
+                  ${paidRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })} collected
+                </p>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="glass-card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Revenue by payment deadline month</h2>
+        {/* Charts - 3 equal columns when payment data exists, else 2 columns */}
+        <div className={`grid gap-6 mb-8 ${paidChartData.length > 0 ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1 lg:grid-cols-2'}`}>
+          {paidChartData.length > 0 && (
+            <div className="glass-card p-6 rounded-2xl border border-gray-200/60">
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">Payment status</h2>
+              <p className="text-sm text-gray-500 mb-4">Paid vs unpaid invoices</p>
+              <div className="w-full h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={paidChartData} margin={{ top: 16, right: 16, left: 16, bottom: 24 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip formatter={(v) => [v, 'Invoices']} />
+                    <Bar dataKey="count" name="Invoices" radius={[4, 4, 0, 0]}>
+                      {paidChartData.map((entry, index) => (
+                        <Cell key={index} fill={entry.name === 'Paid' ? '#10b981' : '#f59e0b'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Paid: {paidCount} · Unpaid: {unpaidCount}
+              </p>
+            </div>
+          )}
+
+          <div className="glass-card p-6 rounded-2xl border border-gray-200/60">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Revenue by deadline month</h2>
+            <p className="text-sm text-gray-500 mb-4">Estimated revenue by payment deadline</p>
             {revenueByMonth.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={revenueByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
-                  <Tooltip formatter={(v) => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
-                  <Bar dataKey="revenue" fill="#2563eb" name="Revenue (USD)" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueByMonth} margin={{ top: 16, right: 16, left: 16, bottom: 56 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={48} />
+                    <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} />
+                    <Tooltip formatter={(v) => [`$${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, 'Revenue']} />
+                    <Bar dataKey="revenue" fill="#2563eb" name="Revenue (USD)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <p className="text-gray-500 py-8 text-center">No data yet</p>
+              <div className="h-[280px] flex items-center justify-center text-gray-500">No data yet</div>
             )}
           </div>
-          <div className="glass-card p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Students by program start month</h2>
+
+          <div className="glass-card p-6 rounded-2xl border border-gray-200/60">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Students by start month</h2>
+            <p className="text-sm text-gray-500 mb-4">Program start distribution</p>
             {studentsByMonth.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={studentsByMonth} margin={{ top: 10, right: 10, left: 0, bottom: 60 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={60} />
-                  <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="students" fill="#7c3aed" name="Students" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="w-full h-[280px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={studentsByMonth} margin={{ top: 16, right: 16, left: 16, bottom: 56 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="month" tick={{ fontSize: 11 }} angle={-35} textAnchor="end" height={48} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip />
+                    <Bar dataKey="students" fill="#7c3aed" name="Students" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <p className="text-gray-500 py-8 text-center">No data yet</p>
+              <div className="h-[280px] flex items-center justify-center text-gray-500">No data yet</div>
             )}
           </div>
         </div>
@@ -218,6 +269,7 @@ export default function AdminInvoiceStats() {
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Discount %</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Payment deadline</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Total (USD)</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">Paid</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Invoice</th>
                   </tr>
                 </thead>
@@ -237,6 +289,15 @@ export default function AdminInvoiceStats() {
                       <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.paymentDeadline)}</td>
                       <td className="px-4 py-3 font-semibold text-gray-900">
                         ${(row.total ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-4 py-3">
+                        {row.isPaid ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800" title="Pagado">
+                            ✓ Paid
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 text-sm">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3">
                         <button

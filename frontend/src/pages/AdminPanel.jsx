@@ -209,6 +209,10 @@ const AdminPanel = () => {
   const [adminEditStart, setAdminEditStart] = useState('');
   const [adminEditEnd, setAdminEditEnd] = useState('');
   const [savingInvoiceDates, setSavingInvoiceDates] = useState(false);
+  const [paymentProofRequests, setPaymentProofRequests] = useState([]);
+  const [loadingPaymentProofRequests, setLoadingPaymentProofRequests] = useState(false);
+  const [paymentProofActionUserId, setPaymentProofActionUserId] = useState(null);
+  const [downloadingProofUserId, setDownloadingProofUserId] = useState(null);
 
   useEffect(() => {
     if (initialLoadExecutedRef.current) {
@@ -218,6 +222,7 @@ const AdminPanel = () => {
     fetchUsers();
     fetchStats();
     fetchInvoiceRequests();
+    fetchPaymentProofRequests();
   }, []);
 
   useEffect(() => {
@@ -233,6 +238,18 @@ const AdminPanel = () => {
       console.error('Error fetching invoice requests:', err);
     } finally {
       setLoadingInvoiceRequests(false);
+    }
+  };
+
+  const fetchPaymentProofRequests = async () => {
+    try {
+      setLoadingPaymentProofRequests(true);
+      const response = await api.get('/admin/payment-proof-requests');
+      setPaymentProofRequests(response.data?.pending || []);
+    } catch (err) {
+      console.error('Error fetching payment proof requests:', err);
+    } finally {
+      setLoadingPaymentProofRequests(false);
     }
   };
 
@@ -764,6 +781,126 @@ const AdminPanel = () => {
                                   alert(err.response?.data?.message || 'Error rejecting.');
                                 } finally {
                                   setInvoiceActionUserId(null);
+                                }
+                              }}
+                              disabled={isBusy}
+                              className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Payment proofs (MIRI) - Comprobantes de pago pendientes de verificar */}
+        <div className="glass-card p-5 sm:p-6 md:p-8 mb-6 sm:mb-8 rounded-2xl border border-gray-200/60">
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">Payment proofs (MIRI)</h2>
+              <p className="text-sm text-gray-500">Review and approve payment proof PDFs uploaded by MIRI users. When approved, the invoice is marked as paid.</p>
+            </div>
+            {loadingPaymentProofRequests ? (
+              <p className="text-sm text-gray-500">Loading pending payment proofs...</p>
+            ) : paymentProofRequests.length === 0 ? (
+              <p className="text-sm text-gray-500">No pending payment proofs to review.</p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
+                <table className="w-full min-w-[500px] text-left text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Name</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Email</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Uploaded</th>
+                      <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paymentProofRequests.map((row) => {
+                      const uid = row.userId?._id || row.userId;
+                      const isBusy = paymentProofActionUserId === uid;
+                      const formatD = (d) => d ? new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+                      return (
+                        <tr key={uid} className="bg-white/60 hover:bg-white/80">
+                          <td className="px-4 py-3 text-gray-900">{row.name || '—'}</td>
+                          <td className="px-4 py-3 text-gray-700">{row.email || '—'}</td>
+                          <td className="px-4 py-3 text-gray-700">{formatD(row.paymentProofUploadedAt)}</td>
+                          <td className="px-4 py-3 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setDownloadingProofUserId(uid);
+                                try {
+                                  const response = await api.get(`/admin/users/${uid}/payment-proof`, { responseType: 'blob' });
+                                  const disposition = response.headers['content-disposition'];
+                                  const fileNameMatch = disposition?.match(/filename="?([^"]+)"?/);
+                                  const fileName = fileNameMatch?.[1] || `Payment_Proof_${(row.name || 'User').replace(/\s+/g, '_')}.pdf`;
+                                  const url = window.URL.createObjectURL(new Blob([response.data]));
+                                  const link = document.createElement('a');
+                                  link.href = url;
+                                  link.setAttribute('download', fileName);
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  link.remove();
+                                  window.URL.revokeObjectURL(url);
+                                } catch (err) {
+                                  if (err.response?.data instanceof Blob) {
+                                    err.response.data.text().then((text) => {
+                                      try {
+                                        const j = JSON.parse(text);
+                                        alert(j.message || 'Error downloading.');
+                                      } catch {
+                                        alert('Error downloading PDF.');
+                                      }
+                                    });
+                                  } else {
+                                    alert(err.response?.data?.message || 'Error downloading PDF.');
+                                  }
+                                } finally {
+                                  setDownloadingProofUserId(null);
+                                }
+                              }}
+                              disabled={downloadingProofUserId === uid}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              {downloadingProofUserId === uid ? '…' : 'View PDF'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                setPaymentProofActionUserId(uid);
+                                try {
+                                  await api.patch(`/admin/users/${uid}/payment-proof-approve`);
+                                  await fetchPaymentProofRequests();
+                                  alert('Payment proof approved. Invoice marked as paid.');
+                                } catch (err) {
+                                  alert(err.response?.data?.message || 'Error approving.');
+                                } finally {
+                                  setPaymentProofActionUserId(null);
+                                }
+                              }}
+                              disabled={isBusy}
+                              className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-700 text-white text-sm font-medium disabled:opacity-50"
+                            >
+                              {isBusy ? '…' : 'Approve'}
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm('Reject this payment proof? The user can upload a new one.')) return;
+                                setPaymentProofActionUserId(uid);
+                                try {
+                                  await api.patch(`/admin/users/${uid}/payment-proof-reject`);
+                                  await fetchPaymentProofRequests();
+                                  alert('Rejected.');
+                                } catch (err) {
+                                  alert(err.response?.data?.message || 'Error rejecting.');
+                                } finally {
+                                  setPaymentProofActionUserId(null);
                                 }
                               }}
                               disabled={isBusy}

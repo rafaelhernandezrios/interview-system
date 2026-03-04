@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import fs from "fs";
 import mongoose from "mongoose";
 import User from "../models/User.js";
 import Application from "../models/Application.js";
@@ -753,6 +755,8 @@ router.get("/invoice-stats", async (req, res) => {
         scholarshipPercentage,
         total,
         invoiceStatus: app.invoiceStatus || "pending",
+        paymentProofStatus: app.paymentProofStatus || null,
+        isPaid: app.paymentProofStatus === "approved",
       });
     }
 
@@ -856,6 +860,113 @@ router.patch("/users/:userId/invoice-reject", async (req, res) => {
   } catch (error) {
     console.error("Error rejecting invoice:", error);
     res.status(500).json({ message: "Error rejecting invoice" });
+  }
+});
+
+// ----- MIRI Payment proof (comprobante de pago) -----
+// List pending payment proof uploads for admin verification
+router.get("/payment-proof-requests", async (req, res) => {
+  try {
+    const applications = await Application.find({
+      paymentProofStatus: "pending",
+      paymentProofUrl: { $exists: true, $ne: "" },
+    })
+      .populate("userId", "name email program")
+      .sort({ paymentProofUploadedAt: -1 })
+      .lean();
+    const list = applications.map((app) => ({
+      userId: app.userId?._id,
+      name: app.userId?.name,
+      email: app.userId?.email,
+      program: app.userId?.program,
+      paymentProofUploadedAt: app.paymentProofUploadedAt,
+      applicationId: app._id,
+    }));
+    res.json({ pending: list });
+  } catch (error) {
+    console.error("Error listing payment proof requests:", error);
+    res.status(500).json({ message: "Error listing payment proof requests" });
+  }
+});
+
+// Approve payment proof
+router.patch("/users/:userId/payment-proof-approve", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const application = await Application.findOne({
+      userId,
+      paymentProofStatus: "pending",
+      paymentProofUrl: { $exists: true, $ne: "" },
+    });
+    if (!application) {
+      return res.status(404).json({
+        message: "No pending payment proof found for this user.",
+      });
+    }
+    application.paymentProofStatus = "approved";
+    application.paymentProofApprovedAt = new Date();
+    await application.save();
+    res.json({
+      message: "Payment proof approved. Payment is now marked as paid.",
+      paymentProofStatus: application.paymentProofStatus,
+    });
+  } catch (error) {
+    console.error("Error approving payment proof:", error);
+    res.status(500).json({ message: "Error approving payment proof" });
+  }
+});
+
+// Reject payment proof (user can re-upload)
+router.patch("/users/:userId/payment-proof-reject", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const application = await Application.findOne({ userId });
+    if (!application || !application.paymentProofUrl) {
+      return res.status(404).json({ message: "No payment proof found for this user." });
+    }
+    application.paymentProofStatus = "rejected";
+    application.paymentProofApprovedAt = null;
+    await application.save();
+    res.json({
+      message: "Payment proof rejected. The user can upload a new one.",
+      paymentProofStatus: application.paymentProofStatus,
+    });
+  } catch (error) {
+    console.error("Error rejecting payment proof:", error);
+    res.status(500).json({ message: "Error rejecting payment proof" });
+  }
+});
+
+// Admin: download user's payment proof PDF
+router.get("/users/:userId/payment-proof", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select("name");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const application = await Application.findOne({ userId });
+    if (!application || !application.paymentProofUrl) {
+      return res.status(404).json({ message: "No payment proof uploaded for this user." });
+    }
+
+    const urlOrPath = application.paymentProofUrl;
+    const isUrl = urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://");
+
+    if (isUrl) {
+      return res.redirect(302, urlOrPath);
+    }
+
+    const filePath = path.join(process.cwd(), "uploads", "payment-proofs", path.basename(urlOrPath));
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Payment proof file not found on server." });
+    }
+    const fileName = `Payment_Proof_${(user.name || "User").replace(/\s+/g, "_")}.pdf`;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    fs.createReadStream(filePath).pipe(res);
+  } catch (error) {
+    console.error("Error downloading payment proof:", error);
+    res.status(500).json({ message: "Error downloading payment proof" });
   }
 });
 

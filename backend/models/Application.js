@@ -80,6 +80,12 @@ const applicationSchema = new mongoose.Schema(
     scholarshipPercentage: { type: Number, min: 0, max: 100, default: null },
     invoiceApprovedAt: { type: Date },
 
+    // MIRI: Payment proof (comprobante de pago) - uploaded after invoice download
+    paymentProofUrl: { type: String }, // path or S3 URL to PDF
+    paymentProofStatus: { type: String, enum: ['pending', 'approved', 'rejected'] },
+    paymentProofUploadedAt: { type: Date },
+    paymentProofApprovedAt: { type: Date },
+
     // Scheduled Meeting (Step 3)
     scheduledMeeting: {
       dateTime: { type: Date },

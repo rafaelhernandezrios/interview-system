@@ -1,10 +1,16 @@
 import express from "express";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import Application from "../models/Application.js";
 import User from "../models/User.js";
 import { authMiddleware } from "./authRoutes.js";
 import { streamAcceptanceLetterPdf } from "../utils/acceptanceLetterPdf.js";
 import { streamInvoicePdf } from "../utils/invoicePdf.js";
+import paymentProofUpload from "../middleware/paymentProofUpload.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 // Get application status
@@ -29,6 +35,10 @@ router.get("/status", authMiddleware, async (req, res) => {
         invoiceStatus: null,
         scholarshipPercentage: null,
         invoiceApprovedAt: null,
+        paymentProofUrl: null,
+        paymentProofStatus: null,
+        paymentProofUploadedAt: null,
+        paymentProofApprovedAt: null,
       });
     }
 
@@ -48,6 +58,10 @@ router.get("/status", authMiddleware, async (req, res) => {
       invoiceStatus: application.invoiceStatus || null,
       scholarshipPercentage: application.scholarshipPercentage ?? null,
       invoiceApprovedAt: application.invoiceApprovedAt || null,
+      paymentProofUrl: application.paymentProofUrl || null,
+      paymentProofStatus: application.paymentProofStatus || null,
+      paymentProofUploadedAt: application.paymentProofUploadedAt || null,
+      paymentProofApprovedAt: application.paymentProofApprovedAt || null,
     });
   } catch (error) {
     console.error("Error fetching application status:", error);
@@ -299,6 +313,55 @@ router.post("/confirm-dates", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error confirming dates:", error);
     res.status(500).json({ message: "Error submitting dates" });
+  }
+});
+
+// MIRI: upload payment proof (comprobante de pago) PDF - only when invoice is approved
+router.post("/upload-payment-proof", authMiddleware, paymentProofUpload.single("file"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded. Please select a PDF file." });
+    }
+
+    const user = await User.findById(req.userId).select("program");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Payment proof upload is only available for MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application) {
+      return res.status(403).json({ message: "Application not found." });
+    }
+    if (application.invoiceStatus !== "approved") {
+      return res.status(403).json({
+        message: "Your invoice must be approved before you can upload a payment proof. Please confirm your dates and wait for approval.",
+      });
+    }
+
+    const STORAGE_TYPE = process.env.STORAGE_TYPE || "local";
+    let filePath;
+    if (STORAGE_TYPE === "s3" && req.file.location) {
+      filePath = req.file.location;
+    } else {
+      const fileName = path.basename(req.file.path);
+      filePath = fileName; // store filename only; we resolve path when streaming
+    }
+
+    application.paymentProofUrl = filePath;
+    application.paymentProofStatus = "pending";
+    application.paymentProofUploadedAt = new Date();
+    application.paymentProofApprovedAt = null;
+    await application.save();
+
+    res.json({
+      message: "Payment proof uploaded successfully. An admin will verify and approve it.",
+      paymentProofStatus: application.paymentProofStatus,
+      paymentProofUploadedAt: application.paymentProofUploadedAt,
+    });
+  } catch (error) {
+    console.error("Error uploading payment proof:", error);
+    res.status(500).json({ message: error.message || "Error uploading payment proof" });
   }
 });
 
