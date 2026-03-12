@@ -11,6 +11,7 @@ import * as XLSX from "xlsx";
 import archiver from "archiver";
 import { streamAcceptanceLetterPdf, generateAcceptanceLetterPdfBuffer } from "../utils/acceptanceLetterPdf.js";
 import { streamInvoicePdf } from "../utils/invoicePdf.js";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const router = express.Router();
 
@@ -995,7 +996,7 @@ router.patch("/users/:userId/payment-proof-reject", async (req, res) => {
   }
 });
 
-// Admin: download user's payment proof PDF
+// Admin: download user's payment proof PDF (works in deployment: proxy from S3 instead of redirect)
 router.get("/users/:userId/payment-proof", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -1009,18 +1010,53 @@ router.get("/users/:userId/payment-proof", async (req, res) => {
 
     const urlOrPath = application.paymentProofUrl;
     const isUrl = urlOrPath.startsWith("http://") || urlOrPath.startsWith("https://");
+    const fileName = `Payment_Proof_${(user.name || "User").replace(/\s+/g, "_")}.pdf`;
+    const setPdfHeaders = () => {
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    };
 
+    // S3 full URL: fetch server-side and stream to client (avoids CORS / redirect issues in deployment)
     if (isUrl) {
-      return res.redirect(302, urlOrPath);
+      const response = await fetch(urlOrPath);
+      if (!response.ok) {
+        console.error("Payment proof fetch failed:", response.status, urlOrPath);
+        return res.status(502).json({ message: "Payment proof file could not be retrieved from storage." });
+      }
+      setPdfHeaders();
+      const buffer = await response.arrayBuffer();
+      return res.send(Buffer.from(buffer));
     }
 
+    // S3 key (e.g. payment-proofs/xxx.pdf) when STORAGE_TYPE is s3
+    const storageType = process.env.STORAGE_TYPE || "local";
+    if (storageType === "s3" && process.env.AWS_BUCKET_NAME) {
+      const s3Key = urlOrPath.includes("/") ? urlOrPath : `payment-proofs/${urlOrPath}`;
+      const s3Client = new S3Client({
+        region: process.env.AWS_REGION,
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+        },
+      });
+      const command = new GetObjectCommand({
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: s3Key,
+      });
+      const obj = await s3Client.send(command);
+      const stream = obj.Body;
+      if (!stream) return res.status(502).json({ message: "Payment proof stream not available." });
+      setPdfHeaders();
+      stream.pipe(res);
+      return;
+    }
+
+    // Local file
     const filePath = path.join(process.cwd(), "uploads", "payment-proofs", path.basename(urlOrPath));
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: "Payment proof file not found on server." });
     }
-    const fileName = `Payment_Proof_${(user.name || "User").replace(/\s+/g, "_")}.pdf`;
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+    setPdfHeaders();
     fs.createReadStream(filePath).pipe(res);
   } catch (error) {
     console.error("Error downloading payment proof:", error);
