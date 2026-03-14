@@ -23,11 +23,11 @@ const applicationSchema = new mongoose.Schema(
     // Section 2: Personal & Contact
     firstName: { type: String },
     lastName: { type: String },
-    sex: { type: String, enum: ['Man', 'Woman'] },
+    sex: { type: String, enum: ['Man', 'Woman', ''] },
     dateOfBirth: { type: Date },
     countryOfCitizenship: { type: String },
     countryOfResidency: { type: String },
-    primaryPhoneType: { type: String, enum: ['Mobile', 'Home', 'Work'] },
+    primaryPhoneType: { type: String, enum: ['Mobile', 'Home', 'Work', ''] },
     phoneNumber: { type: String },
     linkedInProfileUrl: { type: String },
     hasMedicalCondition: { type: Boolean, default: false },
@@ -47,7 +47,7 @@ const applicationSchema = new mongoose.Schema(
     // Section 4: Language
     englishLevel: { 
       type: String, 
-      enum: ['A0/A1', 'A2', 'B1', 'B2', 'C1', 'C2'] 
+      enum: ['A0/A1', 'A2', 'B1', 'B2', 'C1', 'C2', ''] 
     },
     hasEnglishCertification: { type: Boolean, default: false },
     
@@ -55,7 +55,7 @@ const applicationSchema = new mongoose.Schema(
     appliedBefore: { type: Boolean, default: false },
     paymentSource: { 
       type: String, 
-      enum: ['Parents', 'Self', 'University', 'Scholarship', 'Other'] 
+      enum: ['Parents', 'Self', 'University', 'Scholarship', 'Other', ''] 
     },
     
     // Section 6: Legal & Submit
@@ -113,14 +113,13 @@ const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "
 applicationSchema.pre("save", function (next) {
   for (const path of enumPaths) {
     if (this.get(path) === "") {
-      this.set(path, undefined);
+      this.unset(path);
     }
   }
   next();
 });
 
-applicationSchema.pre("findOneAndUpdate", function (next) {
-  const update = this.getUpdate();
+function stripEmptyEnums(update) {
   const set = update?.$set ?? update;
   if (set && typeof set === "object") {
     for (const path of enumPaths) {
@@ -129,6 +128,15 @@ applicationSchema.pre("findOneAndUpdate", function (next) {
       }
     }
   }
+}
+
+applicationSchema.pre("findOneAndUpdate", function (next) {
+  stripEmptyEnums(this.getUpdate());
+  next();
+});
+
+applicationSchema.pre("updateOne", function (next) {
+  stripEmptyEnums(this.getUpdate());
   next();
 });
 
