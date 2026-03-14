@@ -107,6 +107,31 @@ const applicationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Enum fields: empty string is not valid; treat as "not set" so validation passes
+const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "invoiceStatus", "paymentProofStatus"];
+
+applicationSchema.pre("save", function (next) {
+  for (const path of enumPaths) {
+    if (this.get(path) === "") {
+      this.set(path, undefined);
+    }
+  }
+  next();
+});
+
+applicationSchema.pre("findOneAndUpdate", function (next) {
+  const update = this.getUpdate();
+  const set = update?.$set ?? update;
+  if (set && typeof set === "object") {
+    for (const path of enumPaths) {
+      if (set[path] === "") {
+        set[path] = null;
+      }
+    }
+  }
+  next();
+});
+
 // Note: userId already has unique: true which automatically creates an index
 // No need to add explicit index to avoid duplicate index warning
 
