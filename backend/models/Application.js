@@ -113,7 +113,7 @@ const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "
 applicationSchema.pre("save", function (next) {
   for (const path of enumPaths) {
     if (this.get(path) === "") {
-      this.unset(path);
+      this.set(path, null);
     }
   }
   next();
