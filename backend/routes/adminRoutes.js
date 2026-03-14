@@ -1099,6 +1099,7 @@ router.patch("/users/:userId/invoice-dates", async (req, res) => {
       await application.save();
     } else {
       application.invoiceDateRange = { startDate: start, endDate: end };
+      application.markModified("invoiceDateRange"); // required so Mongoose persists nested object changes
       if (isAssign) {
         application.invoiceStatus = "pending";
         application.invoiceApprovedAt = null;
@@ -1115,7 +1116,11 @@ router.patch("/users/:userId/invoice-dates", async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating invoice dates:", error);
-    res.status(500).json({ message: "Error updating invoice dates" });
+    const message =
+      error.message ||
+      (error.errors && Object.values(error.errors).map((e) => e.message).join(", ")) ||
+      "Error updating invoice dates";
+    res.status(500).json({ message });
   }
 });
 
