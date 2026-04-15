@@ -432,11 +432,11 @@ const Interview = () => {
       }
     } else {
       // Estamos continuando desde una pregunta de texto
-      // Verificar si ya tiene respuesta guardada
-      const answerIndex = questionIndex - 1; // Las respuestas de texto empiezan en índice 0
-      if (answers[answerIndex] && answers[answerIndex].trim() !== '') {
+      // answers[questionIndex] contiene la respuesta de la pregunta actual
+      // (answers[0] = video, answers[k] = respuesta de texto para questionIndex k)
+      if (answers[questionIndex] && answers[questionIndex].trim() !== '') {
         // Ya tiene respuesta, mostrar en modo review
-        setTranscribedText(answers[answerIndex]);
+        setTranscribedText(answers[questionIndex]);
         setIsReviewMode(true);
         setVoiceState('REVIEW_MODE');
       } else {

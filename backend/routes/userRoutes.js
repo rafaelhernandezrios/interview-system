@@ -137,6 +137,7 @@ router.post("/upload-cv", authMiddleware, upload.single("file"), async (req, res
       storageType: STORAGE_TYPE
     });
   } catch (error) {
+    console.error('[upload-cv] Error:', error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -184,6 +185,7 @@ router.delete("/cv", authMiddleware, async (req, res) => {
       message: "CV deleted successfully"
     });
   } catch (error) {
+    console.error('[delete-cv] Error:', error);
     return res.status(500).json({ message: "Internal server error" });
   }
 });
@@ -222,6 +224,7 @@ router.post("/analyze-cv", authMiddleware, async (req, res) => {
       skills: allSkills
     });
   } catch (error) {
+    console.error('[analyze-cv] Error:', error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
@@ -382,21 +385,90 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
       }
     } else {
       // Traditional file upload - use multer middleware
-      // We need to handle this with multer, but conditionally
       return new Promise((resolve, reject) => {
         videoUpload.single('video')(req, res, async (err) => {
           if (err) {
             return res.status(400).json({ message: err.message || "Error uploading file" });
           }
-          
+
           if (!req.file) {
             return res.status(400).json({ message: "No video file provided. Either upload a file or provide an s3Url." });
           }
-          
+
+          // Validate file size
+          if (req.file.size < 1024) {
+            return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
+          }
+
+          // Allow up to 150MB when using S3 storage
+          const MAX_FILE_SIZE = VIDEO_STORAGE_TYPE === 's3' ? 150 * 1024 * 1024 : 50 * 1024 * 1024;
+          if (req.file.size > MAX_FILE_SIZE) {
+            const maxSizeMB = VIDEO_STORAGE_TYPE === 's3' ? '150MB' : '50MB';
+            return res.status(400).json({ message: `Video file is too large. Maximum size is ${maxSizeMB}.` });
+          }
+
+          // Determine file path based on storage type
+          if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
+            // File was uploaded to S3 by multer-s3, download it locally for Whisper
+            const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+            const tempDir = isServerless ? '/tmp' : path.join(__dirname, '../uploads/videos');
+
+            if (!isServerless && !fs.existsSync(tempDir)) {
+              fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            tempFilePath = path.join(tempDir, `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
+
+            let downloadSuccess = false;
+            let downloadAttempts = 0;
+            const maxDownloadAttempts = 3;
+
+            while (!downloadSuccess && downloadAttempts < maxDownloadAttempts) {
+              try {
+                downloadAttempts++;
+                const response = await axios({
+                  method: 'GET',
+                  url: req.file.location,
+                  responseType: 'stream',
+                  timeout: 60000,
+                });
+
+                const writeStream = fs.createWriteStream(tempFilePath);
+                await new Promise((innerResolve, innerReject) => {
+                  const timeout = setTimeout(() => {
+                    writeStream.destroy();
+                    innerReject(new Error('Download timeout'));
+                  }, 60000);
+
+                  response.data.pipe(writeStream);
+                  response.data.on('error', innerReject);
+                  writeStream.on('finish', () => {
+                    clearTimeout(timeout);
+                    innerResolve();
+                  });
+                  writeStream.on('error', innerReject);
+                });
+
+                downloadSuccess = true;
+                filePathToTranscribe = tempFilePath;
+              } catch (downloadError) {
+                if (downloadAttempts >= maxDownloadAttempts) {
+                  return res.status(500).json({ message: `Failed to download video: ${downloadError.message}` });
+                }
+                await new Promise(r => setTimeout(r, 1000 * downloadAttempts));
+              }
+            }
+          } else {
+            // Local storage: use the file path directly
+            filePathToTranscribe = req.file.path;
+          }
+
+          // Transcribe and respond
           try {
-            // Continue with existing file upload logic
-            await processFileUpload(req, res, resolve, reject);
+            await transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res, language);
+            resolve();
           } catch (error) {
+            console.error('[transcribe-video] Error transcribing uploaded file:', error);
             reject(error);
           }
         });
@@ -423,95 +495,6 @@ router.post("/transcribe-video", authMiddleware, async (req, res) => {
         const maxSizeMB = VIDEO_STORAGE_TYPE === 's3' ? '150MB' : '50MB';
         return res.status(400).json({ message: `Video file is too large. Maximum size is ${maxSizeMB}.` });
       }
-    } else {
-      // Traditional file upload path - handle with multer
-      return new Promise((resolve, reject) => {
-        videoUpload.single('video')(req, res, async (err) => {
-          if (err) {
-            return res.status(400).json({ message: err.message || "Error uploading file" });
-          }
-          
-          if (!req.file) {
-            return res.status(400).json({ message: "No video file provided. Either upload a file or provide an s3Url." });
-          }
-          
-          // Validate file size
-          if (req.file.size < 1024) {
-            return res.status(400).json({ message: "Video file is too small. Please ensure the recording contains audio." });
-          }
-          
-          // Allow up to 150MB when using S3 storage
-          const MAX_FILE_SIZE = VIDEO_STORAGE_TYPE === 's3' ? 150 * 1024 * 1024 : 50 * 1024 * 1024;
-          if (req.file.size > MAX_FILE_SIZE) {
-            const maxSizeMB = VIDEO_STORAGE_TYPE === 's3' ? '150MB' : '50MB';
-            return res.status(400).json({ message: `Video file is too large. Maximum size is ${maxSizeMB}.` });
-          }
-          
-          // Determine file path based on storage type
-          if (VIDEO_STORAGE_TYPE === 's3' && req.file.location) {
-            // Download from S3
-            const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-            const tempDir = isServerless ? '/tmp' : path.join(__dirname, '../uploads/videos');
-            
-            if (!isServerless && !fs.existsSync(tempDir)) {
-              fs.mkdirSync(tempDir, { recursive: true });
-            }
-            
-            tempFilePath = path.join(tempDir, `temp_${Date.now()}_${path.basename(req.file.key || 'video.webm')}`);
-            
-            let downloadSuccess = false;
-            let downloadAttempts = 0;
-            const maxDownloadAttempts = 3;
-            
-            while (!downloadSuccess && downloadAttempts < maxDownloadAttempts) {
-              try {
-                downloadAttempts++;
-                const response = await axios({
-                  method: 'GET',
-                  url: req.file.location,
-                  responseType: 'stream',
-                  timeout: 60000,
-                });
-                
-                const writeStream = fs.createWriteStream(tempFilePath);
-                await new Promise((resolve, reject) => {
-                  const timeout = setTimeout(() => {
-                    writeStream.destroy();
-                    reject(new Error('Download timeout'));
-                  }, 60000);
-                  
-                  response.data.pipe(writeStream);
-                  response.data.on('error', reject);
-                  writeStream.on('finish', () => {
-                    clearTimeout(timeout);
-                    resolve();
-                  });
-                  writeStream.on('error', reject);
-                });
-                
-                downloadSuccess = true;
-                filePathToTranscribe = tempFilePath;
-              } catch (downloadError) {
-                if (downloadAttempts >= maxDownloadAttempts) {
-                  return res.status(500).json({ message: `Failed to download video: ${downloadError.message}` });
-                }
-                await new Promise(resolve => setTimeout(resolve, 1000 * downloadAttempts));
-              }
-            }
-          } else {
-            filePathToTranscribe = req.file.path;
-          }
-          
-          // Continue with transcription
-          try {
-            await transcribeAndRespond(filePathToTranscribe, tempFilePath, req, res, language);
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        });
-      });
-      return; // Exit early, multer will handle the response
     }
 
     // Transcribe using the file path we have
@@ -732,6 +715,7 @@ async function processSubmitInterview(req, res, videoFile, s3VideoUrl, videoTran
       evaluations,
     });
   } catch (error) {
+    console.error('[submit-interview] Error:', error);
     return res.status(500).json({ message: "Internal server error" });
   }
 }
@@ -770,11 +754,12 @@ router.post("/save-interview-progress", authMiddleware, async (req, res) => {
     
     await user.save();
 
-    return res.json({ 
+    return res.json({
       message: "Progress saved successfully",
       currentQuestionIndex: currentQuestionIndex || 0
     });
   } catch (error) {
+    console.error('[save-interview-progress] Error:', error);
     return res.status(500).json({ message: "Error saving progress" });
   }
 });
