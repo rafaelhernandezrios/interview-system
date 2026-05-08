@@ -9,10 +9,18 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const cvAnalyzed = applicationStatus?.cvAnalyzed || false;
   const acceptanceLetterGeneratedAt = applicationStatus?.acceptanceLetterGeneratedAt;
 
-  // Step 1: Upload CV (required for personalized questions). Step 2: AI Interview. Step 3: Acceptance Letter.
+  // Step 1: Application Form. Step 2: Upload CV. Step 3: AI Interview. Step 4: Acceptance Letter.
   const steps = [
     {
       id: 1,
+      title: 'Application Form',
+      description: 'Complete your personal and academic information',
+      route: '/application-form',
+      completed: step1Completed,
+      available: true,
+    },
+    {
+      id: 'cv',
       title: 'Upload CV',
       description: 'Upload your CV and generate personalized interview questions',
       route: '/cv-upload',
