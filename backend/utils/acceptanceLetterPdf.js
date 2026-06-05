@@ -402,35 +402,26 @@ function streamEMFUTECHAcceptanceLetterPdf(res, user, application) {
   doc
     .font("Helvetica")
     .text(
-      "On behalf of the evaluation committee of the EMFUTECH Program 2026 at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been ",
+      "On behalf of the evaluation committee of the Emerging Future Technology Training Program 2026 at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been ",
       { ...bodyOptions, continued: true }
     )
     .font("Helvetica-Bold")
     .text("accepted ", { continued: true })
     .font("Helvetica")
     .text(
-      " to participate in our short-term academic immersion program in Osaka, Japan, for a duration of ",
+      "to participate in our academic program in Osaka, Japan, that will take place from ",
       { continued: true }
     )
     .font("Helvetica-Bold")
-    .text("4 to 12 weeks.", { continued: false });
+    .text("September 14th to December 4th, 2026", { continued: true })
+    .font("Helvetica")
+    .text(".", { continued: false });
   doc.moveDown(0.8);
 
   doc
     .font("Helvetica")
     .text(
-      "Your participation in the program will take place from ",
-      { align: "justify", width: textWidth, continued: true }
-    )
-    .font("Helvetica-Bold")
-    .text("September 14th to December 4th, 2026", {
-      continued: true,
-      align: "justify",
-      width: textWidth,
-    })
-    .font("Helvetica")
-    .text(
-      ". Below you will find your ",
+      "Below you will find your ",
       { align: "justify", width: textWidth, continued: true }
     )
     .font("Helvetica-Bold")
@@ -492,14 +483,14 @@ function streamEMFUTECHAcceptanceLetterPdf(res, user, application) {
     })
     .font("Helvetica")
     .text(
-      ". Additionally, you will be scheduled for a ",
+      ". Additionally, you will be scheduled to participate in the ",
       { ...bodyOptions, continued: true }
     )
     .font("Helvetica-Bold")
-    .text("new online meeting", { ...bodyOptions, continued: true })
+    .text("online information session", { ...bodyOptions, continued: true })
     .font("Helvetica")
     .text(
-      ", where we will discuss your potential project, provide guidance on how to prepare and acquire the necessary skills before beginning your EMFUTECH training, and answer any questions you may have regarding your upcoming travel to Japan.",
+      ", where we will give an overview of the program details, provide guidance on how to prepare and acquire the necessary skills before beginning your EmFuTech program, and answer any questions you may have regarding your upcoming travel to Japan.",
       { ...bodyOptions, continued: false }
     );
 
