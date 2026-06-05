@@ -416,12 +416,21 @@ function streamEMFUTECHAcceptanceLetterPdf(res, user, application) {
     .text("4 to 12 weeks.", { continued: false });
   doc.moveDown(0.8);
 
-  const currentYear = today.getFullYear();
-
   doc
     .font("Helvetica")
     .text(
-      `Your acceptance is valid for the year ${currentYear}, and your participation must begin after January ${currentYear} and conclude before December ${currentYear}. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule. Below you will find your `,
+      "Your participation in the program will take place from ",
+      { align: "justify", width: textWidth, continued: true }
+    )
+    .font("Helvetica-Bold")
+    .text("September 14th to December 4th, 2026", {
+      continued: true,
+      align: "justify",
+      width: textWidth,
+    })
+    .font("Helvetica")
+    .text(
+      ". Below you will find your ",
       { align: "justify", width: textWidth, continued: true }
     )
     .font("Helvetica-Bold")
@@ -432,7 +441,7 @@ function streamEMFUTECHAcceptanceLetterPdf(res, user, application) {
     })
     .font("Helvetica")
     .text(
-      "for the program. Please use the registration link provided to select your preferred participation dates and duration:",
+      "for the program. Please use the registration link provided to confirm your participation:",
       { align: "justify", width: textWidth }
     );
 

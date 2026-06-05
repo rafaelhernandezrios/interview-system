@@ -175,6 +175,8 @@ const ReportItem = ({ report, reportIndex, userId, userName, onResponseSent }) =
 
 const AdminPanel = () => {
   const initialLoadExecutedRef = useRef(false);
+  const usersScrollRef = useRef(null);
+  const [usersScrollState, setUsersScrollState] = useState({ canLeft: false, canRight: false, isScrollable: false });
   const [users, setUsers] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -233,6 +235,34 @@ const AdminPanel = () => {
   useEffect(() => {
     setEditingInvoiceDates(false);
   }, [selectedUser]);
+
+  // Track horizontal scroll position of the users table to show fade gradients and arrow buttons.
+  useEffect(() => {
+    const el = usersScrollRef.current;
+    if (!el) return;
+    const update = () => {
+      const isScrollable = el.scrollWidth - el.clientWidth > 1;
+      const canLeft = el.scrollLeft > 4;
+      const canRight = isScrollable && el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+      setUsersScrollState({ canLeft, canRight, isScrollable });
+    };
+    update();
+    el.addEventListener('scroll', update, { passive: true });
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      el.removeEventListener('scroll', update);
+      ro.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [users, loading]);
+
+  const scrollUsersBy = (delta) => {
+    const el = usersScrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: delta, behavior: 'smooth' });
+  };
 
   const fetchInvoiceRequests = async () => {
     try {
@@ -1245,8 +1275,56 @@ const AdminPanel = () => {
             </div>
           </div>
 
-          <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="w-full min-w-[640px] sm:min-w-0">
+          {/* Horizontal scroll hint - visible when the table overflows */}
+          {usersScrollState.isScrollable && (
+            <div className="flex items-center justify-end gap-2 mb-2 text-xs text-gray-500">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7l-5 5 5 5M16 7l5 5-5 5" />
+              </svg>
+              <span>Scroll horizontally to see all columns</span>
+            </div>
+          )}
+
+          <div className="relative">
+            {/* Left fade + chevron */}
+            {usersScrollState.canLeft && (
+              <>
+                <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-r from-white/95 to-transparent rounded-l-xl" />
+                <button
+                  type="button"
+                  aria-label="Scroll left"
+                  onClick={() => scrollUsersBy(-320)}
+                  className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center transition"
+                >
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+            {/* Right fade + chevron */}
+            {usersScrollState.canRight && (
+              <>
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 z-10 bg-gradient-to-l from-white/95 to-transparent rounded-r-xl" />
+                <button
+                  type="button"
+                  aria-label="Scroll right"
+                  onClick={() => scrollUsersBy(320)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 flex items-center justify-center transition animate-[pulse_2.5s_ease-in-out_infinite]"
+                >
+                  <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </>
+            )}
+
+          <div
+            ref={usersScrollRef}
+            className="overflow-x-auto scrollbar-always -mx-4 sm:mx-0 rounded-xl"
+          >
+            <table className="w-full min-w-[1100px]">
               <thead>
                 <tr className="border-b border-white/20">
                   <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs sm:text-sm font-semibold text-gray-700">Avatar</th>
@@ -1496,6 +1574,7 @@ const AdminPanel = () => {
                 )}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
 

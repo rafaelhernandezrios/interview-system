@@ -18,6 +18,34 @@ code {
     monospace;
 }
 
+/* Always-visible horizontal scrollbar for table containers that opt in via the
+   `.scrollbar-always` class. Helps discoverability on macOS where the OS
+   auto-hides scrollbars by default. */
+.scrollbar-always {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.scrollbar-always::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  -webkit-appearance: none;
+}
+.scrollbar-always::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.5);
+  border-radius: 6px;
+}
+.scrollbar-always::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scrollbar-always::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
 /* Mesh Gradient Background with Ambient Orbs */
 .bg-mesh-gradient {
   position: relative;
