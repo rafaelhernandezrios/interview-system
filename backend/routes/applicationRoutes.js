@@ -8,6 +8,12 @@ import { authMiddleware } from "./authRoutes.js";
 import { streamAcceptanceLetterPdf } from "../utils/acceptanceLetterPdf.js";
 import { streamInvoicePdf } from "../utils/invoicePdf.js";
 import paymentProofUpload from "../middleware/paymentProofUpload.js";
+import { getStripe, isStripeConfigured } from "../utils/stripeClient.js";
+import {
+  REGISTRATION_FEE_CENTS,
+  REGISTRATION_FEE_USD,
+  isRegistrationFeePaid,
+} from "../utils/registrationFee.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -39,6 +45,9 @@ router.get("/status", authMiddleware, async (req, res) => {
         paymentProofStatus: null,
         paymentProofUploadedAt: null,
         paymentProofApprovedAt: null,
+        registrationFeeStatus: null,
+        registrationFeePaidAt: null,
+        registrationFeePaid: false,
       });
     }
 
@@ -62,6 +71,11 @@ router.get("/status", authMiddleware, async (req, res) => {
       paymentProofStatus: application.paymentProofStatus || null,
       paymentProofUploadedAt: application.paymentProofUploadedAt || null,
       paymentProofApprovedAt: application.paymentProofApprovedAt || null,
+      registrationFeeStatus: application.registrationFeeStatus || null,
+      registrationFeePaidAt: application.registrationFeePaidAt || null,
+      registrationFeePaid: isRegistrationFeePaid(application),
+      registrationFeeAmountUsd: REGISTRATION_FEE_USD,
+      stripeConfigured: isStripeConfigured(),
     });
   } catch (error) {
     console.error("Error fetching application status:", error);
@@ -261,7 +275,125 @@ router.get("/acceptance-letter", authMiddleware, async (req, res) => {
   }
 });
 
-// MIRI only: submit date range for invoice (available after acceptance letter downloaded)
+// MIRI only: create Stripe Checkout session for registration fee (USD 250)
+router.post("/registration-fee/checkout", authMiddleware, async (req, res) => {
+  try {
+    if (!isStripeConfigured()) {
+      return res.status(503).json({ message: "Online payment is not configured. Please contact support." });
+    }
+
+    const user = await User.findById(req.userId).select("program email name");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Registration fee payment is only available for MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application || !application.step4Completed) {
+      return res.status(403).json({
+        message: "Please download your decision letter first before paying the registration fee.",
+      });
+    }
+    if (isRegistrationFeePaid(application)) {
+      return res.status(400).json({ message: "Registration fee has already been paid." });
+    }
+
+    const stripe = getStripe();
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:3000").replace(/\/$/, "");
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: user.email,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "MIRI Program Registration Fee",
+              description: "One-time program registration fee (non-refundable)",
+            },
+            unit_amount: REGISTRATION_FEE_CENTS,
+          },
+          quantity: 1,
+        },
+      ],
+      metadata: {
+        userId: req.userId.toString(),
+        program: "MIRI",
+      },
+      success_url: `${frontendUrl}/dashboard?registration_fee=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/dashboard?registration_fee=cancelled`,
+    });
+
+    await Application.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        registrationFeeStatus: "pending",
+        stripeCheckoutSessionId: session.id,
+      }
+    );
+
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (error) {
+    console.error("Error creating registration fee checkout:", error);
+    res.status(500).json({ message: error.message || "Error creating checkout session" });
+  }
+});
+
+// MIRI only: verify Stripe Checkout session after redirect (webhook is the source of truth)
+router.post("/registration-fee/verify-session", authMiddleware, async (req, res) => {
+  try {
+    if (!isStripeConfigured()) {
+      return res.status(503).json({ message: "Online payment is not configured." });
+    }
+
+    const user = await User.findById(req.userId).select("program");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Registration fee payment is only available for MIRI program." });
+    }
+
+    const { sessionId } = req.body;
+    if (!sessionId) {
+      return res.status(400).json({ message: "sessionId is required." });
+    }
+
+    const stripe = getStripe();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.metadata?.userId !== req.userId.toString()) {
+      return res.status(403).json({ message: "Invalid checkout session." });
+    }
+    if (session.payment_status !== "paid") {
+      return res.status(400).json({ message: "Payment has not been completed yet." });
+    }
+
+    const application = await Application.findOneAndUpdate(
+      { userId: req.userId },
+      {
+        registrationFeeStatus: "paid",
+        registrationFeePaidAt: new Date(),
+        stripeCheckoutSessionId: session.id,
+        stripePaymentIntentId:
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id || null,
+      },
+      { new: true }
+    );
+
+    res.json({
+      message: "Registration fee payment confirmed.",
+      registrationFeePaid: isRegistrationFeePaid(application),
+      registrationFeePaidAt: application.registrationFeePaidAt,
+    });
+  } catch (error) {
+    console.error("Error verifying registration fee session:", error);
+    res.status(500).json({ message: error.message || "Error verifying payment" });
+  }
+});
+
+// MIRI only: submit date range for invoice (available after registration fee paid)
 router.post("/confirm-dates", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.userId).select("program");
@@ -274,6 +406,11 @@ router.post("/confirm-dates", authMiddleware, async (req, res) => {
     if (!application || !application.step4Completed) {
       return res.status(403).json({
         message: "Please download your acceptance letter first to confirm your dates.",
+      });
+    }
+    if (!isRegistrationFeePaid(application)) {
+      return res.status(403).json({
+        message: "Please pay the registration fee before confirming your dates.",
       });
     }
     if (application.invoiceStatus === "approved") {
@@ -336,6 +473,11 @@ router.post("/upload-payment-proof", authMiddleware, paymentProofUpload.single("
     if (!application.step4Completed) {
       return res.status(403).json({
         message: "Please download your decision letter first before uploading a payment proof.",
+      });
+    }
+    if (user.program === "MIRI" && !isRegistrationFeePaid(application)) {
+      return res.status(403).json({
+        message: "Please pay the registration fee before uploading a payment proof.",
       });
     }
     // MIRI flow: still require the invoice to be approved (existing date-range flow).

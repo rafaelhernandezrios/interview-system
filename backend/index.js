@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 
 dotenv.config();
 
@@ -129,6 +130,13 @@ app.use(cors(corsOptions));
 
 // Manejar preflight requests explícitamente para todas las rutas
 app.options('*', cors(corsOptions));
+
+// Stripe webhook (raw body — must be before express.json())
+app.use(
+  "/api/application/stripe-webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhookRoutes
+);
 
 // ============================================
 // OTROS MIDDLEWARES (después de CORS)

@@ -9,8 +9,45 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const cvAnalyzed = applicationStatus?.cvAnalyzed || false;
   const acceptanceLetterGeneratedAt = applicationStatus?.acceptanceLetterGeneratedAt;
   const paymentProofStatus = applicationStatus?.paymentProofStatus || null;
+  const registrationFeePaid = applicationStatus?.registrationFeePaid === true;
 
-  // Step 1: Application Form. Step 2: Upload CV. Step 3: AI Interview. Step 4: Acceptance Letter.
+  const isMIRI = program === 'MIRI';
+  const isEMFUTECH = program === 'EMFUTECH';
+
+  const miriPostLetterSteps = isMIRI
+    ? [
+        {
+          id: 5,
+          title: 'Registration Fee Payment',
+          description: 'Pay the program registration fee (USD 250) via Stripe',
+          route: null,
+          completed: registrationFeePaid,
+          available: step4Completed,
+        },
+        {
+          id: 6,
+          title: 'Register Payment',
+          description: 'Upload your tuition payment receipt (PDF) for admin verification',
+          route: null,
+          completed: paymentProofStatus === 'approved',
+          available: step4Completed && registrationFeePaid,
+        },
+      ]
+    : [];
+
+  const emfutechPostLetterSteps = isEMFUTECH
+    ? [
+        {
+          id: 5,
+          title: 'Register Payment',
+          description: 'Upload your payment receipt (PDF) so an admin can verify it',
+          route: null,
+          completed: paymentProofStatus === 'approved',
+          available: step4Completed,
+        },
+      ]
+    : [];
+
   const steps = [
     {
       id: 1,
@@ -44,17 +81,10 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
       completed: step4Completed,
       available: !!acceptanceLetterGeneratedAt,
     },
-    ...((program === 'MIRI' || program === 'EMFUTECH') ? [{
-      id: 5,
-      title: 'Register Payment',
-      description: 'Upload your payment receipt (PDF) so an admin can verify it',
-      route: null,
-      completed: paymentProofStatus === 'approved',
-      available: step4Completed,
-    }] : []),
+    ...miriPostLetterSteps,
+    ...emfutechPostLetterSteps,
   ];
 
-  // Active step = first step not yet completed
   const activeStepId = steps.find((s) => !s.completed)?.id ?? steps[steps.length - 1]?.id;
 
   const handleDownloadAcceptanceLetter = async () => {
@@ -92,24 +122,79 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
     }
   };
 
+  const renderPostLetterStepBadge = (step) => {
+    if (!step.available) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+          Locked
+        </span>
+      );
+    }
+
+    if (step.id === 5 && isMIRI) {
+      if (registrationFeePaid) {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            Paid
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+          Pay below
+        </span>
+      );
+    }
+
+    if (step.title === 'Register Payment') {
+      if (paymentProofStatus === 'approved') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            Payment verified
+          </span>
+        );
+      }
+      if (paymentProofStatus === 'pending') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            Under review
+          </span>
+        );
+      }
+      if (paymentProofStatus === 'rejected') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+            Rejected — re-upload
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+          Upload below
+        </span>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="glass-card bg-white/60 backdrop-blur-xl border border-white/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
         Application Progress
       </h2>
-      
+
       <div className="space-y-6">
         {steps.map((step, index) => {
           const isActive = activeStepId === step.id;
           const isCompleted = step.completed;
           const isAvailable = step.available;
           const isLast = index === steps.length - 1;
-          // Display step number as 1, 2 instead of 2, 4
           const displayStepNumber = index + 1;
+          const isPostLetterPaymentStep = step.id === 5 || step.id === 6 || (isEMFUTECH && step.id === 5);
 
           return (
             <div key={step.id} className="relative">
-              {/* Connector Line */}
               {!isLast && (
                 <div
                   className={`absolute left-6 top-12 w-0.5 h-full ${
@@ -120,15 +205,10 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
               )}
 
               <div className="flex items-start gap-4">
-                {/* Step Circle */}
                 <div className="relative z-10 flex-shrink-0">
                   {isCompleted ? (
                     <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center shadow-lg">
-                      <svg
-                        className="w-6 h-6 text-white"
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
+                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path
                           fillRule="evenodd"
                           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -148,18 +228,13 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                           : 'bg-gray-200 border-2 border-gray-300 opacity-50'
                       }`}
                     >
-                      <span
-                        className={`font-bold ${
-                          isAvailable ? 'text-gray-600' : 'text-gray-400'
-                        }`}
-                      >
+                      <span className={`font-bold ${isAvailable ? 'text-gray-600' : 'text-gray-400'}`}>
                         {displayStepNumber}
                       </span>
                     </div>
                   )}
                 </div>
 
-                {/* Step Content */}
                 <div className="flex-1 pt-1">
                   <div className="flex items-start justify-between flex-wrap gap-2">
                     <div className="flex-1">
@@ -176,42 +251,15 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                       >
                         {step.title}
                       </h3>
-                      <p
-                        className={`text-sm ${
-                          isAvailable ? 'text-gray-600' : 'text-gray-400'
-                        }`}
-                      >
+                      <p className={`text-sm ${isAvailable ? 'text-gray-600' : 'text-gray-400'}`}>
                         {step.description}
                       </p>
                     </div>
 
-                    {/* Action Button */}
                     <div className="flex-shrink-0">
-                      {step.id === 5 ? (
-                        // Register Payment - show status badge (the actual upload UI lives in PaymentSection below the stepper)
-                        !isAvailable ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
-                            Locked
-                          </span>
-                        ) : paymentProofStatus === 'approved' ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                            Payment verified
-                          </span>
-                        ) : paymentProofStatus === 'pending' ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
-                            Under review
-                          </span>
-                        ) : paymentProofStatus === 'rejected' ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
-                            Rejected — re-upload
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
-                            Upload below
-                          </span>
-                        )
+                      {isPostLetterPaymentStep ? (
+                        renderPostLetterStepBadge(step)
                       ) : step.id === 4 ? (
-                        // Acceptance Letter - always show download button if available, allow multiple downloads
                         isAvailable ? (
                           <button
                             onClick={handleDownloadAcceptanceLetter}
@@ -227,35 +275,32 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                             Locked
                           </span>
                         )
+                      ) : isCompleted ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                          Completed
+                        </span>
+                      ) : isActive ? (
+                        <Link to={step.route}>
+                          <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                            Continue
+                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </button>
+                        </Link>
+                      ) : isAvailable ? (
+                        <Link to={step.route}>
+                          <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                            Start
+                            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                          </button>
+                        </Link>
                       ) : (
-                        // AI Interview step
-                        isCompleted ? (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                            Completed
-                          </span>
-                        ) : isActive ? (
-                          <Link to={step.route}>
-                            <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                              Continue
-                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                              </svg>
-                            </button>
-                          </Link>
-                        ) : isAvailable ? (
-                          <Link to={step.route}>
-                            <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                              Start
-                              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                              </svg>
-                            </button>
-                          </Link>
-                        ) : (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
-                            Locked
-                          </span>
-                        )
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+                          Locked
+                        </span>
                       )}
                     </div>
                   </div>
@@ -266,19 +311,18 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
         })}
       </div>
 
-      {/* Progress Summary */}
       <div className="mt-8 pt-6 border-t border-white/40">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-gray-700">Overall Progress</span>
           <span className="text-sm font-bold text-gray-900">
-            {steps.filter(s => s.completed).length} / {steps.length} Steps
+            {steps.filter((s) => s.completed).length} / {steps.length} Steps
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 rounded-full"
             style={{
-              width: `${(steps.filter(s => s.completed).length / steps.length) * 100}%`,
+              width: `${(steps.filter((s) => s.completed).length / steps.length) * 100}%`,
             }}
           />
         </div>
@@ -288,4 +332,3 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
 };
 
 export default ApplicationStepper;
-

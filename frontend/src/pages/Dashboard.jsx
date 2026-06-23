@@ -5,6 +5,7 @@ import api from '../utils/axios';
 import ApplicationStepper from '../components/ApplicationStepper';
 import ConfirmDatesSection from '../components/ConfirmDatesSection';
 import RegisterPaymentSection from '../components/RegisterPaymentSection';
+import RegistrationFeePaymentSection from '../components/RegistrationFeePaymentSection';
 
 // Circular progress (same style as main / Results)
 const CircularProgress = ({ percentage, size = 120, color = 'blue' }) => {
@@ -59,6 +60,18 @@ const Dashboard = () => {
   useEffect(() => {
     fetchApplicationStatus();
     fetchProfile();
+
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (params.get('registration_fee') === 'success' && sessionId) {
+      api
+        .post('/application/registration-fee/verify-session', { sessionId })
+        .then(() => fetchApplicationStatus())
+        .catch((err) => console.error('Error verifying registration fee payment:', err))
+        .finally(() => {
+          window.history.replaceState({}, '', '/dashboard');
+        });
+    }
     
     // Refresh status when window regains focus (user returns from another page)
     const handleFocus = () => {
@@ -141,15 +154,16 @@ const Dashboard = () => {
     );
   }
 
-  // Match ApplicationStepper: Application Form, CV upload, AI Interview, Decision Letter, Register Payment
-  // (Register Payment only applies to MIRI/EMFUTECH; for other programs the journey caps at 4)
-  const isPaymentProgram = profile?.program === 'MIRI' || profile?.program === 'EMFUTECH';
-  const activeStepsTotal = isPaymentProgram ? 5 : 4;
+  // Match ApplicationStepper: MIRI has 6 steps; EMFUTECH has 5; others cap at 4
+  const isMIRI = profile?.program === 'MIRI';
+  const isEMFUTECH = profile?.program === 'EMFUTECH';
+  const activeStepsTotal = isMIRI ? 6 : isEMFUTECH ? 5 : 4;
   const baseCompleted = applicationStatus
     ? [applicationStatus.step1Completed, applicationStatus.cvAnalyzed, applicationStatus.step2Completed, applicationStatus.step4Completed].filter(Boolean).length
     : 0;
-  const paymentCompleted = isPaymentProgram && applicationStatus?.paymentProofStatus === 'approved' ? 1 : 0;
-  const activeStepsCompleted = baseCompleted + paymentCompleted;
+  const registrationFeeCompleted = isMIRI && applicationStatus?.registrationFeePaid ? 1 : 0;
+  const paymentCompleted = (isMIRI || isEMFUTECH) && applicationStatus?.paymentProofStatus === 'approved' ? 1 : 0;
+  const activeStepsCompleted = baseCompleted + registrationFeeCompleted + paymentCompleted;
   const journeyPercentage = activeStepsTotal ? Math.round((activeStepsCompleted / activeStepsTotal) * 100) : 0;
 
   return (
@@ -175,10 +189,16 @@ const Dashboard = () => {
             </div>
           </div>
           <ApplicationStepper applicationStatus={applicationStatus} onDownloadAcceptanceLetterSuccess={fetchApplicationStatus} program={profile?.program} />
-          {profile?.program === 'MIRI' && (applicationStatus?.step4Completed || (applicationStatus?.invoiceDateRange?.startDate && applicationStatus?.invoiceDateRange?.endDate)) && (
+          {isMIRI && applicationStatus?.step4Completed && (
+            <RegistrationFeePaymentSection
+              applicationStatus={applicationStatus}
+              onSuccess={fetchApplicationStatus}
+            />
+          )}
+          {isMIRI && applicationStatus?.registrationFeePaid && (
             <ConfirmDatesSection applicationStatus={applicationStatus} onSuccess={fetchApplicationStatus} />
           )}
-          {(profile?.program === 'MIRI' || profile?.program === 'EMFUTECH') && applicationStatus?.step4Completed && (
+          {(isMIRI || isEMFUTECH) && applicationStatus?.step4Completed && (!isMIRI || applicationStatus?.registrationFeePaid) && (
             <RegisterPaymentSection
               applicationStatus={applicationStatus}
               program={profile?.program}

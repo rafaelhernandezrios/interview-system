@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import api from '../utils/axios';
 
 const formatDate = (d) => {
@@ -8,25 +8,19 @@ const formatDate = (d) => {
 };
 
 /**
- * MIRI only. Shown after acceptance letter is downloaded (step4Completed).
+ * MIRI only. Shown after registration fee is paid.
  * Lets user submit date range, shows pending/approved/rejected and download invoice when approved.
- * After invoice is approved: section to upload payment proof PDF and see status.
  */
 const ConfirmDatesSection = ({ applicationStatus, onSuccess }) => {
   const [dateRangeStart, setDateRangeStart] = useState('');
   const [dateRangeEnd, setDateRangeEnd] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [uploadingProof, setUploadingProof] = useState(false);
   const [error, setError] = useState('');
-  const fileInputRef = useRef(null);
 
   const invoiceStatus = applicationStatus?.invoiceStatus || null;
   const dateRange = applicationStatus?.invoiceDateRange;
   const scholarshipPercentage = applicationStatus?.scholarshipPercentage ?? null;
-  const paymentProofStatus = applicationStatus?.paymentProofStatus || null;
-  const paymentProofUploadedAt = applicationStatus?.paymentProofUploadedAt;
-  const paymentProofApprovedAt = applicationStatus?.paymentProofApprovedAt;
 
   const handleSubmitDates = async (e) => {
     e.preventDefault();
@@ -86,30 +80,6 @@ const ConfirmDatesSection = ({ applicationStatus, onSuccess }) => {
       }
     } finally {
       setDownloading(false);
-    }
-  };
-
-  const handleUploadPaymentProof = async (e) => {
-    const file = e?.target?.files?.[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf') {
-      setError('Please select a PDF file.');
-      return;
-    }
-    setError('');
-    setUploadingProof(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      await api.post('/application/upload-payment-proof', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      if (typeof onSuccess === 'function') onSuccess();
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error uploading payment proof.');
-    } finally {
-      setUploadingProof(false);
     }
   };
 

@@ -101,7 +101,7 @@ const RegisterPaymentSection = ({ applicationStatus, program, onSuccess }) => {
           {miriBlockedByInvoice ? (
             <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
               <p className="text-sm text-blue-800">
-                Your MIRI invoice must be approved before you can upload the payment receipt. Please confirm your participation dates above and wait for admin approval.
+                Your MIRI invoice must be approved before you can upload the tuition payment receipt. Please confirm your participation dates above and wait for admin approval.
               </p>
             </div>
           ) : (

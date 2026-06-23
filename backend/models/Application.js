@@ -72,7 +72,13 @@ const applicationSchema = new mongoose.Schema(
     // Program type for the acceptance letter: 'MIRI' or 'FIJSE' (Future Innovators Japan Selection Entry)
     acceptanceLetterProgramType: { type: String, enum: ['MIRI', 'FIJSE', 'EMFUTECH'], default: 'MIRI' },
 
-    // MIRI: Confirm dates & Invoice (after acceptance letter downloaded)
+    // MIRI: Registration fee (Stripe) — required before confirming dates
+    registrationFeeStatus: { type: String, enum: ['pending', 'paid'] },
+    registrationFeePaidAt: { type: Date },
+    stripeCheckoutSessionId: { type: String },
+    stripePaymentIntentId: { type: String },
+
+    // MIRI: Confirm dates & Invoice (after registration fee paid)
     invoiceDateRange: {
       startDate: { type: Date },
       endDate: { type: Date },
@@ -109,7 +115,7 @@ const applicationSchema = new mongoose.Schema(
 );
 
 // Enum fields: empty string is not valid; treat as "not set" so validation passes
-const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "invoiceStatus", "paymentProofStatus"];
+const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "registrationFeeStatus", "invoiceStatus", "paymentProofStatus"];
 
 applicationSchema.pre("save", function (next) {
   for (const path of enumPaths) {
