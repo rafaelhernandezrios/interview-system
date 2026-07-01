@@ -11,6 +11,7 @@ import * as XLSX from "xlsx";
 import archiver from "archiver";
 import { streamAcceptanceLetterPdf, generateAcceptanceLetterPdfBuffer } from "../utils/acceptanceLetterPdf.js";
 import { streamInvoicePdf } from "../utils/invoicePdf.js";
+import { resolveStudentCode } from "../utils/studentCode.js";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const router = express.Router();
@@ -71,13 +72,15 @@ router.get("/users", async (req, res) => {
     // Add acceptance letter information: single query instead of N+1
     const userIds = users.map((u) => u._id);
     const applications = await Application.find({ userId: { $in: userIds } })
-      .select("userId acceptanceLetterGeneratedAt acceptanceLetterProgramType")
+      .select("userId acceptanceLetterGeneratedAt acceptanceLetterProgramType promotionalCode registrationCode")
       .lean();
     const appByUserId = new Map(applications.map((a) => [a.userId.toString(), a]));
     const usersWithAcceptanceLetter = users.map((user) => {
       const app = appByUserId.get(user._id.toString());
+      const userObj = user.toObject();
       return {
-        ...user.toObject(),
+        ...userObj,
+        studentCode: resolveStudentCode(userObj, app),
         acceptanceLetterGeneratedAt: app?.acceptanceLetterGeneratedAt ?? null,
         acceptanceLetterProgramType: app?.acceptanceLetterProgramType ?? null,
       };
@@ -750,7 +753,7 @@ async function getInvoiceStatsData() {
       userId: user._id,
       userName: user.name,
       userEmail: user.email,
-      digitalId: user.digitalId || null,
+      studentCode: resolveStudentCode(user, app),
       startDate: startDate,
       endDate: endDate,
       paymentDeadline: paymentDeadline.toISOString(),
@@ -802,7 +805,7 @@ router.get("/invoice-stats/export", async (req, res) => {
     const frontendBase = (process.env.FRONTEND_URL || "").replace(/\/$/, "");
     const rows = list.map((row) => ({
       "User Name": row.userName ?? "—",
-      "Student Code": row.digitalId ?? "—",
+      "Student Code": row.studentCode ?? "—",
       "User Email": row.userEmail ?? "—",
       "Start Date": formatDateForExport(row.startDate),
       "End Date": formatDateForExport(row.endDate),

@@ -329,8 +329,8 @@ export default function AdminInvoiceStats() {
                         <div className="text-xs text-gray-500">{row.userEmail || '—'}</div>
                       </td>
                       <td className="px-2 sm:px-3 py-3 whitespace-nowrap w-0 max-w-[9.5rem]">
-                        <p className="text-gray-700 text-xs font-medium truncate" title={row.digitalId || undefined}>
-                          {row.digitalId || '—'}
+                        <p className="text-gray-700 text-xs font-medium truncate" title={row.studentCode || undefined}>
+                          {row.studentCode || '—'}
                         </p>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-700">{formatDate(row.startDate)}</td>

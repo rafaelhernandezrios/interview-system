@@ -1419,8 +1419,8 @@ const AdminPanel = () => {
                       <p className="text-gray-500 text-xs md:hidden">{user.email}</p>
                     </td>
                     <td className="px-2 sm:px-3 py-3 sm:py-4 whitespace-nowrap w-0 max-w-[9.5rem]">
-                      <p className="text-gray-700 text-xs font-medium truncate" title={user.digitalId || undefined}>
-                        {user.digitalId || '—'}
+                      <p className="text-gray-700 text-xs font-medium truncate" title={user.studentCode || undefined}>
+                        {user.studentCode || '—'}
                       </p>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">

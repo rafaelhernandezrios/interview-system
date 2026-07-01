@@ -64,6 +64,7 @@ async function run() {
   const defaultDob = new Date('1990-01-01');
   let created = 0;
   let skipped = 0;
+  let updated = 0;
 
   for (const row of rows) {
     const email = (row[emailKey] || row['Email Address'] || '').trim().toLowerCase();
@@ -73,15 +74,25 @@ async function run() {
     }
 
     const existing = await User.findOne({ email }).select('_id');
+    const registrationCode = (row[registrationKey] || row['Registration Code'] || '').trim() || undefined;
+
     if (existing) {
-      skipped++;
+      if (registrationCode) {
+        await Application.updateOne(
+          { userId: existing._id },
+          { $set: { registrationCode, email } },
+          { upsert: true }
+        );
+        updated++;
+      } else {
+        skipped++;
+      }
       continue;
     }
 
     const firstName = (row[nameFirstKey] || row['Full Name: First'] || '').trim();
     const lastName = (row[nameLastKey] || row['Full Name: Last'] || '').trim();
     const name = [firstName, lastName].filter(Boolean).join(' ') || email;
-    const registrationCode = (row[registrationKey] || row['Registration Code'] || '').trim() || undefined;
 
     const user = await User.create({
       name,
@@ -108,6 +119,7 @@ async function run() {
       currentStep: 1,
       isDraft: true,
       acceptanceLetterProgramType: 'MIRI',
+      registrationCode: registrationCode || undefined,
     });
 
     created++;
@@ -117,6 +129,7 @@ async function run() {
   console.log('');
   console.log('✅ Import done.');
   console.log('   Created:', created, 'users');
+  console.log('   Updated student codes:', updated);
   console.log('   Skipped (duplicate or invalid email):', skipped);
   console.log('   Default password for all:', DEFAULT_PASSWORD);
   console.log('   Tell users to log in with their email and this password; they can change it via Forgot password.');

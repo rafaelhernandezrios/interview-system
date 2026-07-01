@@ -19,6 +19,7 @@ const applicationSchema = new mongoose.Schema(
     // Section 1: Basic Info
     email: { type: String }, // Pre-filled from auth
     promotionalCode: { type: String },
+    registrationCode: { type: String }, // MIRI student code, e.g. MIRI-2026-01-049
     
     // Section 2: Personal & Contact
     firstName: { type: String },
