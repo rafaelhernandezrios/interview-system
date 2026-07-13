@@ -944,6 +944,45 @@ router.patch("/users/:userId/invoice-approve", async (req, res) => {
   }
 });
 
+// Update scholarship % on an already-approved invoice
+router.patch("/users/:userId/invoice-scholarship", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { scholarshipPercentage } = req.body;
+
+    if (scholarshipPercentage === undefined || scholarshipPercentage === null) {
+      return res.status(400).json({ message: "Scholarship percentage is required." });
+    }
+
+    const pct = Number(scholarshipPercentage);
+    if (isNaN(pct) || pct < 0 || pct > 100) {
+      return res.status(400).json({ message: "Scholarship percentage must be between 0 and 100." });
+    }
+
+    const application = await Application.findOne({ userId, invoiceStatus: "approved" });
+    if (!application) {
+      return res.status(404).json({
+        message: "No approved invoice found for this user.",
+      });
+    }
+
+    if (!application.invoiceDateRange?.startDate || !application.invoiceDateRange?.endDate) {
+      return res.status(400).json({ message: "Invoice dates are required before updating scholarship." });
+    }
+
+    application.scholarshipPercentage = pct;
+    await application.save();
+
+    res.json({
+      message: "Scholarship updated.",
+      scholarshipPercentage: application.scholarshipPercentage,
+    });
+  } catch (error) {
+    console.error("Error updating invoice scholarship:", error);
+    res.status(500).json({ message: "Error updating invoice scholarship" });
+  }
+});
+
 // Reject invoice (date confirmation)
 router.patch("/users/:userId/invoice-reject", async (req, res) => {
   try {

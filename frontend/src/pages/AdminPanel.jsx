@@ -211,6 +211,9 @@ const AdminPanel = () => {
   const [adminEditStart, setAdminEditStart] = useState('');
   const [adminEditEnd, setAdminEditEnd] = useState('');
   const [savingInvoiceDates, setSavingInvoiceDates] = useState(false);
+  const [editingInvoiceScholarship, setEditingInvoiceScholarship] = useState(false);
+  const [adminEditScholarshipPct, setAdminEditScholarshipPct] = useState('');
+  const [savingInvoiceScholarship, setSavingInvoiceScholarship] = useState(false);
   const [paymentProofRequests, setPaymentProofRequests] = useState([]);
   const [loadingPaymentProofRequests, setLoadingPaymentProofRequests] = useState(false);
   const [paymentProofActionUserId, setPaymentProofActionUserId] = useState(null);
@@ -2525,6 +2528,109 @@ const AdminPanel = () => {
                                 </div>
                               );
                             })()}
+
+                            {/* Scholarship (editable after approval) */}
+                            {userDetails.application.invoiceStatus === 'approved' && (
+                              <div className="glass-card p-6 bg-amber-50/30 border-amber-200/40">
+                                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  Scholarship
+                                </h4>
+                                {!editingInvoiceScholarship ? (
+                                  <>
+                                    <DataCard
+                                      label="Scholarship Percentage"
+                                      value={
+                                        userDetails.application.scholarshipPercentage != null && userDetails.application.scholarshipPercentage > 0
+                                          ? `${userDetails.application.scholarshipPercentage}%`
+                                          : 'None (0%)'
+                                      }
+                                    />
+                                    <div className="mt-4 pt-4 border-t border-amber-200/60">
+                                      <p className="text-sm text-gray-600 mb-2">
+                                        If a scholarship is granted after the invoice was generated, update the percentage here. The new invoice PDF will reflect the updated amount.
+                                      </p>
+                                      {userDetails.application.paymentProofStatus === 'approved' && (
+                                        <p className="text-sm text-amber-700 mb-2">
+                                          Note: this invoice is already marked as paid. Updating the scholarship will change the recorded amount.
+                                        </p>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const current = userDetails.application.scholarshipPercentage ?? 0;
+                                          setAdminEditScholarshipPct(String(current));
+                                          setEditingInvoiceScholarship(true);
+                                        }}
+                                        className="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                                      >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        Change scholarship %
+                                      </button>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="space-y-4">
+                                    <p className="text-sm text-gray-700">
+                                      Set the scholarship percentage (0–100). The discount applies only to tuition, not the registration fee.
+                                    </p>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Scholarship %</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={adminEditScholarshipPct}
+                                        onChange={(e) => setAdminEditScholarshipPct(e.target.value)}
+                                        className="w-32 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                                        disabled={savingInvoiceScholarship}
+                                      />
+                                    </div>
+                                    <div className="flex gap-3">
+                                      <button
+                                        type="button"
+                                        onClick={async () => {
+                                          const num = adminEditScholarshipPct === '' ? 0 : Math.min(100, Math.max(0, Number(adminEditScholarshipPct)));
+                                          if (isNaN(num)) {
+                                            alert('Please enter a valid percentage between 0 and 100.');
+                                            return;
+                                          }
+                                          setSavingInvoiceScholarship(true);
+                                          try {
+                                            await api.patch(`/admin/users/${selectedUser}/invoice-scholarship`, {
+                                              scholarshipPercentage: num,
+                                            });
+                                            setEditingInvoiceScholarship(false);
+                                            await fetchUserDetails(selectedUser);
+                                            alert('Scholarship updated. The user can download an updated invoice.');
+                                          } catch (err) {
+                                            alert(err.response?.data?.message || 'Error updating scholarship.');
+                                          } finally {
+                                            setSavingInvoiceScholarship(false);
+                                          }
+                                        }}
+                                        disabled={savingInvoiceScholarship}
+                                        className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                      >
+                                        {savingInvoiceScholarship ? 'Saving...' : 'Save scholarship'}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingInvoiceScholarship(false)}
+                                        disabled={savingInvoiceScholarship}
+                                        className="inline-flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
 
                             {/* Cost Calculation */}
                             {(() => {
