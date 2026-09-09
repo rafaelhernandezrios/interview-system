@@ -101,6 +101,8 @@ function streamMIRIAcceptanceLetterPdf(res, user, application) {
   }
 
   const today = new Date();
+  const currentYear = today.getFullYear();
+  const programYears = `${currentYear}-${currentYear + 1}`;
   const day = today.getDate();
   const suffix =
     day === 1 || day === 21 || day === 31
@@ -125,7 +127,7 @@ function streamMIRIAcceptanceLetterPdf(res, user, application) {
     .font("Helvetica")
     .fontSize(11)
     .text(
-      "Subject: Official Final Decision for Mirai Innovation Research Immersion (MIRI) Program 2026",
+      `Subject: Official Final Decision for Mirai Innovation Research Immersion (MIRI) Program ${programYears}`,
       { align: "right", width: textWidth }
     );
   doc.moveDown(1.5);
@@ -141,7 +143,7 @@ function streamMIRIAcceptanceLetterPdf(res, user, application) {
   doc
     .font("Helvetica")
     .text(
-      "On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) 2026 at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been ",
+      `On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) ${programYears} at the Mirai Innovation Research Institute, it is a great pleasure to inform you that you have been `,
       { ...bodyOptions, continued: true }
     )
     .font("Helvetica-Bold")
@@ -155,12 +157,10 @@ function streamMIRIAcceptanceLetterPdf(res, user, application) {
     .text("4 to 12 weeks.", { continued: false });
   doc.moveDown(0.8);
 
-  const currentYear = today.getFullYear();
-
   doc
     .font("Helvetica")
     .text(
-      `Your acceptance is valid for the year ${currentYear}, and your participation must begin after January ${currentYear} and conclude before December ${currentYear}. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule. Below you will find your `,
+      `Your acceptance is valid for the years ${currentYear}-${currentYear + 1}, and your participation must begin after January ${currentYear} and conclude before December ${currentYear + 1}. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule. Below you will find your `,
       { align: "justify", width: textWidth, continued: true }
     )
     .font("Helvetica-Bold")
@@ -631,7 +631,7 @@ function streamFIJSEAcceptanceLetterPdf(res, user, application) {
     .font("Helvetica")
     .fontSize(11)
     .text(
-      "Subject: Official Acceptance – Mirai Innovation Research Immersion (MIRI) Program 2026 in Osaka Japan",
+      "Subject: Official Acceptance – Mirai Innovation Research Immersion (MIRI) Program 2026-2027 in Osaka Japan",
       { align: "right", width: textWidth }
     );
   doc.moveDown(1.5);
@@ -657,7 +657,7 @@ function streamFIJSEAcceptanceLetterPdf(res, user, application) {
   doc
     .font("Helvetica")
     .text(
-      "On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) 2026 at the Mirai Innovation Research Institute, we are pleased to extend this official acceptance letter inviting you to participate in our short-term academic immersion program in Osaka, Japan, for a duration of ",
+      "On behalf of the evaluation committee of the Mirai Innovation Research Immersion Program (MIRI) 2026-2027 at the Mirai Innovation Research Institute, we are pleased to extend this official acceptance letter inviting you to participate in our short-term academic immersion program in Osaka, Japan, for a duration of ",
       { ...bodyOptions, continued: true }
     )
     .font("Helvetica-Bold")
@@ -681,7 +681,7 @@ function streamFIJSEAcceptanceLetterPdf(res, user, application) {
   doc
     .font("Helvetica")
     .text(
-      "Your acceptance is valid for the year 2026, and your participation must begin after February 2026 and conclude before December 2026. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule.",
+      "Your acceptance is valid for the years 2026-2027, and your participation must begin after February 2026 and conclude before December 2027. The exact starting date is flexible, allowing you to select the period that best fits your academic or professional schedule.",
       bodyOptions
     );
   doc.moveDown(0.8);
