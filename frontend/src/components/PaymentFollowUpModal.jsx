@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import api from '../utils/axios';
 
 // Outcome of the follow-up with a student who has not paid. Values match the backend enum.
@@ -100,7 +101,9 @@ export default function PaymentFollowUpModal({ student, onClose, onUpdated }) {
     save(() => api.delete(`${basePath}/notes/${noteId}`), 'Error deleting the note.');
   };
 
-  return (
+  // Portal to body: page wrappers like .bg-mesh-gradient force `position: relative`
+  // on their direct children, which would pin the overlay below the table.
+  return createPortal(
     <div
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={requestClose}
@@ -254,6 +257,7 @@ export default function PaymentFollowUpModal({ student, onClose, onUpdated }) {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
