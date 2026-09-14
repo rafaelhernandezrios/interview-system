@@ -724,6 +724,61 @@ function computeInvoiceTotal(weeks, scholarshipPercentage = 0) {
   return Math.round((subtotal + tax) * 100) / 100;
 }
 
+// ----- Payment follow-up (admin notes on students who have not paid) -----
+const FOLLOW_UP_STATUS_LABELS = {
+  pending: "Pending decision",
+  reschedule: "Reschedule dates",
+  continuing: "Will continue",
+  dropped_out: "Dropped out",
+};
+const FOLLOW_UP_CHECKLIST = [
+  { key: "reminderEmailSent", label: "Payment reminder email sent" },
+  { key: "studentReplied", label: "Student replied" },
+  { key: "decisionCommunicated", label: "Decision communicated to student" },
+];
+const FOLLOW_UP_NOTE_MAX_LENGTH = 2000;
+
+// Compact fields for the payment tables (button badge, tooltip and Excel export)
+function summarizePaymentFollowUp(followUp) {
+  const checklist = followUp?.checklist || {};
+  const notes = followUp?.notes || [];
+  return {
+    followUpStatus: followUp?.status ?? null,
+    followUpNotesCount: notes.length,
+    followUpLatestNote: notes.length > 0 ? notes[notes.length - 1].text : null,
+    followUpChecklistDone: FOLLOW_UP_CHECKLIST.filter(({ key }) => checklist[key]?.doneAt).length,
+    followUpChecklistTotal: FOLLOW_UP_CHECKLIST.length,
+  };
+}
+
+// Full follow-up for the notes modal, plus the summary so the table row can update in place
+function paymentFollowUpResponse(application) {
+  const plain = application?.toObject ? application.toObject() : application;
+  const followUp = plain?.paymentFollowUp;
+  const checklist = followUp?.checklist || {};
+  return {
+    followUp: {
+      status: followUp?.status ?? null,
+      statusUpdatedAt: followUp?.statusUpdatedAt ?? null,
+      statusUpdatedBy: followUp?.statusUpdatedBy ?? null,
+      checklist: FOLLOW_UP_CHECKLIST.map(({ key, label }) => ({
+        key,
+        label,
+        done: !!checklist[key]?.doneAt,
+        doneAt: checklist[key]?.doneAt ?? null,
+        doneBy: checklist[key]?.doneBy ?? null,
+      })),
+      notes: [...(followUp?.notes || [])].reverse().map((note) => ({
+        id: note._id,
+        text: note.text,
+        authorName: note.authorName ?? null,
+        createdAt: note.createdAt,
+      })),
+    },
+    summary: summarizePaymentFollowUp(followUp),
+  };
+}
+
 // Shared: fetch invoice stats list + summary (for JSON and Excel export)
 async function getInvoiceStatsData() {
   const applications = await Application.find({
@@ -732,7 +787,7 @@ async function getInvoiceStatsData() {
   })
     .select(
       "userId invoiceDateRange invoiceStatus scholarshipPercentage paymentProofUrl " +
-        "paymentProofStatus paymentProofUploadedAt promotionalCode registrationCode"
+        "paymentProofStatus paymentProofUploadedAt promotionalCode registrationCode paymentFollowUp"
     )
     .populate("userId", "name email program digitalId")
     .sort({ "invoiceDateRange.startDate": 1 })
@@ -784,6 +839,7 @@ async function getInvoiceStatsData() {
       hasPaymentProof: !!app.paymentProofUrl,
       paymentProofUploadedAt: app.paymentProofUploadedAt || null,
       isPaid: app.paymentProofStatus === "approved",
+      ...summarizePaymentFollowUp(app.paymentFollowUp),
     });
   }
 
@@ -837,6 +893,8 @@ router.get("/invoice-stats/export", async (req, res) => {
       "Invoice Status": row.invoiceStatus ?? "—",
       "Payment Proof Status": row.paymentProofStatus ?? "—",
       Paid: row.isPaid ? "Yes" : "No",
+      "Follow-up": FOLLOW_UP_STATUS_LABELS[row.followUpStatus] ?? "—",
+      "Latest Note": row.followUpLatestNote ?? "—",
       "Invoice PDF (link)": frontendBase ? `${frontendBase}/admin/invoice-stats/download-pdf/${row.userId}` : "—",
     }));
     const wb = XLSX.utils.book_new();
@@ -878,7 +936,7 @@ async function getProgramPaymentsData(program) {
   const applications = await Application.find({ userId: { $in: users.map((u) => u._id) } })
     .select(
       "userId acceptanceLetterGeneratedAt paymentProofUrl paymentProofStatus " +
-        "paymentProofUploadedAt paymentProofApprovedAt promotionalCode registrationCode"
+        "paymentProofUploadedAt paymentProofApprovedAt promotionalCode registrationCode paymentFollowUp"
     )
     .lean();
   const appByUserId = new Map(applications.map((a) => [a.userId.toString(), a]));
@@ -896,6 +954,7 @@ async function getProgramPaymentsData(program) {
       paymentProofApprovedAt: app?.paymentProofApprovedAt ?? null,
       hasPaymentProof: !!app?.paymentProofUrl,
       isPaid: app?.paymentProofStatus === "approved",
+      ...summarizePaymentFollowUp(app?.paymentFollowUp),
     };
   });
 
@@ -954,6 +1013,8 @@ router.get("/program-payments/export", async (req, res) => {
         : "Not uploaded",
       "Proof Uploaded": row.paymentProofUploadedAt ? formatDateForExport(row.paymentProofUploadedAt) : "—",
       "Approved At": row.paymentProofApprovedAt ? formatDateForExport(row.paymentProofApprovedAt) : "—",
+      "Follow-up": FOLLOW_UP_STATUS_LABELS[row.followUpStatus] ?? "—",
+      "Latest Note": row.followUpLatestNote ?? "—",
     }));
 
     const wb = XLSX.utils.book_new();
@@ -1295,6 +1356,118 @@ router.patch("/users/:userId/payment-proof-unpaid", async (req, res) => {
   } catch (error) {
     console.error("Error marking payment as unpaid:", error);
     res.status(500).json({ message: "Error marking payment as unpaid" });
+  }
+});
+
+// Students without an application yet (e.g. EMFUTECH) get one, as when marking a payment as paid
+async function getApplicationForFollowUp(userId) {
+  const user = await User.findById(userId).select("email").lean();
+  if (!user) return null;
+  return (await Application.findOne({ userId })) || new Application({ userId, email: user.email });
+}
+
+async function getAdminName(req) {
+  const admin = await User.findById(req.userId).select("name email").lean();
+  return admin?.name || admin?.email || "Admin";
+}
+
+// Payment follow-up: outcome, checklist and notes for a student (admin only)
+router.get("/users/:userId/payment-follow-up", async (req, res) => {
+  try {
+    const application = await Application.findOne({ userId: req.params.userId })
+      .select("paymentFollowUp")
+      .lean();
+    res.json(paymentFollowUpResponse(application));
+  } catch (error) {
+    console.error("Error fetching payment follow-up:", error);
+    res.status(500).json({ message: "Error fetching payment follow-up" });
+  }
+});
+
+// Update the follow-up outcome and/or checklist items: { status?, checklist?: { [key]: boolean } }
+router.patch("/users/:userId/payment-follow-up", async (req, res) => {
+  try {
+    const { status, checklist } = req.body || {};
+    if (status !== undefined && status !== null && !FOLLOW_UP_STATUS_LABELS[status]) {
+      return res.status(400).json({ message: "Invalid follow-up status." });
+    }
+    const checklistKeys = FOLLOW_UP_CHECKLIST.map(({ key }) => key);
+    if (
+      checklist !== undefined &&
+      (typeof checklist !== "object" || checklist === null || Object.keys(checklist).some((key) => !checklistKeys.includes(key)))
+    ) {
+      return res.status(400).json({ message: "Invalid checklist item." });
+    }
+
+    const application = await getApplicationForFollowUp(req.params.userId);
+    if (!application) return res.status(404).json({ message: "User not found." });
+
+    const adminName = await getAdminName(req);
+    const now = new Date();
+    if (status !== undefined) {
+      application.set("paymentFollowUp.status", status);
+      application.set("paymentFollowUp.statusUpdatedAt", now);
+      application.set("paymentFollowUp.statusUpdatedBy", adminName);
+    }
+    for (const [key, done] of Object.entries(checklist || {})) {
+      const path = `paymentFollowUp.checklist.${key}`;
+      // Keep who checked it first when an already-done item is sent again
+      if (done && !application.get(`${path}.doneAt`)) {
+        application.set(path, { doneAt: now, doneBy: adminName });
+      } else if (!done) {
+        application.set(path, { doneAt: null, doneBy: null });
+      }
+    }
+    await application.save();
+
+    res.json(paymentFollowUpResponse(application));
+  } catch (error) {
+    console.error("Error updating payment follow-up:", error);
+    res.status(500).json({ message: "Error updating payment follow-up" });
+  }
+});
+
+// Add a follow-up note: { text }
+router.post("/users/:userId/payment-follow-up/notes", async (req, res) => {
+  try {
+    const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
+    if (!text) return res.status(400).json({ message: "Note text is required." });
+    if (text.length > FOLLOW_UP_NOTE_MAX_LENGTH) {
+      return res.status(400).json({ message: `Notes can be at most ${FOLLOW_UP_NOTE_MAX_LENGTH} characters.` });
+    }
+
+    const application = await getApplicationForFollowUp(req.params.userId);
+    if (!application) return res.status(404).json({ message: "User not found." });
+
+    application.paymentFollowUp.notes.push({
+      text,
+      authorId: req.userId,
+      authorName: await getAdminName(req),
+      createdAt: new Date(),
+    });
+    await application.save();
+
+    res.json(paymentFollowUpResponse(application));
+  } catch (error) {
+    console.error("Error adding payment follow-up note:", error);
+    res.status(500).json({ message: "Error adding payment follow-up note" });
+  }
+});
+
+router.delete("/users/:userId/payment-follow-up/notes/:noteId", async (req, res) => {
+  try {
+    const { userId, noteId } = req.params;
+    const application = await Application.findOne({ userId });
+    if (!application?.paymentFollowUp?.notes?.id(noteId)) {
+      return res.status(404).json({ message: "Note not found." });
+    }
+    application.paymentFollowUp.notes.pull(noteId);
+    await application.save();
+
+    res.json(paymentFollowUpResponse(application));
+  } catch (error) {
+    console.error("Error deleting payment follow-up note:", error);
+    res.status(500).json({ message: "Error deleting payment follow-up note" });
   }
 });
 

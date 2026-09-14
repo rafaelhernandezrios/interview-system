@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/axios';
+import PaymentFollowUpModal, { FOLLOW_UP_STATUSES } from '../components/PaymentFollowUpModal';
 import {
   BarChart,
   Bar,
@@ -42,6 +43,7 @@ export default function AdminInvoiceStats() {
   const [markingPaidUserId, setMarkingPaidUserId] = useState(null);
   const [onlyWithLetter, setOnlyWithLetter] = useState(false);
   const [exportingExcel, setExportingExcel] = useState(false);
+  const [followUpStudent, setFollowUpStudent] = useState(null);
 
   const fetchStats = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -73,6 +75,18 @@ export default function AdminInvoiceStats() {
     () => (view === 'MIRI' ? fetchStats({ silent: true }) : fetchProgramPayments({ silent: true })),
     [view, fetchStats, fetchProgramPayments]
   );
+
+  const closeFollowUp = useCallback(() => setFollowUpStudent(null), []);
+
+  // Patch the row in place: refetching would reset the page to its loading state
+  const handleFollowUpUpdated = useCallback((userId, followUpSummary) => {
+    const applySummary = (prev) => ({
+      ...prev,
+      list: prev.list.map((row) => (row.userId === userId ? { ...row, ...followUpSummary } : row)),
+    });
+    setData(applySummary);
+    setProgramData(applySummary);
+  }, []);
 
   // Download a blob response as a file, surfacing JSON error bodies returned as blobs
   const downloadBlob = async (request, fallbackFileName, errorMessage) => {
@@ -253,6 +267,36 @@ export default function AdminInvoiceStats() {
     return <span className="text-gray-400 text-sm">Not uploaded</span>;
   };
 
+  // Notes button with the follow-up outcome and checklist progress, shared by both views
+  const renderFollowUpButton = (row) => {
+    const status = FOLLOW_UP_STATUSES.find((s) => s.value === row.followUpStatus);
+    return (
+      <div className="flex flex-col items-start gap-1">
+        <button
+          type="button"
+          onClick={() => setFollowUpStudent(row)}
+          title={row.followUpLatestNote || 'Add follow-up notes'}
+          className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 font-medium text-sm whitespace-nowrap"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          {row.followUpNotesCount > 0 ? `Notes (${row.followUpNotesCount})` : 'Notes'}
+        </button>
+        {status && (
+          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${status.badge}`}>
+            {status.label}
+          </span>
+        )}
+        {row.followUpChecklistDone > 0 && (
+          <span className="text-xs text-gray-500 whitespace-nowrap">
+            {row.followUpChecklistDone}/{row.followUpChecklistTotal} steps done
+          </span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-mesh-gradient relative">
       <div className="ambient-orb-1" />
@@ -374,6 +418,7 @@ export default function AdminInvoiceStats() {
                         <th className="px-4 py-3 text-sm font-semibold text-gray-700">Proof uploaded</th>
                         <th className="px-4 py-3 text-sm font-semibold text-gray-700">Payment proof</th>
                         <th className="px-4 py-3 text-sm font-semibold text-gray-700">Actions</th>
+                        <th className="px-4 py-3 text-sm font-semibold text-gray-700">Notes</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -433,6 +478,7 @@ export default function AdminInvoiceStats() {
                               </button>
                             )}
                           </td>
+                          <td className="px-4 py-3">{renderFollowUpButton(row)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -579,6 +625,7 @@ export default function AdminInvoiceStats() {
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Paid</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Invoice</th>
                     <th className="px-4 py-3 text-sm font-semibold text-gray-700">Payment proof</th>
+                    <th className="px-4 py-3 text-sm font-semibold text-gray-700">Notes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -655,6 +702,7 @@ export default function AdminInvoiceStats() {
                           <span className="text-gray-400 text-sm">—</span>
                         )}
                       </td>
+                      <td className="px-4 py-3">{renderFollowUpButton(row)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -665,6 +713,14 @@ export default function AdminInvoiceStats() {
           </>
         )}
       </div>
+
+      {followUpStudent && (
+        <PaymentFollowUpModal
+          student={followUpStudent}
+          onClose={closeFollowUp}
+          onUpdated={handleFollowUpUpdated}
+        />
+      )}
     </div>
   );
 }

@@ -94,6 +94,24 @@ const applicationSchema = new mongoose.Schema(
     paymentProofUploadedAt: { type: Date },
     paymentProofApprovedAt: { type: Date },
 
+    // Admin follow-up for students who have not paid: outcome, checklist and notes
+    paymentFollowUp: {
+      status: { type: String, enum: ['pending', 'reschedule', 'continuing', 'dropped_out'] },
+      statusUpdatedAt: { type: Date },
+      statusUpdatedBy: { type: String },
+      checklist: {
+        reminderEmailSent: { doneAt: { type: Date }, doneBy: { type: String } },
+        studentReplied: { doneAt: { type: Date }, doneBy: { type: String } },
+        decisionCommunicated: { doneAt: { type: Date }, doneBy: { type: String } },
+      },
+      notes: [{
+        text: { type: String, required: true },
+        authorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        authorName: { type: String },
+        createdAt: { type: Date, default: Date.now },
+      }],
+    },
+
     // Scheduled Meeting (Step 3)
     scheduledMeeting: {
       dateTime: { type: Date },
@@ -116,7 +134,7 @@ const applicationSchema = new mongoose.Schema(
 );
 
 // Enum fields: empty string is not valid; treat as "not set" so validation passes
-const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "registrationFeeStatus", "invoiceStatus", "paymentProofStatus"];
+const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "registrationFeeStatus", "invoiceStatus", "paymentProofStatus", "paymentFollowUp.status"];
 
 applicationSchema.pre("save", function (next) {
   for (const path of enumPaths) {
