@@ -28,6 +28,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const router = express.Router();
 
+// Programs whose decision letters go through the admin "pending decision letters" list,
+// so a student there can skip the AI interview after an in-person one
+const IN_PERSON_INTERVIEW_PROGRAMS = ["MIRI", "EMFUTECH"];
+
 // Get application status
 router.get("/status", authMiddleware, async (req, res) => {
   try {
@@ -59,6 +63,8 @@ router.get("/status", authMiddleware, async (req, res) => {
         paymentProofUploadedAt: null,
         paymentProofApprovedAt: null,
         travelDetails: null,
+        inPersonInterviewSelectedAt: null,
+        inPersonInterviewAllowed: IN_PERSON_INTERVIEW_PROGRAMS.includes(user?.program),
         registrationFeeStatus: null,
         registrationFeePaidAt: null,
         registrationFeePaid: false,
@@ -94,6 +100,8 @@ router.get("/status", authMiddleware, async (req, res) => {
       paymentProofUploadedAt: application.paymentProofUploadedAt || null,
       paymentProofApprovedAt: application.paymentProofApprovedAt || null,
       travelDetails: application.travelDetails?.submittedAt ? application.travelDetails : null,
+      inPersonInterviewSelectedAt: application.inPersonInterview?.selectedAt || null,
+      inPersonInterviewAllowed: IN_PERSON_INTERVIEW_PROGRAMS.includes(user?.program),
       registrationFeeStatus: application.registrationFeeStatus || null,
       registrationFeePaidAt: application.registrationFeePaidAt || null,
       registrationFeePaid: isRegistrationFeePaid(application),
@@ -172,6 +180,8 @@ router.put("/save", authMiddleware, async (req, res) => {
     delete applicationData.applicationRound;
     delete applicationData.fijPaymentProofUrl;
     delete applicationData.fijPaymentProofUploadedAt;
+    delete applicationData.inPersonInterview;
+    delete applicationData.travelDetails;
     if (isFijCurrentRoundRegistrant(user)) applicationData.applicationRound = FIJ_CURRENT_ROUND;
 
     // Remove step completion flags for draft saves
@@ -507,6 +517,67 @@ router.post("/confirm-dates", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error confirming dates:", error);
     res.status(500).json({ message: "Error submitting dates" });
+  }
+});
+
+// Skip the AI interview because the student already had an in-person interview.
+// Marks step 2 as done so the application appears in the admin's pending decision letters.
+router.post("/in-person-interview", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("program cvAnalyzed interviewCompleted");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!IN_PERSON_INTERVIEW_PROGRAMS.includes(user.program)) {
+      return res.status(403).json({ message: "This option is not available for your program." });
+    }
+    if (user.interviewCompleted) {
+      return res.status(400).json({ message: "You have already completed the AI interview." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application || !application.step1Completed) {
+      return res.status(403).json({ message: "Please complete the application form first." });
+    }
+    if (!user.cvAnalyzed) {
+      return res.status(403).json({ message: "Please upload your CV first." });
+    }
+
+    application.inPersonInterview = { selectedAt: application.inPersonInterview?.selectedAt || new Date() };
+    application.step2Completed = true;
+    application.currentStep = Math.max(application.currentStep || 1, 3);
+    await application.save();
+
+    res.json({
+      message: "Noted. Your application will go to the committee for the decision letter.",
+      inPersonInterviewSelectedAt: application.inPersonInterview.selectedAt,
+    });
+  } catch (error) {
+    console.error("Error selecting in-person interview:", error);
+    res.status(500).json({ message: "Error saving your choice" });
+  }
+});
+
+// Undo the in-person choice and go back to the AI interview, as long as no decision letter exists yet
+router.delete("/in-person-interview", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("interviewCompleted");
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application?.inPersonInterview?.selectedAt) {
+      return res.status(400).json({ message: "You have not selected the in-person interview option." });
+    }
+    if (application.acceptanceLetterGeneratedAt) {
+      return res.status(400).json({ message: "Your decision letter is already available, so this can no longer be changed." });
+    }
+
+    application.inPersonInterview = undefined;
+    if (!user?.interviewCompleted) {
+      application.step2Completed = false;
+    }
+    await application.save();
+
+    res.json({ message: "You can now take the AI interview." });
+  } catch (error) {
+    console.error("Error undoing in-person interview:", error);
+    res.status(500).json({ message: "Error saving your choice" });
   }
 });
 

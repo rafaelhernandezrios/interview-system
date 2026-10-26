@@ -238,7 +238,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-          <ApplicationStepper applicationStatus={applicationStatus} onDownloadAcceptanceLetterSuccess={fetchApplicationStatus} program={profile?.program} />
+          <ApplicationStepper applicationStatus={applicationStatus} onDownloadAcceptanceLetterSuccess={fetchApplicationStatus} onStatusChange={fetchApplicationStatus} program={profile?.program} />
           <FijPaymentProofSection fijPaymentProof={applicationStatus?.fijPaymentProof} onSuccess={fetchApplicationStatus} />
           {isMIRI && applicationStatus?.registrationFeePaid && (
             <ConfirmDatesSection applicationStatus={applicationStatus} onSuccess={fetchApplicationStatus} />

@@ -101,6 +101,12 @@ const applicationSchema = new mongoose.Schema(
     paymentProofUploadedAt: { type: Date },
     paymentProofApprovedAt: { type: Date },
 
+    // Student says they already had an in-person interview, so the AI interview is skipped
+    // and the application goes straight to the decision letter review
+    inPersonInterview: {
+      selectedAt: { type: Date },
+    },
+
     // MIRI: optional travel details (passport, flights, accommodation plan) shared after dates are approved
     travelDetails: {
       passportFullName: { type: String },

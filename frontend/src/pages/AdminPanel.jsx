@@ -862,6 +862,14 @@ const AdminPanel = () => {
                             >
                               {row.name || '—'}
                             </button>
+                            {row.inPersonInterview && (
+                              <span
+                                className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 whitespace-nowrap"
+                                title="The student said they already had an in-person interview and skipped the AI interview"
+                              >
+                                In-person
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-gray-700">{row.email || '—'}</td>
                           <td className="px-4 py-3 text-gray-700">{row.program || '—'}</td>
@@ -1727,6 +1735,13 @@ const AdminPanel = () => {
                       <DataCard label="Program" value={userDetails.program || 'N/A'} />
                       <DataCard label="Academic Level" value={userDetails.academic_level || 'N/A'} />
                       <DataCard label="Digital ID" value={userDetails.digitalId || 'N/A'} />
+                      {userDetails.application?.inPersonInterview?.selectedAt && !userDetails.interviewCompleted && (
+                        <DataCard
+                          label="Interview"
+                          value={`In-person interview (AI interview skipped on ${formatDate(userDetails.application.inPersonInterview.selectedAt)})`}
+                          colSpan={2}
+                        />
+                      )}
                     </div>
                   </div>
 

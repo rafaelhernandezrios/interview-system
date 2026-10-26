@@ -1060,7 +1060,7 @@ router.get("/pending-decision-letters", async (req, res) => {
         { acceptanceLetterGeneratedAt: { $exists: false } },
       ],
     })
-      .select("userId updatedAt")
+      .select("userId updatedAt inPersonInterview")
       .populate("userId", "name email program cvAnalyzed interviewCompleted isActive")
       .sort({ updatedAt: -1 })
       .lean();
@@ -1075,6 +1075,7 @@ router.get("/pending-decision-letters", async (req, res) => {
         program: app.userId?.program,
         applicationSubmittedAt: app.updatedAt,
         applicationId: app._id,
+        inPersonInterview: !!app.inPersonInterview?.selectedAt && !app.userId?.interviewCompleted,
       }));
     res.json({ pending: list });
   } catch (error) {

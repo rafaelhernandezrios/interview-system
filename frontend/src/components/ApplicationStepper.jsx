@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/axios';
 
-const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSuccess, program }) => {
+const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSuccess, onStatusChange, program }) => {
   const [payingFee, setPayingFee] = useState(false);
+  const [savingInPerson, setSavingInPerson] = useState(false);
+  const inPersonInterviewAllowed = applicationStatus?.inPersonInterviewAllowed === true;
+  const inPersonInterviewSelected = !!applicationStatus?.inPersonInterviewSelectedAt;
   const step1Completed = applicationStatus?.step1Completed || false;
   const step2Completed = applicationStatus?.step2Completed || false;
   const step3Completed = applicationStatus?.step3Completed || false;
@@ -110,7 +113,11 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
     {
       id: 2,
       title: 'AI Interview',
-      description: 'Answer personalized interview questions',
+      description: inPersonInterviewSelected
+        ? 'Skipped: you told us you already had an in-person interview. The committee will review your application for the decision letter.'
+        : inPersonInterviewAllowed
+        ? 'Answer personalized interview questions. Already had an in-person interview with Mirai? You can skip this step.'
+        : 'Answer personalized interview questions',
       route: '/interview',
       completed: step2Completed,
       available: step1Completed && cvAnalyzed,
@@ -165,6 +172,96 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
         alert(error.response?.data?.message || 'Error downloading acceptance letter.');
       }
     }
+  };
+
+  const handleSelectInPersonInterview = async () => {
+    if (
+      !window.confirm(
+        'Confirm that you already had an in-person interview with Mirai. You will skip the AI interview and your application will go straight to the committee for the decision letter.'
+      )
+    ) {
+      return;
+    }
+    setSavingInPerson(true);
+    try {
+      await api.post('/application/in-person-interview');
+      if (typeof onStatusChange === 'function') await onStatusChange();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error saving your choice.');
+    } finally {
+      setSavingInPerson(false);
+    }
+  };
+
+  const handleUndoInPersonInterview = async () => {
+    if (!window.confirm('Go back and take the AI interview instead?')) return;
+    setSavingInPerson(true);
+    try {
+      await api.delete('/application/in-person-interview');
+      if (typeof onStatusChange === 'function') await onStatusChange();
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error saving your choice.');
+    } finally {
+      setSavingInPerson(false);
+    }
+  };
+
+  const renderInterviewStepAction = (step, isActive) => {
+    if (inPersonInterviewSelected) {
+      return (
+        <div className="flex flex-col items-end gap-1">
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            In-person interview
+          </span>
+          {!acceptanceLetterGeneratedAt && (
+            <button
+              type="button"
+              onClick={handleUndoInPersonInterview}
+              disabled={savingInPerson}
+              className="text-xs text-gray-500 hover:text-gray-700 underline disabled:opacity-50"
+            >
+              Take the AI interview instead
+            </button>
+          )}
+        </div>
+      );
+    }
+    if (step.completed) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+          Completed
+        </span>
+      );
+    }
+    if (!step.available) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-500">
+          Locked
+        </span>
+      );
+    }
+    return (
+      <div className="flex flex-col items-end gap-2">
+        <Link to={step.route}>
+          <button className="inline-flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg shadow-blue-500/40 hover:shadow-xl hover:scale-105 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+            {isActive ? 'Continue' : 'Start'}
+            <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </button>
+        </Link>
+        {inPersonInterviewAllowed && (
+          <button
+            type="button"
+            onClick={handleSelectInPersonInterview}
+            disabled={savingInPerson}
+            className="inline-flex items-center justify-center bg-white border border-gray-300 text-gray-700 font-semibold text-xs rounded-full px-4 py-2 hover:bg-gray-50 transition-all disabled:opacity-50"
+          >
+            {savingInPerson ? 'Saving...' : 'I already had an in-person interview'}
+          </button>
+        )}
+      </div>
+    );
   };
 
   const handlePayRegistrationFee = async () => {
@@ -396,6 +493,8 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                     <div className="flex-shrink-0">
                       {isPostLetterPaymentStep ? (
                         renderPostLetterStepAction(step)
+                      ) : step.id === 2 ? (
+                        renderInterviewStepAction(step, isActive)
                       ) : step.id === 'fij-payment' ? (
                         isCompleted ? (
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
