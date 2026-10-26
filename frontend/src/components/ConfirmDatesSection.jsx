@@ -85,7 +85,7 @@ const ConfirmDatesSection = ({ applicationStatus, onSuccess }) => {
 
   return (
     <div className="mt-8 pt-6 border-t border-white/40">
-      <h3 className="text-lg font-bold text-gray-900 mb-3">Confirm dates</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-3">Select Participation Dates</h3>
       <p className="text-sm text-gray-600 mb-4">
         Select your program participation date range. An admin will verify and approve; then you can download your invoice.
       </p>
@@ -123,7 +123,7 @@ const ConfirmDatesSection = ({ applicationStatus, onSuccess }) => {
             </button>
           </div>
 
-          {/* Payment proof upload moved to the new "Register Payment" step below the stepper */}
+          {/* Payment proof upload moved to the "Program Payment" step below the stepper */}
         </>
       )}
 

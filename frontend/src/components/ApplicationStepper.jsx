@@ -35,10 +35,13 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const registrationFeeUsd = applicationStatus?.registrationFeeAmountUsd ?? 250;
   const stripeConfigured = applicationStatus?.stripeConfigured !== false;
 
+  const invoiceStatus = applicationStatus?.invoiceStatus || null;
+  const datesApproved = invoiceStatus === 'approved';
+
   const miriPostLetterSteps = isMIRI
     ? [
         {
-          id: 5,
+          id: 'registration-fee',
           title: 'Registration Fee Payment',
           description: `Pay the program registration fee (USD ${registrationFeeUsd}) via Stripe. Once paid, you can select your participation dates.`,
           route: null,
@@ -46,12 +49,20 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
           available: step4Completed,
         },
         {
-          id: 6,
-          title: 'Register Payment',
-          description: 'Select your participation dates, then upload your tuition payment receipt (PDF) once they are approved',
+          id: 'select-dates',
+          title: 'Select Participation Dates',
+          description: 'Choose your participation dates. Once an admin approves them, you can download your invoice.',
+          route: null,
+          completed: datesApproved,
+          available: step4Completed && registrationFeePaid,
+        },
+        {
+          id: 'program-payment',
+          title: 'Program Payment',
+          description: 'Pay the program tuition shown on your invoice, then upload the payment receipt (PDF) for verification',
           route: null,
           completed: paymentProofStatus === 'approved',
-          available: step4Completed && registrationFeePaid,
+          available: step4Completed && registrationFeePaid && datesApproved,
         },
       ]
     : [];
@@ -59,7 +70,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
   const emfutechPostLetterSteps = isEMFUTECH
     ? [
         {
-          id: 5,
+          id: 'register-payment',
           title: 'Register Payment',
           description: 'Upload your payment receipt (PDF) so an admin can verify it',
           route: null,
@@ -178,7 +189,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
       );
     }
 
-    if (step.id === 5 && isMIRI) {
+    if (step.id === 'registration-fee') {
       if (registrationFeePaid) {
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
@@ -208,7 +219,36 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
       );
     }
 
-    if (step.title === 'Register Payment') {
+    if (step.id === 'select-dates') {
+      if (invoiceStatus === 'approved') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+            Dates approved
+          </span>
+        );
+      }
+      if (invoiceStatus === 'pending') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+            Under review
+          </span>
+        );
+      }
+      if (invoiceStatus === 'rejected') {
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+            Rejected — resubmit
+          </span>
+        );
+      }
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+          Select below
+        </span>
+      );
+    }
+
+    if (step.id === 'program-payment' || step.id === 'register-payment') {
       if (paymentProofStatus === 'approved') {
         return (
           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
@@ -253,7 +293,12 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
           const isAvailable = step.available;
           const isLast = index === steps.length - 1;
           const displayStepNumber = index + 1;
-          const isPostLetterPaymentStep = step.id === 5 || step.id === 6 || (isEMFUTECH && step.id === 5);
+          const isPostLetterPaymentStep = [
+            'registration-fee',
+            'select-dates',
+            'program-payment',
+            'register-payment',
+          ].includes(step.id);
 
           return (
             <div key={step.id} className="relative">

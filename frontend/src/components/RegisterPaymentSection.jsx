@@ -62,7 +62,7 @@ const RegisterPaymentSection = ({ applicationStatus, program, onSuccess }) => {
 
   return (
     <div className="mt-8 pt-6 border-t border-white/40">
-      <h3 className="text-lg font-bold text-gray-900 mb-2">Register Payment</h3>
+      <h3 className="text-lg font-bold text-gray-900 mb-2">{isMIRI ? 'Program Payment' : 'Register Payment'}</h3>
       <p className="text-sm text-gray-600 mb-4">
         Upload your payment receipt in PDF format. An admin will review and approve it; once approved, your registration payment will be marked as verified
         {isMIRI ? ' and your invoice will be marked as paid.' : '.'}
