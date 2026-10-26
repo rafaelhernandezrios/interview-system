@@ -13,6 +13,11 @@ const PrivateRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
+  // Student pages are not for managers: send them to their student list
+  if (user.role === 'manager') {
+    return <Navigate to="/manager" replace />;
+  }
+
   return children;
 };
 

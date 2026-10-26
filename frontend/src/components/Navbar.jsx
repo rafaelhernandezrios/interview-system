@@ -4,15 +4,22 @@ import { AuthContext } from '../contexts/AuthContext';
 import api from '../utils/axios';
 import logo from '../assets/logo.png';
 
+const ROLE_LABELS = { admin: 'Administrator', manager: 'Manager', user: 'User' };
+
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
+  const isManager = user?.role === 'manager';
+  const isStudent = !!user && !['admin', 'manager'].includes(user.role);
+  // Managers only have the student list, so it replaces the dashboard for them
+  const homePath = isManager ? '/manager' : '/dashboard';
+  const homeLabel = isManager ? 'Students' : 'Dashboard';
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [applicationStatus, setApplicationStatus] = useState(null);
 
   // Fetch application status for navigation indicators
   useEffect(() => {
-    if (user && user.role !== 'admin') {
+    if (user && isStudent) {
       const fetchStatus = async () => {
         try {
           const response = await api.get('/application/status', {
@@ -37,7 +44,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
         <div className="flex justify-between items-center">
-          <Link to="/dashboard" className="flex items-center gap-2 sm:gap-3 group">
+          <Link to={homePath} className="flex items-center gap-2 sm:gap-3 group">
             <img 
               src={logo} 
               alt="Mirai Innovation" 
@@ -54,15 +61,15 @@ const Navbar = () => {
             {user && (
               <>
                 <Link 
-                  to="/dashboard" 
+                  to={homePath} 
                   className="text-gray-700 hover:text-blue-600 font-medium transition px-3 py-2 rounded-lg hover:bg-white/50 flex items-center gap-2"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
-                  Dashboard
+                  {homeLabel}
                 </Link>
-                {user.role !== 'admin' && (
+                {isStudent && (
                   <>
                     <Link 
                       to="/application-form" 
@@ -168,7 +175,7 @@ const Navbar = () => {
                 <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
                   <div className="text-right hidden xl:block">
                     <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                    <p className="text-xs text-gray-500">{user.role === 'admin' ? 'Administrator' : 'User'}</p>
+                    <p className="text-xs text-gray-500">{ROLE_LABELS[user.role] || 'User'}</p>
                   </div>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
                     <span className="text-white font-bold text-sm">
@@ -211,16 +218,16 @@ const Navbar = () => {
           <div className="lg:hidden mt-4 pb-4 border-t border-gray-200 pt-4">
             <div className="flex flex-col gap-2">
               <Link 
-                to="/dashboard" 
+                to={homePath} 
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-gray-700 hover:text-blue-600 font-medium transition px-3 py-2 rounded-lg hover:bg-white/50 flex items-center gap-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
-                Dashboard
+                {homeLabel}
               </Link>
-              {user.role !== 'admin' && (
+              {isStudent && (
                 <>
                   <Link 
                     to="/application-form" 
@@ -339,7 +346,7 @@ const Navbar = () => {
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.role === 'admin' ? 'Administrator' : 'User'}</p>
+                  <p className="text-xs text-gray-500">{ROLE_LABELS[user.role] || 'User'}</p>
                 </div>
                 <button
                   onClick={handleLogout}

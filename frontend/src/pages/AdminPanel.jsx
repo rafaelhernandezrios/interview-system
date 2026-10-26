@@ -870,6 +870,18 @@ const AdminPanel = () => {
                                 In-person
                               </span>
                             )}
+                            {row.managerReview?.interviewed && (
+                              <div className="mt-1 text-xs text-gray-600 max-w-xs">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full font-semibold bg-indigo-100 text-indigo-700 whitespace-nowrap">
+                                  Interviewed by {row.managerReview.reportedByName || 'a manager'}
+                                </span>
+                                {row.managerReview.comments && (
+                                  <p className="mt-1 whitespace-pre-line line-clamp-3" title={row.managerReview.comments}>
+                                    {row.managerReview.comments}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </td>
                           <td className="px-4 py-3 text-gray-700">{row.email || '—'}</td>
                           <td className="px-4 py-3 text-gray-700">{row.program || '—'}</td>
@@ -1264,6 +1276,7 @@ const AdminPanel = () => {
                 <option value="">All Roles</option>
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
               </select>
               <select
                 value={filterStatus}
@@ -1470,6 +1483,7 @@ const AdminPanel = () => {
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
                       </select>
                     </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
@@ -1698,7 +1712,7 @@ const AdminPanel = () => {
                     <div>
                       <h2 className="text-2xl font-bold text-gray-900">{userDetails.name}</h2>
                       <p className="text-sm text-gray-600">
-                        {userDetails.role === 'admin' ? 'Administrator' : 'User'}
+                        {userDetails.role === 'admin' ? 'Administrator' : userDetails.role === 'manager' ? 'Manager' : 'User'}
                       </p>
                     </div>
                   </div>
@@ -1739,6 +1753,24 @@ const AdminPanel = () => {
                         <DataCard
                           label="Interview"
                           value={`In-person interview (AI interview skipped on ${formatDate(userDetails.application.inPersonInterview.selectedAt)})`}
+                          colSpan={2}
+                        />
+                      )}
+                      {userDetails.managerReview?.reportedAt && (
+                        <DataCard
+                          label={`Manager interview report · ${userDetails.managerReview.reportedByName || 'Manager'} · ${formatDate(userDetails.managerReview.updatedAt || userDetails.managerReview.reportedAt)}`}
+                          value={
+                            <span className="block">
+                              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                userDetails.managerReview.interviewed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {userDetails.managerReview.interviewed ? 'Interviewed' : 'Not interviewed'}
+                              </span>
+                              {userDetails.managerReview.comments && (
+                                <span className="block mt-2 whitespace-pre-line text-sm">{userDetails.managerReview.comments}</span>
+                              )}
+                            </span>
+                          }
                           colSpan={2}
                         />
                       )}

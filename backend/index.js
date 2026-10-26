@@ -7,6 +7,7 @@ import { authRoutes } from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import applicationRoutes from "./routes/applicationRoutes.js";
+import managerRoutes from "./routes/managerRoutes.js";
 import stripeWebhookRoutes from "./routes/stripeWebhook.js";
 
 dotenv.config();
@@ -178,6 +179,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/application", applicationRoutes);
+app.use("/api/manager", managerRoutes);
 
 // Ruta de prueba
 app.get("/", (req, res) => {

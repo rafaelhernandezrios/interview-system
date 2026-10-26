@@ -300,7 +300,7 @@ router.patch("/users/:userId/role", async (req, res) => {
   try {
     const { role } = req.body;
     
-    if (!role || !["user", "admin"].includes(role)) {
+    if (!role || !["user", "admin", "manager"].includes(role)) {
       return res.status(400).json({ message: "Rol inválido" });
     }
 
@@ -1077,6 +1077,42 @@ router.get("/pending-decision-letters", async (req, res) => {
         applicationId: app._id,
         inPersonInterview: !!app.inPersonInterview?.selectedAt && !app.userId?.interviewCompleted,
       }));
+
+    // Students a manager reported as interviewed also wait for a decision letter,
+    // whether or not they finished the application form or the AI interview
+    const reviewedStudents = await User.find({ role: "user", "managerReview.interviewed": true })
+      .select("name email program managerReview")
+      .lean();
+    const reviewedIds = reviewedStudents.map((u) => u._id);
+    const withLetter = new Set(
+      (
+        await Application.find({ userId: { $in: reviewedIds }, acceptanceLetterGeneratedAt: { $ne: null } })
+          .select("userId")
+          .lean()
+      ).map((a) => String(a.userId))
+    );
+    const reviewById = new Map(reviewedStudents.map((u) => [String(u._id), u]));
+
+    for (const row of list) {
+      const reviewed = reviewById.get(String(row.userId));
+      if (reviewed) row.managerReview = reviewed.managerReview;
+    }
+    const listed = new Set(list.map((row) => String(row.userId)));
+    for (const u of reviewedStudents) {
+      const id = String(u._id);
+      if (listed.has(id) || withLetter.has(id)) continue;
+      list.push({
+        userId: u._id,
+        name: u.name,
+        email: u.email,
+        program: u.program,
+        applicationSubmittedAt: u.managerReview?.updatedAt || u.managerReview?.reportedAt,
+        applicationId: null,
+        inPersonInterview: false,
+        managerReview: u.managerReview,
+      });
+    }
+
     res.json({ pending: list });
   } catch (error) {
     console.error("Error listing pending decision letters:", error);

@@ -487,6 +487,86 @@ Evaluation and Selection System`;
   }
 };
 
+// Tells an admin that a manager interviewed a student, so the admin can generate the decision letter
+export const sendManagerInterviewReportToAdmins = async (
+  adminEmail,
+  { studentName, studentEmail, program, managerName, comments }
+) => {
+  try {
+    const transporter = createTransporter();
+    const adminUrl = `${process.env.FRONTEND_URL || ''}/admin`;
+
+    const textVersion = `Mirai Innovation Research Institute - Interview reported by a manager
+
+${managerName} reported that they interviewed this student:
+- Name: ${studentName}
+- Email: ${studentEmail}
+- Program: ${program || 'N/A'}
+
+Comments:
+${comments || '(no comments)'}
+
+The student is now in "Pending decision letters" in the admin panel, where you can generate their decision letter:
+${adminUrl}`;
+
+    const htmlVersion = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Interview reported</title></head>
+<body style="margin: 0; padding: 0; font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 20px 0; text-align: center;">
+        <table role="presentation" style="width: 600px; max-width: 100%; margin: 0 auto; border-collapse: collapse; background-color: #ffffff; text-align: left;">
+          <tr>
+            <td style="padding: 30px; border-bottom: 3px solid #2563eb; text-align: center;">
+              <h1 style="margin: 0; color: #1e40af; font-size: 22px;">Mirai Innovation Research Institute</h1>
+              <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">Interview reported by a manager</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px;">
+              <p style="margin: 0 0 20px 0; color: #475569; font-size: 16px; line-height: 1.6;">
+                <strong>${escapeHtml(managerName)}</strong> reported that they interviewed this student.
+              </p>
+              <div style="background-color: #f0f9ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 0 0 20px 0; border-radius: 4px; color: #1e293b; font-size: 14px; line-height: 1.8;">
+                <strong>Name:</strong> ${escapeHtml(studentName)}<br>
+                <strong>Email:</strong> ${escapeHtml(studentEmail)}<br>
+                <strong>Program:</strong> ${escapeHtml(program || 'N/A')}
+              </div>
+              <p style="margin: 0 0 8px 0; color: #1e293b; font-size: 14px; font-weight: 600;">Comments</p>
+              <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 4px; color: #475569; font-size: 14px; line-height: 1.6;">
+                ${comments ? nl2br(escapeHtml(comments)) : '<em>No comments</em>'}
+              </div>
+              <p style="margin: 24px 0; color: #475569; font-size: 14px; line-height: 1.6;">
+                The student now appears in <strong>Pending decision letters</strong>, where you can generate their decision letter.
+              </p>
+              <div style="text-align: center;">
+                <a href="${adminUrl}" style="display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Open admin panel</a>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const result = await transporter.sendMail({
+      from: `"Mirai Innovation Research Institute" <${process.env.EMAIL_USER}>`,
+      to: adminEmail,
+      replyTo: process.env.EMAIL_USER,
+      subject: `Interview reported - ${studentName}`,
+      text: textVersion,
+      html: htmlVersion,
+    });
+    return { success: true, messageId: result.messageId };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 export const sendReportResponseNotification = async (userEmail, userName, reportSubject, adminMessage, adminName) => {
   try {
     console.log(`[sendReportResponseNotification] Starting email send to ${userEmail}`);

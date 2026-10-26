@@ -10,7 +10,8 @@ const userSchema = new mongoose.Schema(
     academic_level: { type: String },
     program: { type: String, enum: ['MIRI', 'EMFUTECH', 'JCTI', 'MIRAITEACH', 'FUTURE_INNOVATORS_JAPAN', 'OTHER'], required: false },
     digitalId: { type: String, unique: true }, // Formato: PROGRAMA-AÑO-NÚMERO (ej: MIRI-2025-1)
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    // manager: can only see the student list and report interviews (see managerRoutes.js)
+    role: { type: String, enum: ['user', 'admin', 'manager'], default: 'user' },
     isActive: { type: Boolean, default: false },
     resetPasswordToken: { type: String },
     resetPasswordExpires: { type: Date },
@@ -37,6 +38,16 @@ const userSchema = new mongoose.Schema(
     interviewRecommendations: { type: String }, // Analysis and recommendations for improvement
     interviewCompleted: { type: Boolean, default: false },
     retakeReason: { type: String }, // Reason for retaking the interview
+
+    // Interview report written by a manager: whether they interviewed the student and their comments
+    managerReview: {
+      interviewed: { type: Boolean },
+      comments: { type: String },
+      reportedById: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      reportedByName: { type: String },
+      reportedAt: { type: Date },
+      updatedAt: { type: Date },
+    },
     satisfactionSurvey: {
       rating: { type: Number }, // 1-5 rating
       comments: { type: String }, // Comments and improvements

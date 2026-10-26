@@ -18,6 +18,8 @@ import ScheduleScreening from './pages/ScheduleScreening';
 import ReportProblem from './pages/ReportProblem';
 import PrivateRoute from './components/PrivateRoute';
 import AdminRoute from './components/AdminRoute';
+import ManagerRoute from './components/ManagerRoute';
+import ManagerPanel from './pages/ManagerPanel';
 import './App.css';
 
 function App() {
@@ -108,6 +110,14 @@ function App() {
               <AdminRoute>
                 <AdminInvoicePdfDownload />
               </AdminRoute>
+            }
+          />
+          <Route
+            path="/manager"
+            element={
+              <ManagerRoute>
+                <ManagerPanel />
+              </ManagerRoute>
             }
           />
           <Route
