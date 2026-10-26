@@ -620,15 +620,16 @@ const CVUpload = () => {
                         Interview Questions Generated
                       </h3>
                       <p className="text-gray-600 text-sm">
-                        Your personalized interview questions are ready. Start your interview now!
+                        Your personalized interview questions are ready. Go back to your dashboard to start the AI interview
+                        {['MIRI', 'EMFUTECH'].includes(profile.program) && ' or tell us you already had an in-person interview'}.
                       </p>
                     </div>
                   </div>
                   <Link
-                    to="/interview"
+                    to="/dashboard"
                     className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-6 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.05] flex items-center gap-2"
                   >
-                    <span>Go to Interview</span>
+                    <span>Back to Dashboard</span>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                     </svg>
