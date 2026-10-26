@@ -3069,6 +3069,49 @@ const AdminPanel = () => {
                           </div>
                         )}
                       </div>
+
+                      {/* Travel details (optional, shared by the student after dates are approved) */}
+                      <div className="glass-card p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                          <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                          Travel Details
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">Optional</span>
+                        </h3>
+                        {(() => {
+                          const t = userDetails.application?.travelDetails;
+                          if (!t?.submittedAt) {
+                            return <p className="text-gray-500">This user has not shared travel details yet.</p>;
+                          }
+                          const jst = (d) => d
+                            ? `${new Date(d).toLocaleString('en-US', { timeZone: 'Asia/Tokyo', year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })} (JST)`
+                            : null;
+                          const day = (d) => d
+                            ? new Date(d).toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' })
+                            : null;
+                          const accommodation = {
+                            mirai: "Mirai's accommodation service",
+                            own: 'Arranging own accommodation',
+                            undecided: 'Not decided yet',
+                          }[t.accommodationPlan];
+                          return (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <DataCard label="Name on passport" value={t.passportFullName} />
+                              <DataCard label="Nationality" value={t.passportNationality} />
+                              <DataCard label="Passport number" value={t.passportNumber} />
+                              <DataCard label="Passport expiry" value={day(t.passportExpiryDate)} />
+                              <DataCard label="Arrival" value={jst(t.arrivalDateTime)} />
+                              <DataCard label="Arrival flight" value={[t.arrivalFlight, t.arrivalAirport].filter(Boolean).join(' · ')} />
+                              <DataCard label="Departure" value={jst(t.departureDateTime)} />
+                              <DataCard label="Departure flight" value={[t.departureFlight, t.departureAirport].filter(Boolean).join(' · ')} />
+                              <DataCard label="Accommodation" value={accommodation} />
+                              <DataCard label="Last updated" value={formatDate(t.updatedAt || t.submittedAt)} />
+                              {t.notes && <DataCard label="Notes" value={t.notes} colSpan={2} />}
+                            </div>
+                          );
+                        })()}
+                      </div>
                     </div>
                   )}
                 </div>

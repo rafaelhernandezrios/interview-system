@@ -101,6 +101,24 @@ const applicationSchema = new mongoose.Schema(
     paymentProofUploadedAt: { type: Date },
     paymentProofApprovedAt: { type: Date },
 
+    // MIRI: optional travel details (passport, flights, accommodation plan) shared after dates are approved
+    travelDetails: {
+      passportFullName: { type: String },
+      passportNationality: { type: String },
+      passportNumber: { type: String },
+      passportExpiryDate: { type: Date },
+      arrivalDateTime: { type: Date },
+      arrivalAirport: { type: String },
+      arrivalFlight: { type: String },
+      departureDateTime: { type: Date },
+      departureAirport: { type: String },
+      departureFlight: { type: String },
+      accommodationPlan: { type: String, enum: ['mirai', 'own', 'undecided'] },
+      notes: { type: String },
+      submittedAt: { type: Date },
+      updatedAt: { type: Date },
+    },
+
     // Admin follow-up for students who have not paid: outcome, checklist and notes
     paymentFollowUp: {
       status: { type: String, enum: ['pending', 'reschedule', 'continuing', 'dropped_out'] },
@@ -141,7 +159,7 @@ const applicationSchema = new mongoose.Schema(
 );
 
 // Enum fields: empty string is not valid; treat as "not set" so validation passes
-const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "registrationFeeStatus", "invoiceStatus", "paymentProofStatus", "paymentFollowUp.status"];
+const enumPaths = ["sex", "primaryPhoneType", "paymentSource", "englishLevel", "acceptanceLetterProgramType", "registrationFeeStatus", "invoiceStatus", "paymentProofStatus", "paymentFollowUp.status", "travelDetails.accommodationPlan"];
 
 applicationSchema.pre("save", function (next) {
   for (const path of enumPaths) {

@@ -64,6 +64,15 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
           completed: paymentProofStatus === 'approved',
           available: step4Completed && registrationFeePaid && datesApproved,
         },
+        {
+          id: 'travel-details',
+          title: 'Travel Details',
+          description: 'Share your passport and flight information, and book Mirai’s accommodation service if you need a place to stay',
+          route: null,
+          optional: true,
+          completed: !!applicationStatus?.travelDetails?.submittedAt,
+          available: step4Completed && registrationFeePaid && datesApproved,
+        },
       ]
     : [];
 
@@ -118,7 +127,10 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
     ...emfutechPostLetterSteps,
   ];
 
-  const activeStepId = steps.find((s) => !s.completed)?.id ?? steps[steps.length - 1]?.id;
+  // Optional steps never block progress: they are not "active" and do not count toward the totals
+  const requiredSteps = steps.filter((s) => !s.optional);
+  const requiredCompletedCount = requiredSteps.filter((s) => s.completed).length;
+  const activeStepId = requiredSteps.find((s) => !s.completed)?.id ?? requiredSteps[requiredSteps.length - 1]?.id;
 
   const handleDownloadAcceptanceLetter = async () => {
     try {
@@ -248,6 +260,18 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
       );
     }
 
+    if (step.id === 'travel-details') {
+      return step.completed ? (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+          Shared
+        </span>
+      ) : (
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+          Optional — fill below
+        </span>
+      );
+    }
+
     if (step.id === 'program-payment' || step.id === 'register-payment') {
       if (paymentProofStatus === 'approved') {
         return (
@@ -298,6 +322,7 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
             'select-dates',
             'program-payment',
             'register-payment',
+            'travel-details',
           ].includes(step.id);
 
           return (
@@ -357,6 +382,11 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
                         }`}
                       >
                         {step.title}
+                        {step.optional && (
+                          <span className="ml-2 align-middle inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                            Optional
+                          </span>
+                        )}
                       </h3>
                       <p className={`text-sm ${isAvailable ? 'text-gray-600' : 'text-gray-400'}`}>
                         {step.description}
@@ -432,14 +462,14 @@ const ApplicationStepper = ({ applicationStatus, onDownloadAcceptanceLetterSucce
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-gray-700">Overall Progress</span>
           <span className="text-sm font-bold text-gray-900">
-            {steps.filter((s) => s.completed).length} / {steps.length} Steps
+            {requiredCompletedCount} / {requiredSteps.length} Steps
           </span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500 rounded-full"
             style={{
-              width: `${(steps.filter((s) => s.completed).length / steps.length) * 100}%`,
+              width: `${requiredSteps.length ? (requiredCompletedCount / requiredSteps.length) * 100 : 0}%`,
             }}
           />
         </div>

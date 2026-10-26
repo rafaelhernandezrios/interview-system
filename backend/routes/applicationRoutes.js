@@ -58,6 +58,7 @@ router.get("/status", authMiddleware, async (req, res) => {
         paymentProofStatus: null,
         paymentProofUploadedAt: null,
         paymentProofApprovedAt: null,
+        travelDetails: null,
         registrationFeeStatus: null,
         registrationFeePaidAt: null,
         registrationFeePaid: false,
@@ -92,6 +93,7 @@ router.get("/status", authMiddleware, async (req, res) => {
       paymentProofStatus: application.paymentProofStatus || null,
       paymentProofUploadedAt: application.paymentProofUploadedAt || null,
       paymentProofApprovedAt: application.paymentProofApprovedAt || null,
+      travelDetails: application.travelDetails?.submittedAt ? application.travelDetails : null,
       registrationFeeStatus: application.registrationFeeStatus || null,
       registrationFeePaidAt: application.registrationFeePaidAt || null,
       registrationFeePaid: isRegistrationFeePaid(application),
@@ -505,6 +507,95 @@ router.post("/confirm-dates", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error("Error confirming dates:", error);
     res.status(500).json({ message: "Error submitting dates" });
+  }
+});
+
+// MIRI: optional travel details (passport, flights, accommodation plan).
+// Available once the participation dates are approved; can be updated at any time.
+const TRAVEL_TEXT_FIELDS = {
+  passportFullName: 120,
+  passportNationality: 80,
+  passportNumber: 40,
+  arrivalAirport: 80,
+  arrivalFlight: 40,
+  departureAirport: 80,
+  departureFlight: 40,
+  notes: 1000,
+};
+const TRAVEL_DATE_FIELDS = ["passportExpiryDate", "arrivalDateTime", "departureDateTime"];
+const ACCOMMODATION_PLANS = ["mirai", "own", "undecided"];
+
+router.put("/travel-details", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("program");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.program !== "MIRI") {
+      return res.status(403).json({ message: "Travel details are only available for the MIRI program." });
+    }
+
+    const application = await Application.findOne({ userId: req.userId });
+    if (!application || application.invoiceStatus !== "approved") {
+      return res.status(403).json({
+        message: "You can share your travel details once your participation dates are approved.",
+      });
+    }
+
+    const body = req.body || {};
+    const now = new Date();
+    const travelDetails = {
+      submittedAt: application.travelDetails?.submittedAt || now,
+      updatedAt: now,
+    };
+
+    for (const [field, maxLength] of Object.entries(TRAVEL_TEXT_FIELDS)) {
+      const value = typeof body[field] === "string" ? body[field].trim() : "";
+      if (value.length > maxLength) {
+        return res.status(400).json({ message: `${field} is too long (max ${maxLength} characters).` });
+      }
+      travelDetails[field] = value || null;
+    }
+
+    for (const field of TRAVEL_DATE_FIELDS) {
+      if (!body[field]) {
+        travelDetails[field] = null;
+        continue;
+      }
+      const date = new Date(body[field]);
+      if (isNaN(date.getTime())) {
+        return res.status(400).json({ message: `Invalid date for ${field}.` });
+      }
+      travelDetails[field] = date;
+    }
+
+    if (
+      travelDetails.arrivalDateTime &&
+      travelDetails.departureDateTime &&
+      travelDetails.departureDateTime <= travelDetails.arrivalDateTime
+    ) {
+      return res.status(400).json({ message: "Departure must be after arrival." });
+    }
+
+    const plan = body.accommodationPlan;
+    if (plan && !ACCOMMODATION_PLANS.includes(plan)) {
+      return res.status(400).json({ message: "Invalid accommodation option." });
+    }
+    travelDetails.accommodationPlan = plan || null;
+
+    const hasAnyValue = [...Object.keys(TRAVEL_TEXT_FIELDS), ...TRAVEL_DATE_FIELDS, "accommodationPlan"].some(
+      (field) => travelDetails[field]
+    );
+    if (!hasAnyValue) {
+      return res.status(400).json({ message: "Please fill in at least one field." });
+    }
+
+    application.travelDetails = travelDetails;
+    application.markModified("travelDetails");
+    await application.save();
+
+    res.json({ message: "Travel details saved.", travelDetails: application.travelDetails });
+  } catch (error) {
+    console.error("Error saving travel details:", error);
+    res.status(500).json({ message: "Error saving travel details" });
   }
 });
 

@@ -5,6 +5,7 @@ import api from '../utils/axios';
 import ApplicationStepper from '../components/ApplicationStepper';
 import ConfirmDatesSection from '../components/ConfirmDatesSection';
 import RegisterPaymentSection from '../components/RegisterPaymentSection';
+import TravelDetailsSection from '../components/TravelDetailsSection';
 import FijPaymentProofSection from '../components/FijPaymentProofSection';
 
 // Circular progress (same style as main / Results)
@@ -170,18 +171,21 @@ const Dashboard = () => {
     );
   }
 
-  // Match ApplicationStepper: MIRI has 6 steps; EMFUTECH has 5; others cap at 4
+  // Match ApplicationStepper's required steps: MIRI has 7; EMFUTECH has 5; others cap at 4.
+  // The optional MIRI Travel Details step is not counted.
   const isMIRI = profile?.program === 'MIRI';
   const isEMFUTECH = profile?.program === 'EMFUTECH';
   const fijPaymentProofRequired = applicationStatus?.fijPaymentProof?.required === true;
-  const activeStepsTotal = (isMIRI ? 6 : isEMFUTECH ? 5 : 4) + (fijPaymentProofRequired ? 1 : 0);
+  const activeStepsTotal = (isMIRI ? 7 : isEMFUTECH ? 5 : 4) + (fijPaymentProofRequired ? 1 : 0);
   const baseCompleted = applicationStatus
     ? [applicationStatus.step1Completed, applicationStatus.cvAnalyzed, applicationStatus.step2Completed, applicationStatus.step4Completed].filter(Boolean).length
     : 0;
-  const registrationFeeCompleted = isMIRI && applicationStatus?.registrationFeePaid ? 1 : 0;
+  const miriPreTuitionCompleted =
+    (isMIRI && applicationStatus?.registrationFeePaid ? 1 : 0) +
+    (isMIRI && applicationStatus?.invoiceStatus === 'approved' ? 1 : 0);
   const paymentCompleted = (isMIRI || isEMFUTECH) && applicationStatus?.paymentProofStatus === 'approved' ? 1 : 0;
   const fijPaymentProofCompleted = fijPaymentProofRequired && applicationStatus?.fijPaymentProof?.uploadedAt ? 1 : 0;
-  const activeStepsCompleted = baseCompleted + registrationFeeCompleted + paymentCompleted + fijPaymentProofCompleted;
+  const activeStepsCompleted = baseCompleted + miriPreTuitionCompleted + paymentCompleted + fijPaymentProofCompleted;
   const journeyPercentage = activeStepsTotal ? Math.round((activeStepsCompleted / activeStepsTotal) * 100) : 0;
 
   return (
@@ -245,6 +249,9 @@ const Dashboard = () => {
               program={profile?.program}
               onSuccess={fetchApplicationStatus}
             />
+          )}
+          {isMIRI && applicationStatus?.registrationFeePaid && applicationStatus?.invoiceStatus === 'approved' && (
+            <TravelDetailsSection applicationStatus={applicationStatus} onSuccess={fetchApplicationStatus} />
           )}
         </div>
 
